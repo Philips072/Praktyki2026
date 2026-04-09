@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import HomeHeader from './Components/HomeHeader'
 
 function App() {
 
@@ -6,11 +7,9 @@ function App() {
   return (
     <>
       <HomeHeader />
-        <Routes>
-          
-        </Routes>
+        {/* <Routes>
 
-      <Footer />
+        </Routes> */}
     </>
   )
 }

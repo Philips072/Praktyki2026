@@ -2,7 +2,9 @@ import './HomeHeader.css'
 
 function HomeHeader() {
   return (
-
+    <>
+    
+    </>
   )
 }
 

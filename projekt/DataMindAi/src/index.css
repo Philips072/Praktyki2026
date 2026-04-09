@@ -1,5 +1,5 @@
 :root {
-  --primaryBg: #0d1117;
+  --primaryBg: #1a1a1a;
   --containerBoxBg: #212121;
   --sidebarBg: #1c1c1c;
   --primaryText: #fcf6f3;
@@ -15,7 +15,16 @@
   --aiMessageBg: #314176;
 }
 
+}
 *{
   margin: 0;
-  border: 0;
+}
+@font-face {
+  font-family: 'VennRegular';
+  src: url('../Venn_Trial_Rg.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+body{
+  background-color: var(--primaryBg);
 }

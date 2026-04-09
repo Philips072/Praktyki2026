@@ -1,0 +1,58 @@
+header{
+    background-color: var(--primaryBg);
+    font-family: VennRegular;
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px var(--borderColor) solid;
+}
+
+header ul{
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+}
+header ul li img{
+    height: 35px;
+}
+header button{
+    height: 40px;
+    padding: 0 25px;
+    border: none;
+    color: var(--primaryText);
+    font-size: 15px;
+    cursor: pointer;
+}
+header a:first-child button{
+    background-color: var(--grayBtnBg);
+}
+header a:last-child button{
+    background-color: var(--accentColor);
+    border-radius: 10px;
+    transition: .3s;
+}
+header a:last-child:hover button{
+    background-color: var(--btnHoverBlue);
+    color: var(--secondaryText);
+}
+header ul li{
+    display: flex;
+    gap: 20px;
+}
+header ul .hamburger{
+    display: none;
+}
+header a{
+    display: flex;
+    align-items: center;
+}
+@media screen and (max-width: 1000px) {
+    header ul li{
+        display: none;
+    }
+    header ul .hamburger{
+        display: flex;
+    }
+}

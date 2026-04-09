@@ -13,5 +13,9 @@
   --btnHoverBlue: #303e6d;
 
   --aiMessageBg: #314176;
+}
 
+*{
+  margin: 0;
+  border: 0;
 }

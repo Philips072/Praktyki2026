@@ -1,12 +1,12 @@
-import { Routes, Route } from 'react-router-dom'
-import HomeHeader from './Components/HomeHeader'
+import React from 'react'
+import Home1 from './Components/Home1'
 
 function App() {
 
   
   return (
     <>
-      <HomeHeader />
+      <Home1 />
         {/* <Routes>
 
         </Routes> */}

@@ -5,7 +5,7 @@ function Footer() {
 
   return (
     <footer>
-        <p>&copy; 2026 SQL Learning Platform. Spersonalizowana nauka baz danych.</p>
+        <p>&copy; 2026 SQL Learning Platform. Personalizowana nauka baz danych.</p>
     </footer>
   )
 }

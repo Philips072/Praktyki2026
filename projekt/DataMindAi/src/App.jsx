@@ -7,6 +7,8 @@ import Footer from './Components/Footer'
 import SidebarHeader from './Components/SidebarHeader'
 import HomePage from './Pages/HomePage'
 
+import Dashboard1 from './Components/Dashboard1'
+import Dashboard2 from './Components/Dashboard2'
 function App() {
 
   

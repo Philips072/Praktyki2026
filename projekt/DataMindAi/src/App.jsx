@@ -11,9 +11,7 @@ function App() {
   return (
     <BrowserRouter>
       <HomeHeader />
-      <Home2 />
-      <Home3 />
-      <Home4 />
+        <Register />
         {/* <Routes>
 
         </Routes> */}

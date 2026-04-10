@@ -2,9 +2,8 @@ import './SidebarHeader.css'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-function SidebarHeader({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-
+function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
+ 
   const todayDate = useMemo(() => {
     return new Intl.DateTimeFormat('pl-PL', {
       weekday: 'long',

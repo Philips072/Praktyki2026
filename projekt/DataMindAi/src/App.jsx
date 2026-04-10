@@ -4,30 +4,27 @@ import Home2 from './Components/Home2'
 import Home1 from './Components/Home1'
 import Home3 from './Components/Home3'
 import Footer from './Components/Footer'
-import SidebarHeader from './Components/SidebarHeader'
-import HomePage from './Pages/HomePage'
-<<<<<<< HEAD
-
-=======
->>>>>>> 9ec49237a39239d9b0ffafa6cdb6279602a45d8f
 
 import Dashboard1 from './Components/Dashboard1'
 import Dashboard2 from './Components/Dashboard2'
+import HomePage from './Pages/HomePage'
+import DashboardPage from './Pages/DashboardPage'
 function App() {
 
   
   return (
     <BrowserRouter>
-<<<<<<< HEAD
+      {/* <HomePage /> */}
+        <DashboardPage />
 
-=======
->>>>>>> 9ec49237a39239d9b0ffafa6cdb6279602a45d8f
-    <HomePage/>
+        {/* <Routes>
 
-<<<<<<< HEAD
-=======
         </Routes> */}
->>>>>>> 9ec49237a39239d9b0ffafa6cdb6279602a45d8f
+      {/* <Footer/> */}
+
+
+          {/* <Dashboard1 />
+          <Dashboard2 /> */}
     </BrowserRouter>
     
   )

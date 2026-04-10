@@ -1,4 +1,4 @@
-header {
+.homeHeader {
     background-color: var(--primaryBg);
     font-family: VennRegular;
     display: flex;
@@ -9,11 +9,11 @@ header {
     box-sizing: border-box;
 }
 
-header * {
+.homeHeader * {
     box-sizing: border-box;
 }
 
-header ul {
+.homeHeader ul {
     list-style: none;
     display: flex;
     align-items: center;
@@ -23,23 +23,23 @@ header ul {
     padding: 0;
 }
 
-header a {
+.homeHeader a {
     text-decoration: none;
     color: inherit;
 }
 
-header a:active,
-header a:focus,
-header a:visited {
+.homeHeader a:active,
+.homeHeader a:focus,
+.homeHeader a:visited {
     text-decoration: none;
     color: inherit;
 }
 
-header ul li img {
+.homeHeader ul li img {
     height: 35px;
 }
 
-header button {
+.homeHeader button {
     height: 40px;
     padding: 0 25px;
     border: none;
@@ -49,31 +49,31 @@ header button {
     font-family: inherit;
 }
 
-header a:first-child button {
+.homeHeader a:first-child button {
     background-color: var(--grayBtnBg);
     transition: .3s;
 }
 
-header a:last-child button {
+.homeHeader a:last-child button {
     background-color: var(--accentColor);
     border-radius: 10px;
     transition: .3s;
 }
 
-header a:first-child:hover button{
+.homeHeader a:first-child:hover button{
     background-color: var(--btnHoverGray);
 }
-header a:last-child:hover button {
+.homeHeader a:last-child:hover button {
     background-color: var(--btnHoverBlue);
 }
 
-header ul li {
+.homeHeader ul li {
     display: flex;
     gap: 20px;
     align-items: center;
 }
 
-header a {
+.homeHeader a {
     display: flex;
     align-items: center;
 }
@@ -123,7 +123,7 @@ header a {
 }
 
 @media screen and (max-width: 1000px) {
-    header ul {
+    .homeHeader ul {
         justify-content: space-between;
     }
     .logo-item img{

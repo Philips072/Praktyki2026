@@ -19,7 +19,7 @@ useEffect(() => {
   return () => media.removeEventListener('change', handleChange)
 }, [])
   return (
-    <header>
+    <header className='homeHeader'>
       <ul>
         <li className="logo-item">
           <Link to="/">

@@ -1,0 +1,11 @@
+.home-page-content{
+    display: flex;
+    flex-direction: column;
+    gap: 120px;
+    margin-bottom: 50px;
+}
+@media screen and (max-width: 1000px) {
+    .home-page-content{
+        gap: 60px;
+}
+}

@@ -26,6 +26,8 @@
 .homeHeader a {
     text-decoration: none;
     color: inherit;
+    display: flex;
+    align-items: center;
 }
 
 .homeHeader a:active,
@@ -60,9 +62,10 @@
     transition: .3s;
 }
 
-.homeHeader a:first-child:hover button{
+.homeHeader a:first-child:hover button {
     background-color: var(--btnHoverGray);
 }
+
 .homeHeader a:last-child:hover button {
     background-color: var(--btnHoverBlue);
 }
@@ -73,16 +76,11 @@
     align-items: center;
 }
 
-.homeHeader a {
-    display: flex;
-    align-items: center;
-}
-
-.hamburger-wrapper {
+.homeHeader .hamburger-wrapper {
     display: none;
 }
 
-.hamburger {
+.homeHeader .hamburger {
     width: 48px;
     height: 48px;
     padding: 0;
@@ -96,7 +94,7 @@
     position: relative;
 }
 
-.hamburger span {
+.homeHeader .hamburger span {
     display: block;
     width: 24px;
     height: 2.5px;
@@ -106,19 +104,19 @@
     transform-origin: center;
 }
 
-.hamburger.active span:nth-child(1) {
+.homeHeader .hamburger.active span:nth-child(1) {
     transform: translateY(8.5px) rotate(45deg);
 }
 
-.hamburger.active span:nth-child(2) {
+.homeHeader .hamburger.active span:nth-child(2) {
     opacity: 0;
 }
 
-.hamburger.active span:nth-child(3) {
+.homeHeader .hamburger.active span:nth-child(3) {
     transform: translateY(-8.5px) rotate(-45deg);
 }
 
-.mobile-menu {
+.homeHeader .mobile-menu {
     display: none;
 }
 
@@ -126,19 +124,20 @@
     .homeHeader ul {
         justify-content: space-between;
     }
-    .logo-item img{
+
+    .homeHeader .logo-item img {
         height: 25px;
     }
 
-    .desktop-actions {
+    .homeHeader .desktop-actions {
         display: none;
     }
 
-    .hamburger-wrapper {
+    .homeHeader .hamburger-wrapper {
         display: flex;
     }
 
-    .mobile-menu {
+    .homeHeader .mobile-menu {
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -149,17 +148,17 @@
         transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
     }
 
-    .mobile-menu.open {
+    .homeHeader .mobile-menu.open {
         max-height: 200px;
         opacity: 1;
         margin-top: 16px;
     }
 
-    .mobile-menu a {
+    .homeHeader .mobile-menu a {
         width: 100%;
     }
 
-    .mobile-menu button {
+    .homeHeader .mobile-menu button {
         width: 100%;
     }
 }

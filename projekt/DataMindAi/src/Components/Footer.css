@@ -1,5 +1,20 @@
-p {
+footer {
+    background-color: var(--primaryBg);
+    font-family: VennRegular;
+    color: var(--secondaryText);
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    color: #a6a6a6;
+    padding: 20px;
+    border-top: 2px var(--borderColor) solid;
+    position: relative;
+    box-sizing: border-box;
+}
+footer p{
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    height: 35px;
+    text-align: center;
 }

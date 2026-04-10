@@ -1,7 +1,6 @@
 .features-section {
     width: 100%;
-    min-height: 100vh;
-    padding: 120px 20px 100px;
+    padding: 0px 20px 0px;
     background: var(--primaryBg);
         /* radial-gradient(circle at top center, rgba(77, 104, 255, 0.08), transparent 30%),
         linear-gradient(90deg, #0b0c10 0%, #111318 50%, #0b0c10 100%); */

@@ -162,3 +162,12 @@
         width: 100%;
     }
 }
+@media screen and (min-width: 2048px) {
+    .homeHeader ul{
+        max-width: 2048px;
+    }
+    .homeHeader{
+        display: flex;
+        align-items: center;
+    }
+}

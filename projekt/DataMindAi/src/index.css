@@ -10,7 +10,8 @@
 
   --accentColor: #324277;
   --inactiveBlueBtn: #2a324d;
-  --btnHoverBlue: #303e6d;
+  --btnHoverBlue: #384983;
+  --btnHoverGray: #222222;
 
   --aiMessageBg: #314176;
 }
@@ -23,6 +24,13 @@
   font-weight: 500;
   font-style: normal;
 }
+@font-face {
+  font-family: 'VennBold';
+  src: url('../Venn_Trial_Bd.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
 body{
   background-color: var(--primaryBg);
 }

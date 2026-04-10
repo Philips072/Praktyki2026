@@ -9,11 +9,24 @@ import HomePage from './Pages/HomePage'
 
 import Dashboard1 from './Components/Dashboard1'
 import Dashboard2 from './Components/Dashboard2'
+import HomePage from './Pages/HomePage'
+import DashboardPage from './Pages/DashboardPage'
 function App() {
 
   
   return (
     <BrowserRouter>
+      {/* <HomePage /> */}
+        <DashboardPage />
+
+        {/* <Routes>
+
+        </Routes> */}
+      {/* <Footer/> */}
+
+
+          {/* <Dashboard1 />
+          <Dashboard2 /> */}
 
     <HomePage/>
 

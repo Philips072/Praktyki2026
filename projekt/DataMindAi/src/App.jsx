@@ -3,8 +3,7 @@ import HomeHeader from './Components/HomeHeader'
 import Home2 from './Components/Home2'
 import Home3 from './Components/Home3'
 import Home4 from './Components/Home4'
-import Login from './Components/Login'
-import Register from './Components/Register'
+import Footer from './Components/Footer'
 
 function App() {
 
@@ -16,7 +15,9 @@ function App() {
         {/* <Routes>
 
         </Routes> */}
+      <Footer/>
     </BrowserRouter>
+    
   )
 }
 

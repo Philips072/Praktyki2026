@@ -5,21 +5,17 @@ import Home1 from './Components/Home1'
 import Home3 from './Components/Home3'
 import Footer from './Components/Footer'
 import SidebarHeader from './Components/SidebarHeader'
+import HomePage from './Pages/HomePage'
 
 function App() {
 
   
   return (
     <BrowserRouter>
-      <SidebarHeader/>
-      <Home1 />
-      <Home2 />
-      <Home3 />
-   
+    <HomePage/>
         {/* <Routes>
 
         </Routes> */}
-      <Footer/>
     </BrowserRouter>
     
   )

@@ -1,18 +1,19 @@
 import React from "react";
 import "./Home1.css"
+import { Link } from "react-router-dom";
 
 const Home1 = () => {
     return (
         <>
+        <div className="home1-container">
             <div className="home-wrapper">
-
                 <div className="badge">
                     <span className="badge-dot"></span>
                     Spersonalizowana nauka SQL
                 </div>
 
-                <h1 className="home-Title">
-                    Naucz sie SQL przez swoje <br /> <span className="home-style-span">pasje</span>
+                <h1 className="home-title">
+                    Naucz się SQL przez swoje <br /> <span className="home-style-span">pasje</span>
                 </h1>
 
                 <p className="home-desc">
@@ -20,15 +21,18 @@ const Home1 = () => {
                     innych tematów, które Cię interesują. AI dostosuje się do Twojego poziomu.
                 </p>
 
-                <div className="button-container">
-                    <button className="btn-main">Rozpocznij naukę
+                <div className="btn-container">
+                    <Link to="/"><button className="btn-main">Rozpocznij naukę
 
                         <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                             <line x1="3" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             <polyline points="13,6 19,12 13,18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </button>
+                    </Link>
+                    <Link to="/">
                     <button className="btn-login">Zaloguj się</button>
+                    </Link>
                 </div>
 
                 {/* Okno z kodem */}
@@ -52,6 +56,7 @@ const Home1 = () => {
                         </pre>
                     </div>
                 </div>
+            </div>
             </div>
         </>
     )

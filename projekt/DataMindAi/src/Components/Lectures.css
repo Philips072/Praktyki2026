@@ -1,0 +1,98 @@
+.lectures-page {
+  background-color: var(--primaryBg);
+  min-height: 100vh;
+  padding: 40px 32px;
+  font-family: VennRegular;
+  color: var(--primaryText);
+}
+
+.lectures-header {
+  margin-bottom: 32px;
+}
+
+.lectures-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primaryText);
+  margin: 0 0 6px 0;
+}
+
+.lectures-subtitle {
+  font-size: 14px;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+.lectures-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lecture-card {
+  background-color: var(--containerBoxBg);
+  border: 2px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.lecture-card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.lecture-badge {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: var(--accentDarkBlue);
+  color: var(--primaryText);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.lecture-content {
+  flex: 1;
+}
+
+.lecture-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primaryText);
+  margin: 0 0 6px 0;
+}
+
+.lecture-desc {
+  font-size: 13px;
+  color: var(--secondaryText);
+  margin: 0 0 14px 0;
+}
+
+.lecture-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.lecture-button:hover {
+  background-color: var(--btnHoverBlue);
+}
+
+.lecture-play-icon {
+  font-size: 10px;
+}

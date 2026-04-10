@@ -14,7 +14,9 @@ function App() {
         {/* <Routes>
 
         </Routes> */}
+      <Footer/>
     </BrowserRouter>
+    
   )
 }
 

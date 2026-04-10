@@ -15,8 +15,8 @@ const Dashboard2 = () => {
                     <div className="first-lesson">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 6C10 3.5 6 3 3 4.5V19.5C6 18 10 18.5 12 21C14 18.5 18 18 21 19.5V4.5C18 3 14 3.5 12 6Z"
-                                stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-                            <line x1="12" y1="6" x2="12" y2="21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                            <line x1="12" y1="6" x2="12" y2="21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                         </svg>
                         <p>
                             <h2>Pierwsza lekcja SQL</h2>
@@ -27,7 +27,7 @@ const Dashboard2 = () => {
                     <div className="ask-ai">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7l-4 4V6a2 2 0 0 1 2-2z"
-                                stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         <p>
                             <h2>Zapytaj AI</h2>

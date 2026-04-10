@@ -112,6 +112,7 @@
 
 .btn-main:hover {
     background-color: var(--btnHoverBlue);
+    cursor: pointer;
 }
 
 .btn-login {
@@ -126,6 +127,11 @@
     transition: all 0.2s ease;
 }
 
+.btn-login:hover {
+    background-color: var(--btnHoverBlue);
+    cursor: pointer;
+}
+
 .code-window {
     background: rgba(20, 20, 22, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -133,7 +139,6 @@
     backdrop-filter: blur(12px);
     width: 100%;
     max-width: 650px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     margin-top: 2.5rem;
     margin-bottom: 2.5rem;
     z-index: 1;

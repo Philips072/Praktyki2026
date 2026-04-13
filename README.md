@@ -1,22 +1,42 @@
 
-# Nazwa projektu
+# DataMindAI
 
-DataMindAI
+DataMindAI to aplikacja webowa wspierająca naukę SQL poprzez personalizację materiałów do zainteresowań użytkownika. System pozwala ćwiczyć zapytania bazodanowe na przykładach z dziedzin takich jak piłka nożna, gry, muzyka czy podróże — dzięki czemu nauka staje się bardziej intuicyjna i angażująca.
 
+## Funkcje
 
-## Opis
-DataMindAI to aplikacja wspierająca naukę baz danych poprzez personalizację materiałów do zainteresowań użytkownika. 
-System generuje przykładowe bazy danych dopasowane do preferencji (np. piłka nożna, gry, muzyka), 
-dzięki czemu nauka staje się bardziej intuicyjna i angażująca. 
-Użytkownik uczy się operacji na bazach danych w oparciu o znane i interesujące go tematy.
+- Spersonalizowana nauka SQL dopasowana do zainteresowań użytkownika
+- Interaktywne lekcje z natychmiastowym feedbackiem
+- Asystent AI odpowiadający na pytania w kontekście SQL i baz danych
+- Panel użytkownika ze statystykami postępów
+- Rejestracja i logowanie
 
-## Jak uruchomić
- Still in progress....
+## Technologie
+
+- **React 19** + **Vite**
+- **React Router DOM v7**
+- CSS (własne arkusze, czcionka Venn)
+
+## Uruchomienie
+
+```bash
+cd projekt/DataMindAi
+npm install
+npm run dev
+```
+
+Aplikacja dostępna pod `http://localhost:5173`
 
 ## Zespół
+
 - Filip Strzałka
 - Wiktoria Masłowiec
 - Paweł Rak
 
 ## Dokumentacja
- Still in progress....
+
+Szczegółowa dokumentacja znajduje się w folderze [`dokumentacja/`](dokumentacja/):
+
+- [Wymagania](dokumentacja/wymagania.md)
+- [Architektura](dokumentacja/architektura.md)
+- [Uruchomienie](dokumentacja/uruchomienie.md)

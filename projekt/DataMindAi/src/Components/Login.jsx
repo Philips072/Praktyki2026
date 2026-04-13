@@ -38,6 +38,8 @@ function Login() {
             placeholder="••••••••"
           />
 
+          <Link to="/reset-hasla" className="login-forgot">Zapomniałeś hasła?</Link>
+
           <button type="submit">Zaloguj się</button>
         </form>
 

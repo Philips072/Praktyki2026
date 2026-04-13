@@ -1,0 +1,131 @@
+.aichat-page {
+  background-color: var(--primaryBg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 32px 0 32px;
+  font-family: VennRegular, 'Segoe UI', sans-serif;
+  color: var(--primaryText);
+}
+
+.aichat-header {
+  margin-bottom: 32px;
+}
+
+.aichat-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primaryText);
+  margin: 0 0 6px 0;
+}
+
+.aichat-subtitle {
+  font-size: 14px;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+.aichat-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+.aichat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.aichat-row--user {
+  flex-direction: row-reverse;
+}
+
+.aichat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--accentColor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.aichat-bubble {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 100%;
+}
+
+.aichat-bubble--ai {
+  background-color: var(--aiMessageBg);
+  color: var(--primaryText);
+  flex: 1;
+}
+
+.aichat-bubble--user {
+  background-color: var(--accentDarkBlue);
+  color: var(--primaryText);
+  max-width: 70%;
+}
+
+.aichat-line {
+  margin: 0 0 4px 0;
+}
+
+.aichat-line:last-child {
+  margin-bottom: 0;
+}
+
+.aichat-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 24px 0;
+  border-top: 1px solid var(--borderColor);
+  margin-top: auto;
+}
+
+.aichat-input {
+  flex: 1;
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--primaryText);
+  font-family: VennRegular, 'Segoe UI', sans-serif;
+  outline: none;
+}
+
+.aichat-input::placeholder {
+  color: var(--secondaryText);
+}
+
+.aichat-input:focus {
+  border-color: var(--accentColor);
+}
+
+.aichat-send-btn {
+  width: 48px;
+  height: 48px;
+  background-color: var(--accentColor);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.aichat-send-btn:hover {
+  background-color: var(--btnHoverBlue);
+}

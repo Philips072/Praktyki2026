@@ -1,22 +1,57 @@
 .aichat-page {
   background-color: var(--primaryBg);
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 40px 32px 0 32px;
+  padding: 0 32px 24px 32px;
   font-family: VennRegular, 'Segoe UI', sans-serif;
   color: var(--primaryText);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.aichat-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 24px;
+}
+
+.aichat-menu-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.aichat-menu-btn span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: var(--primaryText);
+  border-radius: 2px;
+}
+
+.aichat-date {
+  font-size: 13px;
+  color: var(--secondaryText);
+  margin: 0;
 }
 
 .aichat-header {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .aichat-title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--primaryText);
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
 }
 
 .aichat-subtitle {
@@ -25,13 +60,24 @@
   margin: 0;
 }
 
+.aichat-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+
 .aichat-messages {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   overflow-y: auto;
-  padding-bottom: 24px;
+  padding: 20px;
 }
 
 .aichat-row {
@@ -56,11 +102,10 @@
 }
 
 .aichat-bubble {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-radius: 10px;
   font-size: 14px;
   line-height: 1.6;
-  max-width: 100%;
 }
 
 .aichat-bubble--ai {
@@ -87,9 +132,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 0 24px 0;
+  padding: 12px 16px;
   border-top: 1px solid var(--borderColor);
-  margin-top: auto;
 }
 
 .aichat-input {
@@ -97,7 +141,7 @@
   background-color: var(--inputBg);
   border: 1px solid var(--borderColor);
   border-radius: 8px;
-  padding: 14px 18px;
+  padding: 12px 16px;
   font-size: 14px;
   color: var(--primaryText);
   font-family: VennRegular, 'Segoe UI', sans-serif;
@@ -113,8 +157,8 @@
 }
 
 .aichat-send-btn {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   background-color: var(--accentColor);
   border: none;
   border-radius: 8px;

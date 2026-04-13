@@ -8,7 +8,7 @@
     box-sizing: border-box;
     font-family: VennRegular;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
 
     background:
         radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
@@ -153,6 +153,19 @@
     .login-page {
         padding: 80px 16px 24px;
         align-items: flex-start;
+        min-height: 100svh;
+        background: none;
+    }
+
+    .login-page::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
+            radial-gradient(circle at 80% 70%, rgba(46, 160, 248, 0.10), transparent 40%),
+            linear-gradient(120deg, #0b0c10 0%, #111318 50%, #0b0c10 100%);
     }
 
     .login-back {

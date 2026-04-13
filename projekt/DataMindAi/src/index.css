@@ -18,6 +18,15 @@
 *{
   margin: 0;
 }
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+button:focus-visible {
+  outline: none;
+}
 @font-face {
   font-family: 'VennRegular';
   src: url('/Venn_Trial_Rg.ttf') format('truetype');

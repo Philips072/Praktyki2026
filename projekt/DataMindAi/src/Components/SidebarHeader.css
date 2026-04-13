@@ -213,6 +213,13 @@
     background: rgba(255, 255, 255, 0.04);
 }
 
+.dashboard-menu-toggle:focus,
+.dashboard-menu-toggle:focus-visible,
+.dashboard-menu-toggle:active {
+    outline: none;
+    background: rgba(255, 255, 255, 0.02);
+}
+
 .dashboard-menu-toggle svg {
     width: 18px;
     height: 18px;
@@ -323,6 +330,10 @@
 
     .sidebar-close-btn {
         display: block;
+    }
+
+    .dashboard-layout.sidebar-open .dashboard-menu-toggle {
+        visibility: hidden;
     }
 }
 

@@ -11,7 +11,6 @@ function AIChatPage() {
     <>
      <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>
             <AiChat />
-           
         </SidebarHeader>
     
   

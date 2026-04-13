@@ -9,7 +9,6 @@ import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 
 
-
 function App() {
   return (
       <BrowserRouter>

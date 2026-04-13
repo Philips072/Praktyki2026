@@ -18,10 +18,8 @@ const Dashboard2 = () => {
                                 stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                             <line x1="12" y1="6" x2="12" y2="21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                         </svg>
-                        <p>
                             <h2>Pierwsza lekcja SQL</h2>
                             <span className="first-lesson-desc">Poznaj podstawy zapytań SELECT na przykładach z piłki nożnej</span>
-                        </p>
                     </div>
 
                     <div className="ask-ai">
@@ -29,10 +27,8 @@ const Dashboard2 = () => {
                             <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7l-4 4V6a2 2 0 0 1 2-2z"
                                 stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <p>
                             <h2>Zapytaj AI</h2>
                             <span className="first-lesson-desc">Zadaj pytanie asystentowi AI o SQL lub bazy danych</span>
-                        </p>
                     </div>
                 </div>
             </div>

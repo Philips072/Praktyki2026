@@ -2,9 +2,7 @@
     min-height: 100vh;
     width: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
+    flex-direction: column;
     box-sizing: border-box;
     font-family: VennRegular;
     position: relative;
@@ -30,6 +28,7 @@
     align-items: center;
     gap: 8px;
     transition: 0.2s;
+    z-index: 1;
 }
 
 .login-back svg {
@@ -44,6 +43,14 @@
 
 .login-back:hover svg {
     transform: translateX(-3px);
+}
+
+.login-body {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 24px;
 }
 
 .login-card {
@@ -113,6 +120,19 @@
     border-color: var(--accentColor);
 }
 
+.login-forgot {
+    align-self: flex-end;
+    font-size: 0.82rem;
+    color: var(--secondaryText);
+    text-decoration: none;
+    margin-bottom: 6px;
+    transition: color 0.2s;
+}
+
+.login-forgot:hover {
+    color: #2ea0f8;
+}
+
 .login-form button {
     width: 100%;
     height: 52px;
@@ -129,19 +149,6 @@
 
 .login-form button:hover {
     background: var(--btnHoverBlue);
-}
-
-.login-forgot {
-    align-self: flex-end;
-    font-size: 0.82rem;
-    color: var(--secondaryText);
-    text-decoration: none;
-    margin-bottom: 6px;
-    transition: color 0.2s;
-}
-
-.login-forgot:hover {
-    color: #2ea0f8;
 }
 
 .login-register-text {
@@ -161,10 +168,9 @@
     color: #52b4ff;
     text-decoration: underline;
 }
+
 @media screen and (max-width: 768px) {
     .login-page {
-        padding: 80px 16px 24px;
-        align-items: flex-start;
         min-height: 100svh;
         background: none;
     }
@@ -181,9 +187,15 @@
     }
 
     .login-back {
-        top: 20px;
-        left: 16px;
-        font-size: 1rem;
+        position: relative;
+        top: auto;
+        left: auto;
+        padding: 20px 16px 0;
+    }
+
+    .login-body {
+        padding: 16px 16px 32px;
+        align-items: flex-start;
     }
 
     .login-card {

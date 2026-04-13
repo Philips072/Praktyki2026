@@ -5,7 +5,7 @@ import Dashboard1 from '../Components/Dashboard1'
 import Dashboard2 from '../Components/Dashboard2'
 
 function DashboardPage(){
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 640)
 
     return(
         <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>

@@ -4,7 +4,6 @@ import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
 import DashboardPage from './Pages/DashboardPage'
 import LecturesPage from './Pages/LecturesPage'
-import AIChatPage from './Pages/AIChatPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 

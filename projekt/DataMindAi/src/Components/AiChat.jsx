@@ -5,7 +5,7 @@ const initialMessages = [
   {
     id: 1,
     role: 'ai',
-    text: 'Cześć! Jestem Twoim asystentem AI.',
+    text: 'Cześć! Jestem Twoim asystentem AI :3',
   },
 ];
 

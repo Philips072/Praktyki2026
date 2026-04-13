@@ -8,11 +8,10 @@
     box-sizing: border-box;
     font-family: VennRegular;
     position: relative;
-    overflow-x: hidden;
 
     background:
         radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
-        radial-gradient(circle at 80% 70%, rgba(46, 160, 248, 0.10), transparent 40%),
+        radial-gradient(circle at 68% 65%, rgba(46, 160, 248, 0.10), transparent 22%),
         linear-gradient(120deg, #0b0c10 0%, #111318 50%, #0b0c10 100%);
 }
 
@@ -164,7 +163,7 @@
         z-index: -1;
         background:
             radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
-            radial-gradient(circle at 80% 70%, rgba(46, 160, 248, 0.10), transparent 40%),
+            radial-gradient(circle at 68% 65%, rgba(46, 160, 248, 0.10), transparent 22%),
             linear-gradient(120deg, #0b0c10 0%, #111318 50%, #0b0c10 100%);
     }
 

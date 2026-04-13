@@ -1,0 +1,99 @@
+.notfound-page {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
+    font-family: VennRegular;
+    background-color: var(--primaryBg);
+}
+
+.notfound-page * {
+    box-sizing: border-box;
+}
+
+.notfound-content {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.notfound-logo {
+    width: 210px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 40px;
+}
+
+.notfound-code {
+    font-family: VennBold;
+    font-size: 8rem;
+    line-height: 1;
+    color: var(--accentColor);
+    letter-spacing: -4px;
+    margin-bottom: 20px;
+}
+
+.notfound-content h1 {
+    margin: 0 0 14px;
+    color: var(--primaryText);
+    font-size: 2rem;
+    font-family: VennBold;
+}
+
+.notfound-content p {
+    margin: 0 0 36px;
+    color: var(--secondaryText);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+.notfound-btn {
+    height: 52px;
+    padding: 0 36px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accentColor);
+    color: #fff;
+    font-size: 1rem;
+    font-family: VennRegular;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.25s ease;
+}
+
+.notfound-btn:hover {
+    background: var(--btnHoverBlue);
+}
+
+@media screen and (max-width: 768px) {
+    .notfound-page {
+        padding: 24px 16px;
+        min-height: 100svh;
+    }
+
+    .notfound-logo {
+        width: 180px;
+        margin-bottom: 32px;
+    }
+
+    .notfound-code {
+        font-size: 6rem;
+    }
+
+    .notfound-content h1 {
+        font-size: 1.6rem;
+    }
+
+    .notfound-btn {
+        width: 100%;
+        height: 50px;
+    }
+}

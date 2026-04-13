@@ -11,10 +11,11 @@
 }
 
 .lectures-title {
-  font-size: 28px;
+  font-size: 50px;
   font-weight: 700;
   color: var(--primaryText);
   margin: 0 0 6px 0;
+  font-family: VennBold;
 }
 
 .lectures-subtitle {
@@ -34,6 +35,11 @@
   border: 2px solid var(--borderColor);
   border-radius: 10px;
   padding: 20px 24px;
+  transition: border-color 0.2s ease;
+}
+
+.lecture-card:hover {
+  border-color: var(--accentColor);
 }
 
 .lecture-card-inner {
@@ -62,7 +68,7 @@
 }
 
 .lecture-title {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--primaryText);
   margin: 0 0 6px 0;
@@ -77,7 +83,7 @@
 .lecture-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background-color: var(--accentColor);
   color: var(--primaryText);
   border: none;

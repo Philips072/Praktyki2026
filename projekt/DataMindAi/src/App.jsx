@@ -7,7 +7,6 @@ import LecturesPage from './Pages/LecturesPage'
 import AIChatPage from './Pages/AIChatPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
-import AIChatPage from './Pages/AIChatPage'
 
 
 function App() {

@@ -4,7 +4,7 @@ import SidebarHeader from '../Components/SidebarHeader'
 import Lectures from '../Components/Lectures'
 
 function LecturesPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 640)
 
   return (
     <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}>

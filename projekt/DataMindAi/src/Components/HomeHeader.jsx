@@ -1,6 +1,7 @@
 import './HomeHeader.css'
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import logo from '../assets/nazwa.PNG'
 
 function HomeHeader() {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,7 +24,7 @@ useEffect(() => {
       <ul>
         <li className="logo-item">
           <Link to="/">
-            <img src="src/assets/nazwa.PNG" alt="DataMindAI" />
+            <img src={logo} alt="DataMindAI" />
           </Link>
         </li>
 

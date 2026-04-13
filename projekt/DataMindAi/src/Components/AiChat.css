@@ -1,9 +1,9 @@
 .aichat-page {
   background-color: var(--primaryBg);
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 32px 24px 32px;
   font-family: VennRegular, 'Segoe UI', sans-serif;
   color: var(--primaryText);
   box-sizing: border-box;

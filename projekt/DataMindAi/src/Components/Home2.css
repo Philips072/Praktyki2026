@@ -31,7 +31,10 @@
 }
 
 .features-top span {
-    color: #2ea0f8;
+    background: linear-gradient(90deg, #54b7f4, #2ea0f8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .features-top p {

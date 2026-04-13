@@ -6,6 +6,7 @@ import DashboardPage from './Pages/DashboardPage'
 import LecturesPage from './Pages/LecturesPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
+import AIChatPage from './Pages/AIChatPage'
 
 
 function App() {
@@ -17,7 +18,8 @@ function App() {
         <Route path="/rejestracja" element={<RegisterPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/lekcje" element={<LecturesPage />} />
-        <Route path="/ustawienia" element={<UserSettingsPage />} />
+        { <Route path="/AiChat" element={<AIChatPage />} />
+        /*<Route path="/ustawienia" element={<UserSettingsPage />} /> */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

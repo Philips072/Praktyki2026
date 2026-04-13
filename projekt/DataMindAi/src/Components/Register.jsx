@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 function Register() {
   return (
     <section className="register-page">
-      <Link to="/login" className="register-back">
+      <Link to="/" className="register-back">
         <svg viewBox="0 0 24 24" fill="none">
           <path 
             d="M15 18L9 12L15 6" 
@@ -40,7 +40,7 @@ function Register() {
         </form>
 
         <span className="register-login-text">
-          Masz już konto? <Link to="/login">Zaloguj się</Link>
+          Masz już konto? <Link to="/logowanie">Zaloguj się</Link>
         </span>
       </div>
     </section>

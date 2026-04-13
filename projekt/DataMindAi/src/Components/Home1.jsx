@@ -22,7 +22,7 @@ const Home1 = () => {
                 </p>
 
                 <div className="btn-container">
-                    <Link to="/"><button className="btn-main">Rozpocznij naukę
+                    <Link to="/rejestracja"><button className="btn-main">Rozpocznij naukę
 
                         <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                             <line x1="3" y1="12" x2="19" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -30,7 +30,7 @@ const Home1 = () => {
                         </svg>
                     </button>
                     </Link>
-                    <Link to="/">
+                    <Link to="/logowanie">
                     <button className="btn-login">Zaloguj się</button>
                     </Link>
                 </div>

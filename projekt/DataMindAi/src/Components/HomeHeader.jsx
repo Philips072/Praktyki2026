@@ -28,8 +28,8 @@ useEffect(() => {
         </li>
 
         <li className="desktop-actions">
-          <Link to="/"><button>Zaloguj się</button></Link>
-          <Link to="/"><button>Rozpocznij za darmo</button></Link>
+          <Link to="/logowanie"><button>Zaloguj się</button></Link>
+          <Link to="/rejestracja"><button>Rozpocznij za darmo</button></Link>
         </li>
 
         <li className="hamburger-wrapper">
@@ -46,10 +46,10 @@ useEffect(() => {
       </ul>
 
       <div className={`mobile-menu ${isOpen ? 'open' : ''}`}>
-        <Link to="/" onClick={() => setIsOpen(false)}>
+        <Link to="/logowanie" onClick={() => setIsOpen(false)}>
           <button>Zaloguj się</button>
         </Link>
-        <Link to="/" onClick={() => setIsOpen(false)}>
+        <Link to="/Rejestracja" onClick={() => setIsOpen(false)}>
           <button>Rozpocznij za darmo</button>
         </Link>
       </div>

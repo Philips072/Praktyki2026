@@ -42,7 +42,7 @@ function Login() {
         </form>
 
         <span className="login-register-text">
-          Nie masz konta? <Link to="/">Zarejestruj się</Link>
+          Nie masz konta? <Link to="/rejestracja">Zarejestruj się</Link>
         </span>
       </div>
     </div>

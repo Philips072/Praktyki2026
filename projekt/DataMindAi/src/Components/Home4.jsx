@@ -1,4 +1,5 @@
 import './Home4.css'
+import { Link } from 'react-router-dom'
 
 function Home4() {
   return (
@@ -19,10 +20,11 @@ function Home4() {
           Dołącz do platformy i zacznij swoją przygodę z bazami danych już dziś.
         </p>
 
-        <button className="home4-btn">
-          Utwórz konto za darmo →
-        </button>
-
+        <Link to="/rejestracja">
+          <button className="home4-btn">
+            Utwórz konto za darmo →
+          </button>
+        </Link>
       </div>
     </section>
   )

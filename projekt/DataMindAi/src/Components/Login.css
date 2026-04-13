@@ -131,6 +131,19 @@
     background: var(--btnHoverBlue);
 }
 
+.login-forgot {
+    align-self: flex-end;
+    font-size: 0.82rem;
+    color: var(--secondaryText);
+    text-decoration: none;
+    margin-bottom: 6px;
+    transition: color 0.2s;
+}
+
+.login-forgot:hover {
+    color: #2ea0f8;
+}
+
 .login-register-text {
     margin-top: 24px;
     color: var(--secondaryText);

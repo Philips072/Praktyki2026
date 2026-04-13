@@ -87,6 +87,13 @@
     font-family: VennRegular;
     font-size: 1rem;
     text-align: left;
+    text-decoration: none;
+    overflow: hidden;
+}
+
+.dashboard-nav-label {
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .dashboard-nav-item:hover {
@@ -227,6 +234,18 @@
 
 .sidebar-backdrop {
     display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-backdrop--visible {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* mobile */
@@ -251,9 +270,10 @@
 }
 
 @media screen and (max-width: 640px) {
-    .dashboard-layout{
+    .dashboard-layout {
         --sidebar-width: 200px;
     }
+
     .dashboard-header {
         height: 68px;
     }
@@ -261,6 +281,30 @@
     .dashboard-header-date {
         font-size: 0.8rem;
         max-width: 150px;
+    }
+
+    .dashboard-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 100;
+        background: var(--sidebarBg);
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+    }
+
+    .dashboard-layout.sidebar-closed .dashboard-sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        border-right: 2px solid var(--borderColor);
+    }
+
+    .sidebar-backdrop {
+        display: block;
     }
 
     .sidebar-close-btn {

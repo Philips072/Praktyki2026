@@ -1,6 +1,6 @@
 import './SidebarHeader.css'
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useMemo } from 'react'
+import { Link, NavLink } from 'react-router-dom'
 
 function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
  
@@ -16,7 +16,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
   const navItems = [
     {
       label: 'Dashboard',
-      active: true,
+      path: '/dashboard',
       icon: (
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -30,7 +30,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
     },
     {
       label: 'Lekcje',
-      active: false,
+      path: '/lekcje',
       icon: (
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -48,7 +48,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
     },
     {
       label: 'AI Chat',
-      active: false,
+      path: '/ai-chat',
       icon: (
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -62,7 +62,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
     },
     {
       label: 'Osiągnięcia',
-      active: false,
+      path: '/osiagniecia',
       icon: (
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -93,9 +93,10 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
 
   return (
     <div className={`dashboard-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      {sidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
-      )}
+      <div
+        className={`sidebar-backdrop ${sidebarOpen ? 'sidebar-backdrop--visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
       <aside className="dashboard-sidebar">
         <div className="dashboard-sidebar-top">
           <div className="dashboard-sidebar-logo-row">
@@ -114,14 +115,14 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
 
           <nav className="dashboard-nav">
             {navItems.map((item) => (
-              <button
+              <NavLink
                 key={item.label}
-                className={`dashboard-nav-item ${item.active ? 'active' : ''}`}
-                type="button"
+                to={item.path}
+                className={({ isActive }) => `dashboard-nav-item${isActive ? ' active' : ''}`}
               >
                 <span className="dashboard-nav-icon">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
+                <span className="dashboard-nav-label">{item.label}</span>
+              </NavLink>
             ))}
           </nav>
         </div>

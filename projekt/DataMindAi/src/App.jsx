@@ -6,6 +6,7 @@ import DashboardPage from './Pages/DashboardPage'
 import LecturesPage from './Pages/LecturesPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
+import AIChatPage from './Pages/AIChatPage'
 
 
 function App() {

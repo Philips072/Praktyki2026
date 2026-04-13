@@ -35,3 +35,53 @@ body{
   background-color: var(--primaryBg);
   overflow-x: hidden;
 }
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #8d94a5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: var(--primaryText);
+}
+
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+@keyframes eyeSwitch {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(25deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.password-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: eyeSwitch 0.2s ease;
+}

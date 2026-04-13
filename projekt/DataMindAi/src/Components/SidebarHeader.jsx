@@ -98,9 +98,19 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
       )}
       <aside className="dashboard-sidebar">
         <div className="dashboard-sidebar-top">
-          <Link to="/" className="dashboard-logo-link">
-            <img src="src/assets/nazwa.PNG" alt="DataMindAI" className="dashboard-logo" />
-          </Link>
+          <div className="dashboard-sidebar-logo-row">
+            <Link to="/" className="dashboard-logo-link">
+              <img src="src/assets/nazwa.PNG" alt="DataMindAI" className="dashboard-logo" />
+            </Link>
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Zamknij sidebar"
+            >
+              ✕
+            </button>
+          </div>
 
           <nav className="dashboard-nav">
             {navItems.map((item) => (

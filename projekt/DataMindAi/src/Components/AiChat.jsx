@@ -30,15 +30,7 @@ function AiChat() {
   return (
     <div className="aichat-page">
 
-      <div className="aichat-topbar">
-        <button className="aichat-menu-btn">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <p className="aichat-date">poniedziałek, 13 kwietnia 2026</p>
-      </div>
-
+      
       <div className="aichat-header">
         <h1 className="aichat-title">AI Chat</h1>
         <p className="aichat-subtitle">tytul</p>

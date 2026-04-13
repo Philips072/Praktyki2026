@@ -16,7 +16,7 @@ function Lectures() {
     <div className="lectures-page">
       <div className="lectures-header">
         <h1 className="lectures-title">Lekcje SQL</h1>
-        <p className="lectures-subtitle">Ucz się na przykładach z piłki nożnej</p>
+        <p className="lectures-subtitle">Ucz się baz danych na personalizowanych przykładach</p>
       </div>
 
       <div className="lectures-list">

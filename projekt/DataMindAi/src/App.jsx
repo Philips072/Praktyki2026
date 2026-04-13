@@ -3,6 +3,8 @@ import HomePage from './Pages/HomePage'
 import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
 import DashboardPage from './Pages/DashboardPage'
+import LecturesPage from './Pages/LecturesPage'
+import NotFoundPage from './Pages/NotFoundPage'
 
 
 function App() {
@@ -13,10 +15,10 @@ function App() {
         <Route path="/logowanie" element={<LoginPage />} />
         <Route path="/rejestracja" element={<RegisterPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        {/* <Route path="/lekcje" element={<LecturesPage />} />
-        <Route path="/ai-chat" element={<AIChatPage />} />
-        <Route path="/ustawienia" element={<UserSettingsPage />} />
-        <Route path="*" element={<NotFoundPage />} /> */}
+        <Route path="/lekcje" element={<LecturesPage />} />
+        {/* <Route path="/ai-chat" element={<AIChatPage />} />
+        <Route path="/ustawienia" element={<UserSettingsPage />} /> */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

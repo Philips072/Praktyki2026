@@ -1,10 +1,9 @@
 import './NotFoundPage.css'
-import { Link } from 'react-router-dom'
+import NotFound from '../Components/NotFound'
 
 function NotFoundPage() {
-  
   return (
-    <></>
+    <NotFound />
   )
 }
 

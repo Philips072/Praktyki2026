@@ -29,7 +29,7 @@ function Lectures() {
                 <p className="lecture-desc">{lesson.description}</p>
               <button className="lecture-button" onClick={() => navigate(`/lesson/${lesson.id}`)}>
                 <svg width="12" height="14" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1L11 7L1 13V1Z" fill="#fcf6f3" stroke="#fcf6f3" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <path d="M1 1L11 7L1 13V1Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                 </svg>
                 Rozpocznij
             </button>

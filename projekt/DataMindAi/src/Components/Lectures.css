@@ -35,6 +35,11 @@
   border: 2px solid var(--borderColor);
   border-radius: 10px;
   padding: 20px 24px;
+  transition: border-color 0.2s ease;
+}
+
+.lecture-card:hover {
+  border-color: var(--accentColor);
 }
 
 .lecture-card-inner {

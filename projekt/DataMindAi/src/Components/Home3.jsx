@@ -1,6 +1,8 @@
 import './Home3.css'
+import { useInView } from '../hooks/useInView'
 
 function Home3() {
+  const [gridRef, gridInView] = useInView()
   const steps = [
     {
       number: '01',
@@ -30,9 +32,13 @@ function Home3() {
         <h2>Jak to działa?</h2>
       </div>
 
-      <div className="home3-grid">
+      <div className="home3-grid" ref={gridRef}>
         {steps.map((step, index) => (
-          <article className="home3-card" key={index}>
+          <article
+            className={`home3-card fade-up${gridInView ? ' in-view' : ''}`}
+            key={index}
+            style={{ transitionDelay: gridInView ? `${index * 80}ms` : '0ms' }}
+          >
             <div className="home3-number">{step.number}</div>
             <h3>{step.title}</h3>
             <p>{step.description}</p>

@@ -1,8 +1,17 @@
 import './SidebarHeader.css'
 import { useMemo } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { useAuth } from '../AuthContext'
+import logo from '../assets/nazwa.PNG'
 
-function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
+const ROLE_LABELS = {
+  uczen: 'Uczeń',
+  nauczyciel: 'Nauczyciel',
+  administrator: 'Administrator',
+}
+
+function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = false }) {
+  const { profile } = useAuth()
  
   const todayDate = useMemo(() => {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -101,7 +110,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
         <div className="dashboard-sidebar-top">
           <div className="dashboard-sidebar-logo-row">
             <Link to="/" className="dashboard-logo-link">
-              <img src="src/assets/nazwa.PNG" alt="DataMindAI" className="dashboard-logo" />
+              <img src={logo} alt="DataMindAI" className="dashboard-logo" />
             </Link>
             <button
               type="button"
@@ -142,8 +151,8 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
           </div>
 
           <div className="dashboard-user-info">
-            <strong>Użytkownik</strong>
-            <span>Beginner</span>
+            <strong>{profile?.name ?? 'Użytkownik'}</strong>
+            <span>{ROLE_LABELS[profile?.role] ?? 'Gość'}</span>
           </div>
         </Link>
       </aside>
@@ -193,7 +202,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
           <div className="dashboard-header-date">{todayDate}</div>
         </header>
 
-        <main className="dashboard-content">
+        <main className={`dashboard-content${noPadding ? ' dashboard-content--no-padding' : ''}`}>
           {children}
         </main>
       </div>

@@ -151,8 +151,13 @@
     background: var(--btnHoverBlue);
 }
 
+.register-form .password-wrapper {
+    margin-bottom: 16px;
+}
+
 .register-form .password-wrapper input {
     padding-right: 48px;
+    margin-bottom: 0;
 }
 
 .register-form .password-toggle {

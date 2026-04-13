@@ -234,6 +234,10 @@
     overflow-y: auto;
 }
 
+.dashboard-content--no-padding {
+    padding: 0;
+}
+
 .dashboard-layout.sidebar-closed .dashboard-sidebar {
     width: 0;
     min-width: 0;
@@ -274,6 +278,10 @@
 
     .dashboard-content {
         padding: 20px 16px;
+    }
+
+    .dashboard-content--no-padding {
+        padding: 0;
     }
 
     .dashboard-header-date {

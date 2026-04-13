@@ -1,8 +1,6 @@
 .settings-page {
   font-family: VennRegular;
   color: var(--primaryText);
-  max-width: 960px;
-  margin: 0 auto;
 }
 
 /* HEADER */
@@ -130,6 +128,24 @@
 
 .settings-form button:hover {
   background: var(--btnHoverBlue);
+}
+
+.settings-form .password-wrapper input {
+  padding-right: 48px;
+}
+
+.settings-form .password-toggle {
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 4px;
+  align-self: auto;
+  color: #8d94a5;
+}
+
+.settings-form .password-toggle:hover {
+  background: none;
+  color: var(--primaryText);
 }
 
 /* HASŁO — 3 fieldy w rzędzie */

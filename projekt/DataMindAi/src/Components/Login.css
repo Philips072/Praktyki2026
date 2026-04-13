@@ -166,8 +166,13 @@
     background: var(--btnHoverBlue);
 }
 
+.login-form .password-wrapper {
+    margin-bottom: 16px;
+}
+
 .login-form .password-wrapper input {
     padding-right: 48px;
+    margin-bottom: 0;
 }
 
 .login-form .password-toggle {

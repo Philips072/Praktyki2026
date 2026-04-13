@@ -45,6 +45,28 @@ body{
   overflow-x: hidden;
 }
 
+/* SCROLL ANIMATIONS */
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  will-change: opacity, transform;
+}
+
+.fade-up.in-view {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .password-wrapper {
   position: relative;
   width: 100%;
@@ -54,7 +76,7 @@ body{
 .password-toggle {
   position: absolute;
   right: 13px;
-  top: 50%;
+  top: calc(50% + 1px);
   transform: translateY(-50%);
   background: none;
   border: none;

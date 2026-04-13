@@ -1,6 +1,8 @@
 import './Home2.css'
+import { useInView } from '../hooks/useInView'
 
 function Home2() {
+  const [gridRef, gridInView] = useInView()
   const features = [
     {
       icon: (
@@ -45,9 +47,13 @@ function Home2() {
         </p>
       </div>
 
-      <div className="features-grid">
+      <div className="features-grid" ref={gridRef}>
         {features.map((feature, index) => (
-          <article className="feature-card" key={index}>
+          <article
+            className={`feature-card fade-up${gridInView ? ' in-view' : ''}`}
+            key={index}
+            style={{ transitionDelay: gridInView ? `${index * 80}ms` : '0ms' }}
+          >
             <div className="feature-icon">{feature.icon}</div>
             <h3>{feature.title}</h3>
             <p>{feature.description}</p>

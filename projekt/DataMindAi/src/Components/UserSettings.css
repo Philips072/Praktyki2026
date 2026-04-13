@@ -172,6 +172,70 @@
   margin-bottom: 0;
 }
 
+/* STATUS MESSAGES */
+.settings-status {
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  border-radius: 7px;
+  margin-bottom: 10px;
+}
+
+.settings-status--error {
+  color: #e06c6c;
+  background: rgba(224, 108, 108, 0.1);
+  border: 1px solid rgba(224, 108, 108, 0.25);
+}
+
+.settings-status--success {
+  color: #5fca8a;
+  background: rgba(95, 202, 138, 0.1);
+  border: 1px solid rgba(95, 202, 138, 0.25);
+}
+
+.settings-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* LOGOUT */
+.settings-logout {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--borderColor);
+}
+
+.settings-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  border: 2px solid rgba(224, 80, 80, 0.4);
+  border-radius: 8px;
+  background: rgba(224, 80, 80, 0.08);
+  color: #e05050;
+  font-size: 0.95rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-logout-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.settings-logout-btn:hover {
+  background: rgba(224, 80, 80, 0.16);
+  border-color: rgba(224, 80, 80, 0.7);
+}
+
+.settings-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* RESPONSIVE */
 @media screen and (max-width: 900px) {
   .settings-title {

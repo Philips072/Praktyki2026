@@ -1,7 +1,5 @@
 .lectures-page {
   background-color: var(--primaryBg);
-  min-height: 100vh;
-  padding: 40px 32px;
   font-family: VennRegular;
   color: var(--primaryText);
 }

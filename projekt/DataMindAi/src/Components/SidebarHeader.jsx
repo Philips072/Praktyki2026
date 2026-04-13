@@ -127,7 +127,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
           </nav>
         </div>
 
-        <div className="dashboard-user-box">
+        <Link to="/ustawienia" className="dashboard-user-box">
           <div className="dashboard-user-avatar">
             <svg viewBox="0 0 24 24" fill="none">
               <path
@@ -145,7 +145,7 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
             <strong>Użytkownik</strong>
             <span>Beginner</span>
           </div>
-        </div>
+        </Link>
       </aside>
 
       <div className="dashboard-main">

@@ -1,0 +1,201 @@
+.settings-page {
+  font-family: VennRegular;
+  color: var(--primaryText);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* HEADER */
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
+.settings-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #39498f;
+  color: #dfe6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-avatar svg {
+  width: 32px;
+  height: 32px;
+}
+
+.settings-title {
+  font-size: 42px;
+  font-family: VennBold;
+  color: var(--primaryText);
+  margin: 0 0 4px 0;
+}
+
+.settings-subtitle {
+  font-size: 14px;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+/* GRID */
+.settings-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* CARDS */
+.settings-card {
+  background-color: var(--containerBoxBg);
+  border: 2px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 28px 28px 24px;
+  transition: border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-card:hover {
+  border-color: var(--accentColor);
+}
+
+.settings-card--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-card-title {
+  font-size: 17px;
+  font-family: VennBold;
+  color: var(--primaryText);
+  margin: 0 0 4px 0;
+}
+
+.settings-card-desc {
+  font-size: 13px;
+  color: var(--secondaryText);
+  margin: 0 0 20px 0;
+}
+
+/* FORMS */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.settings-form input {
+  width: 100%;
+  height: 50px;
+  border: 2px solid var(--borderColor);
+  outline: none;
+  border-radius: 10px;
+  background: var(--inputBg);
+  color: var(--primaryText);
+  padding: 0 14px;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  transition: border-color 0.2s ease;
+  font-family: VennRegular;
+  box-sizing: border-box;
+}
+
+.settings-form input::placeholder {
+  color: #8d94a5;
+}
+
+.settings-form input:focus {
+  border-color: var(--accentColor);
+}
+
+.settings-form button {
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accentColor);
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.settings-form button:hover {
+  background: var(--btnHoverBlue);
+}
+
+/* HASŁO — 3 fieldy w rzędzie */
+.settings-form--password label {
+  font-size: 0.82rem;
+  color: var(--secondaryText);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.settings-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.settings-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-form-group input {
+  margin-bottom: 0;
+}
+
+/* RESPONSIVE */
+@media screen and (max-width: 900px) {
+  .settings-title {
+    font-size: 32px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .settings-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-card--wide {
+    grid-column: 1;
+  }
+
+  .settings-title {
+    font-size: 26px;
+  }
+
+  .settings-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .settings-avatar svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .settings-card {
+    padding: 22px 18px 18px;
+  }
+
+  .settings-form-group input {
+    margin-bottom: 14px;
+  }
+
+  .settings-form button {
+    width: 100%;
+    align-self: stretch;
+  }
+}

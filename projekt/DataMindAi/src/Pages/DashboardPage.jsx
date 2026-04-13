@@ -14,7 +14,7 @@ function DashboardPage(){
         onClick={() => setSidebarOpen(false)}
         style={{
             position: 'fixed',
-            top: '22px',
+            top: '23px',
             left: '155px',
             zIndex: 200,
             background: 'none',

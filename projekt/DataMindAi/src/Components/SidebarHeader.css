@@ -15,7 +15,7 @@
 .dashboard-sidebar {
     width: var(--sidebar-width);
     min-width: var(--sidebar-width);
-    background: rgba(255, 255, 255, 0.01);
+    background: var(--sidebarBg);
     border-right: 2px solid var(--borderColor);
     display: flex;
     flex-direction: column;
@@ -199,6 +199,10 @@
 .dashboard-layout.sidebar-closed .dashboard-user-box {
     opacity: 0;
     pointer-events: none;
+}
+
+.sidebar-backdrop {
+    display: none;
 }
 
 /* mobile */

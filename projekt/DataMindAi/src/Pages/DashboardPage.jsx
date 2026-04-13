@@ -1,9 +1,8 @@
 import './DashboardPage.css'
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import SidebarHeader from "../Components/SidebarHeader"
-import Dashboard1 from "../Components/Dashboard1"
-import Dashboard2 from "../Components/Dashboard2"
+import SidebarHeader from '../Components/SidebarHeader'
+import Dashboard1 from '../Components/Dashboard1'
+import Dashboard2 from '../Components/Dashboard2'
 
 function DashboardPage(){
     const [sidebarOpen, setSidebarOpen] = useState(true)

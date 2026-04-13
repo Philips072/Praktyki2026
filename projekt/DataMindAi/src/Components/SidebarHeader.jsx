@@ -93,6 +93,9 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen }) {
 
   return (
     <div className={`dashboard-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      )}
       <aside className="dashboard-sidebar">
         <div className="dashboard-sidebar-top">
           <Link to="/" className="dashboard-logo-link">

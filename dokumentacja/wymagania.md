@@ -5,15 +5,25 @@
 ### Użytkownik niezalogowany
 
 - Użytkownik może przeglądać stronę główną z opisem platformy
-- Użytkownik może założyć konto (rejestracja)
+- Użytkownik może założyć konto (rejestracja) — konto tworzone jest w Supabase Auth
 - Użytkownik może zalogować się na istniejące konto
+- Użytkownik może zresetować hasło przez e-mail
+
+### Nowy użytkownik (onboarding)
+
+- Po rejestracji użytkownik przechodzi ankietę powitalną (OnboardingPage)
+- Użytkownik wybiera swój poziom SQL (beginner / intermediate / advanced)
+- Użytkownik wybiera zainteresowania (np. piłka nożna, gry, podróże, muzyka)
+- Dane zapisywane są w tabeli `profiles` w Supabase
 
 ### Użytkownik zalogowany
 
 - Użytkownik widzi panel (dashboard) z podsumowaniem swoich postępów
 - Użytkownik widzi liczbę ukończonych lekcji, rozwiązanych zadań i dni nauki
 - Użytkownik może przeglądać dostępne lekcje SQL
+- Użytkownik może otworzyć wybraną lekcję i ją przerobić
 - Użytkownik może zadawać pytania asystentowi AI dotyczące SQL i baz danych
+- Użytkownik może przeglądać wiadomości
 - Użytkownik może przeglądać i edytować ustawienia swojego konta
 
 ### Personalizacja
@@ -46,3 +56,6 @@
 - Style zarządzane przez osobne pliki CSS per komponent
 - Routing po stronie klienta obsługiwany przez React Router DOM v7
 - Aplikacja budowana i serwowana przez Vite
+- Backend oparty na Supabase (PostgreSQL + Auth)
+- Dane sesji i profilu użytkownika dostępne globalnie przez `AuthContext`
+- Zmienne środowiskowe (klucze Supabase) przechowywane w pliku `.env` (nie commitowanym do repozytorium)

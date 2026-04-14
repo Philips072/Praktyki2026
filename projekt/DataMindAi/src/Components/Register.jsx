@@ -75,7 +75,7 @@ function Register() {
       return
     }
 
-    navigate('/dashboard')
+    navigate('/onboarding')
     setLoading(false)
   }
 

@@ -30,9 +30,14 @@ function UserSettings() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const [sqlLevel, setSqlLevel] = useState('')
+  const [interests, setInterests] = useState('')
+
   const [nameStatus, setNameStatus] = useState({ loading: false, error: '', success: '' })
   const [emailStatus, setEmailStatus] = useState({ loading: false, error: '', success: '' })
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, error: '', success: '' })
+  const [levelStatus, setLevelStatus] = useState({ loading: false, error: '', success: '' })
+  const [interestsStatus, setInterestsStatus] = useState({ loading: false, error: '', success: '' })
 
   const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
@@ -42,6 +47,10 @@ function UserSettings() {
   useEffect(() => {
     if (profile?.name) setName(profile.name)
     if (user?.email) setEmail(user.email)
+    if (profile?.sql_level) setSqlLevel(profile.sql_level)
+    if (profile?.interests) setInterests(
+      Array.isArray(profile.interests) ? profile.interests.join(', ') : (profile.interests ?? '')
+    )
   }, [profile, user])
 
   const handleSaveName = async (e) => {
@@ -101,6 +110,37 @@ function UserSettings() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
+    }
+  }
+
+  const SQL_LEVELS = [
+    { id: 'poczatkujacy', label: 'Początkujący', desc: 'Nigdy nie pracowałem z SQL' },
+    { id: 'sredniozaawansowany', label: 'Średniozaawansowany', desc: 'Znam podstawy SELECT, WHERE, JOIN' },
+    { id: 'zaawansowany', label: 'Zaawansowany', desc: 'Używam SQL regularnie w pracy' },
+  ]
+
+  const handleSaveLevel = async () => {
+    if (!sqlLevel) return
+    if (!user?.id) {
+      setLevelStatus({ loading: false, error: 'Błąd: brak sesji użytkownika.', success: '' })
+      return
+    }
+    setLevelStatus({ loading: true, error: '', success: '' })
+    const { error } = await supabase.from('profiles').update({ sql_level: sqlLevel }).eq('id', user.id)
+    if (error) {
+      setLevelStatus({ loading: false, error: `Błąd: ${error.message}`, success: '' })
+    } else {
+      setLevelStatus({ loading: false, error: '', success: 'Poziom został zaktualizowany.' })
+    }
+  }
+
+  const handleSaveInterests = async () => {
+    setInterestsStatus({ loading: true, error: '', success: '' })
+    const { error } = await supabase.from('profiles').update({ interests }).eq('id', user.id)
+    if (error) {
+      setInterestsStatus({ loading: false, error: 'Nie udało się zapisać zainteresowań.', success: '' })
+    } else {
+      setInterestsStatus({ loading: false, error: '', success: 'Zainteresowania zostały zaktualizowane.' })
     }
   }
 
@@ -232,6 +272,53 @@ function UserSettings() {
               {passwordStatus.loading ? 'Zmienianie...' : 'Zmień hasło'}
             </button>
           </form>
+        </div>
+
+        <div className="settings-card settings-card--wide">
+          <h2 className="settings-card-title">Poziom SQL</h2>
+          <p className="settings-card-desc">Zmień swój aktualny poziom zaawansowania SQL</p>
+          <div className="settings-levels">
+            {SQL_LEVELS.map(lvl => (
+              <button
+                key={lvl.id}
+                type="button"
+                className={`settings-level-card${sqlLevel === lvl.id ? ' settings-level-card--active' : ''}`}
+                onClick={() => setSqlLevel(lvl.id)}
+              >
+                <span className="settings-level-name">{lvl.label}</span>
+                <span className="settings-level-desc">{lvl.desc}</span>
+              </button>
+            ))}
+          </div>
+          {levelStatus.error && <p className="settings-status settings-status--error">{levelStatus.error}</p>}
+          {levelStatus.success && <p className="settings-status settings-status--success">{levelStatus.success}</p>}
+          <button
+            className="settings-save-btn"
+            onClick={handleSaveLevel}
+            disabled={levelStatus.loading || !sqlLevel}
+          >
+            {levelStatus.loading ? 'Zapisywanie...' : 'Zapisz poziom'}
+          </button>
+        </div>
+
+        <div className="settings-card settings-card--wide">
+          <h2 className="settings-card-title">Zainteresowania</h2>
+          <p className="settings-card-desc">Opisz czym się interesujesz — AI dostosuje do tego przykłady i ćwiczenia</p>
+          <textarea
+            className="settings-interests-box"
+            placeholder="Np. analiza danych sprzedażowych, marketing, finanse, e-commerce..."
+            value={interests}
+            onChange={e => setInterests(e.target.value)}
+          />
+          {interestsStatus.error && <p className="settings-status settings-status--error">{interestsStatus.error}</p>}
+          {interestsStatus.success && <p className="settings-status settings-status--success">{interestsStatus.success}</p>}
+          <button
+            className="settings-save-btn"
+            onClick={handleSaveInterests}
+            disabled={interestsStatus.loading}
+          >
+            {interestsStatus.loading ? 'Zapisywanie...' : 'Zapisz zainteresowania'}
+          </button>
         </div>
 
       </div>

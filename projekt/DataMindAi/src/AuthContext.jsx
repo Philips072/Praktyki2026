@@ -9,12 +9,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = async (userId) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('name, role')
+      .select('name, role, sql_level, interests')
       .eq('id', userId)
       .single()
-    setProfile(data)
+
+    if (error) {
+      // Fallback — kolumny sql_level/interests mogą jeszcze nie istnieć w bazie
+      const { data: fallback } = await supabase
+        .from('profiles')
+        .select('name, role')
+        .eq('id', userId)
+        .single()
+      setProfile(fallback)
+    } else {
+      setProfile(data)
+    }
     setLoading(false)
   }
 

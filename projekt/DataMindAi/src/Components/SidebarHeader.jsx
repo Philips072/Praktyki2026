@@ -1,8 +1,55 @@
 import './SidebarHeader.css'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
+import { supabase } from '../supabaseClient'
 import logo from '../assets/nazwa.PNG'
+
+function useUnreadCount(userId) {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!userId) return
+
+    const fetch = async () => {
+      // Pobierz ID rozmów użytkownika
+      const { data: convRows } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
+
+      if (!convRows || convRows.length === 0) { setCount(0); return }
+
+      const convIds = convRows.map(c => c.id)
+      const { count: n } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .in('conversation_id', convIds)
+        .eq('read_by_recipient', false)
+        .neq('sender_id', userId)
+
+      setCount(n ?? 0)
+    }
+
+    fetch()
+
+    const channel = supabase
+      .channel(`sidebar-unread-${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        if (payload.new.sender_id !== userId) setCount(c => c + 1)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        if (payload.new.read_by_recipient && !payload.old.read_by_recipient && payload.new.sender_id !== userId) {
+          setCount(c => Math.max(0, c - 1))
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [userId])
+
+  return count
+}
 
 const ROLE_LABELS = {
   uczen: 'Uczeń',
@@ -11,7 +58,8 @@ const ROLE_LABELS = {
 }
 
 function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = false }) {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
+  const unreadCount = useUnreadCount(user?.id)
  
   const todayDate = useMemo(() => {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -70,30 +118,22 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
       ),
     },
     {
-      label: 'Osiągnięcia',
-      path: '/osiagniecia',
+      label: 'Wiadomości',
+      path: '/wiadomosci',
+      badge: unreadCount || 0,
       icon: (
         <svg viewBox="0 0 24 24" fill="none">
           <path
-            d="M8 4H16V7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7V4Z"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-          <path
-            d="M10 11V14L7 20H17L14 14V11"
+            d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinejoin="round"
           />
-          <path
-            d="M16 5H19C19 7.20914 17.2091 9 15 9"
+          <polyline
+            points="22,6 12,13 2,6"
             stroke="currentColor"
             strokeWidth="2"
-          />
-          <path
-            d="M8 5H5C5 7.20914 6.79086 9 9 9"
-            stroke="currentColor"
-            strokeWidth="2"
+            strokeLinejoin="round"
           />
         </svg>
       ),
@@ -131,6 +171,9 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
               >
                 <span className="dashboard-nav-icon">{item.icon}</span>
                 <span className="dashboard-nav-label">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="dashboard-nav-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+                )}
               </NavLink>
             ))}
           </nav>

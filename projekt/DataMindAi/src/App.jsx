@@ -9,6 +9,10 @@ import LecturesPage from './Pages/LecturesPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 import AIChatPage from './Pages/AIChatPage'
+import ForgotPasswordPage from './Pages/ForgotPasswordPage'
+import OnboardingPage from './Pages/OnboardingPage'
+import LessonPage from './Pages/LessonPage'
+import MessagesPage from './Pages/MessagesPage'
 
 
 function App() {
@@ -19,10 +23,13 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/logowanie" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/rejestracja" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+        <Route path="/reset-hasla" element={<ForgotPasswordPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/lekcje" element={<LecturesPage />} />
+        <Route path="/lekcja/:id" element={<LessonPage />} />
         <Route path="/ai-chat" element={<AIChatPage />} />
-        <Route path="/osiagniecia" element={<UserSettingsPage />} />
+        <Route path="/wiadomosci" element={<MessagesPage />} />
         <Route path="/ustawienia" element={<UserSettingsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

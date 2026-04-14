@@ -236,6 +236,108 @@
   cursor: not-allowed;
 }
 
+/* LEVEL CARDS */
+.settings-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.settings-level-card {
+  width: 100%;
+  background: var(--inputBg);
+  border: 2px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.settings-level-card:hover {
+  border-color: var(--accentColor);
+}
+
+.settings-level-card--active {
+  border-color: #39498f;
+  background: #39498f;
+}
+
+.settings-level-card--active .settings-level-name {
+  color: #f3f7ff;
+}
+
+.settings-level-card--active .settings-level-desc {
+  color: #b8c4e8;
+}
+
+.settings-level-name {
+  font-family: VennBold;
+  font-size: 0.95rem;
+  color: var(--primaryText);
+}
+
+.settings-level-desc {
+  font-size: 0.82rem;
+  color: var(--secondaryText);
+}
+
+/* INTERESTS TEXTAREA */
+.settings-interests-box {
+  width: 100%;
+  background: var(--inputBg);
+  border: 2px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--primaryText);
+  font-size: 0.97rem;
+  font-family: VennRegular;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 90px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.settings-interests-box::placeholder {
+  color: #8d94a5;
+}
+
+.settings-interests-box:focus {
+  border-color: var(--accentColor);
+}
+
+/* Generic save button for new cards */
+.settings-save-btn {
+  align-self: flex-start;
+  height: 44px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accentColor);
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 4px;
+}
+
+.settings-save-btn:hover {
+  background: var(--btnHoverBlue);
+}
+
+.settings-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* RESPONSIVE */
 @media screen and (max-width: 900px) {
   .settings-title {

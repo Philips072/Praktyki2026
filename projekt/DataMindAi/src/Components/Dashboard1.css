@@ -1,6 +1,6 @@
 .dashboard-wrapper {
     background-color: var(--primaryBg);
-    color: white;
+    color: var(--primaryText);
     font-family: VennRegular;
     padding: 1.5rem 2rem;
 }
@@ -12,7 +12,7 @@
 }
 
 .dashboard-desc {
-    color: #a6a6a6;
+    color: var(--secondaryText);
     font-size: 0.9rem;
     margin: 0 0 2rem 0;
 }
@@ -26,8 +26,8 @@
 .dashboard-lessons,
 .dashboard-tasks,
 .dashboard-days {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--containerBoxBg);
+    border: 2px solid var(--borderColor);
     border-radius: 12px;
     padding: 1.5rem;
 }
@@ -37,7 +37,7 @@
 .days-text {
     margin: 0;
     font-size: 0.85rem;
-    color: #a6a6a6;
+    color: var(--secondaryText);
     line-height: 1.4;
 }
 

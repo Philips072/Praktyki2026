@@ -1,12 +1,12 @@
 .dashboard2-wrapper {
     background-color: var(--primaryBg);
-    color: white;
+    color: var(--primaryText);
     font-family: VennRegular;
     padding: 1.5rem 2rem;
 }
 
 .dashboard2-h1 {
-     font-size: 2rem;
+    font-size: 2rem;
     font-weight: 700;
     margin: 0 0 1.5rem 0;
 }
@@ -19,7 +19,7 @@
 
 .first-lesson,
 .ask-ai {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 1.8rem;
     display: flex;
@@ -51,6 +51,9 @@
     flex-direction: column;
     gap: 0.5rem;
 }
+.dashboard2-wrapper a{
+    text-decoration: none;
+}
 
 .first-lesson h2,
 .ask-ai h2 {
@@ -62,7 +65,7 @@
 
 .first-lesson-desc {
     font-size: 0.85rem;
-    color: #a6a6a6;
+    color: var(--secondaryText);
     line-height: 1.5;
 }
 

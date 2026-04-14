@@ -1,0 +1,577 @@
+/* ── Layout ────────────────────────────────────────────── */
+
+.ls-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--primaryBg);
+  color: var(--primaryText);
+  font-family: VennRegular;
+  overflow: hidden;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+
+.ls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 24px;
+  height: 68px;
+  min-height: 68px;
+  border-bottom: 2px solid var(--borderColor);
+  background: var(--primaryBg);
+  flex-shrink: 0;
+}
+
+.ls-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.ls-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--borderColor);
+  background: transparent;
+  color: var(--primaryText);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ls-back-btn:hover {
+  border-color: var(--accentColor);
+  background: rgba(50, 66, 119, 0.2);
+}
+
+.ls-header-titles {
+  min-width: 0;
+}
+
+.ls-header-title {
+  font-family: VennBold;
+  font-size: 1.05rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ls-header-subtitle {
+  font-size: 0.78rem;
+  color: var(--secondaryText);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ls-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Badges */
+.ls-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-family: VennRegular;
+  white-space: nowrap;
+}
+
+.ls-badge--level.ls-badge--beginner    { background: rgba(95, 202, 138, 0.15); color: #5fca8a; border: 1px solid rgba(95, 202, 138, 0.3); }
+.ls-badge--level.ls-badge--intermediate { background: rgba(46, 160, 248, 0.15); color: #2ea0f8; border: 1px solid rgba(46, 160, 248, 0.3); }
+.ls-badge--level.ls-badge--advanced    { background: rgba(224, 108, 108, 0.15); color: #e06c6c; border: 1px solid rgba(224, 108, 108, 0.3); }
+
+.ls-badge--progress {
+  background: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  color: var(--secondaryText);
+}
+
+/* ── Body — dwie kolumny ───────────────────────────────── */
+
+.ls-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ls-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 28px 28px 40px;
+  gap: 20px;
+}
+
+.ls-col--theory {
+  border-right: 2px solid var(--borderColor);
+}
+
+/* ── Nagłówek sekcji ───────────────────────────────────── */
+
+.ls-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ls-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ls-section-icon--blue  { background: rgba(46, 160, 248, 0.2); color: #2ea0f8; }
+.ls-section-icon--green { background: rgba(95, 202, 138, 0.2); color: #5fca8a; }
+
+.ls-section-title {
+  font-family: VennBold;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+/* ── Słowa kluczowe ────────────────────────────────────── */
+
+.ls-keywords-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.ls-keywords-label {
+  font-size: 0.9rem;
+  color: var(--secondaryText);
+}
+
+.ls-keywords {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ls-keyword {
+  padding: 4px 10px;
+  background: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  color: var(--primaryText);
+}
+
+/* ── Teoria — treść ────────────────────────────────────── */
+
+.ls-theory-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ls-theory-heading {
+  font-family: VennBold;
+  font-size: 1.05rem;
+  margin: 6px 0 0;
+}
+
+.ls-theory-text {
+  font-size: 0.92rem;
+  color: var(--secondaryText);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Blok kodu */
+.ls-code-block {
+  background: #161820;
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ls-code-label {
+  font-family: VennBold;
+  font-size: 0.82rem;
+  color: var(--secondaryText);
+  padding: 10px 16px 0;
+  margin: 0;
+}
+
+.ls-code-block pre {
+  margin: 0;
+  padding: 12px 16px 14px;
+  overflow-x: auto;
+}
+
+.ls-code-block code {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 0.88rem;
+  color: #a9c7f5;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+/* Tabela przykładowa */
+.ls-example-table-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ls-table-label {
+  font-family: VennBold;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.ls-table-scroll {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+}
+
+.ls-example-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ls-example-table th {
+  background: var(--inputBg);
+  color: var(--secondaryText);
+  text-align: left;
+  padding: 9px 14px;
+  font-family: VennBold;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--borderColor);
+  white-space: nowrap;
+}
+
+.ls-example-table td {
+  padding: 9px 14px;
+  color: var(--primaryText);
+  border-bottom: 1px solid var(--borderColor);
+  white-space: nowrap;
+}
+
+.ls-example-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Wskazówka */
+.ls-hint {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: rgba(50, 66, 119, 0.25);
+  border: 1px solid rgba(50, 66, 119, 0.5);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: #c5d0f0;
+  line-height: 1.6;
+}
+
+.ls-hint svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #7f9cf5;
+}
+
+.ls-hint strong {
+  font-family: VennBold;
+}
+
+/* ── Schemat tabeli ────────────────────────────────────── */
+
+.ls-schema-title {
+  font-family: VennBold;
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+
+.ls-schema-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ls-schema-item {
+  background: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.ls-schema-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 3px;
+}
+
+.ls-schema-name {
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  color: #7f9cf5;
+  font-weight: bold;
+}
+
+.ls-schema-type {
+  font-size: 0.78rem;
+  color: var(--secondaryText);
+}
+
+.ls-schema-desc {
+  font-size: 0.82rem;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+/* ── Tabs ──────────────────────────────────────────────── */
+
+.ls-tabs {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--borderColor);
+  flex-shrink: 0;
+}
+
+.ls-tab {
+  flex: 1;
+  height: 40px;
+  background: var(--containerBoxBg);
+  border: none;
+  color: var(--secondaryText);
+  font-family: VennRegular;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-right: 1px solid var(--borderColor);
+}
+
+.ls-tab:last-child {
+  border-right: none;
+}
+
+.ls-tab--active {
+  background: var(--accentColor);
+  color: #fff;
+}
+
+.ls-tab:not(.ls-tab--active):hover {
+  background: var(--inputBg);
+  color: var(--primaryText);
+}
+
+/* ── Ćwiczenie ─────────────────────────────────────────── */
+
+.ls-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.ls-exercise-task {
+  background: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.ls-exercise-task-label {
+  font-family: VennBold;
+  font-size: 0.9rem;
+  margin: 0 0 6px;
+}
+
+.ls-exercise-task-text {
+  font-size: 0.92rem;
+  color: var(--secondaryText);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ls-sql-label {
+  font-size: 0.88rem;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+.ls-sql-editor {
+  width: 100%;
+  min-height: 120px;
+  background: #161820;
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #a9c7f5;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.ls-sql-editor::placeholder {
+  color: #4a5270;
+}
+
+.ls-sql-editor:focus {
+  border-color: var(--accentColor);
+}
+
+/* Przyciski akcji */
+.ls-exercise-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ls-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  font-family: VennRegular;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.ls-btn--check {
+  flex: 1;
+  background: var(--accentColor);
+  color: #fff;
+  justify-content: center;
+}
+
+.ls-btn--check:hover {
+  background: var(--btnHoverBlue);
+}
+
+.ls-btn--hint {
+  background: var(--containerBoxBg);
+  color: var(--secondaryText);
+  border: 1px solid var(--borderColor);
+}
+
+.ls-btn--hint:hover {
+  border-color: var(--accentColor);
+  color: var(--primaryText);
+}
+
+/* Podpowiedź rozwijana */
+.ls-hint-box {
+  background: rgba(50, 66, 119, 0.2);
+  border: 1px solid rgba(50, 66, 119, 0.4);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: #c5d0f0;
+  line-height: 1.5;
+}
+
+/* Oczekiwany wynik */
+.ls-expected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ls-expected-label {
+  font-family: VennBold;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Not found */
+.ls-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+  font-family: VennRegular;
+  color: var(--primaryText);
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+
+@media screen and (max-width: 900px) {
+  .ls-body {
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .ls-col {
+    overflow-y: visible;
+    padding: 20px 16px 28px;
+  }
+
+  .ls-col--theory {
+    border-right: none;
+    border-bottom: 2px solid var(--borderColor);
+  }
+
+  .ls-header {
+    padding: 0 16px;
+    height: auto;
+    min-height: 60px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .ls-header-title {
+    font-size: 0.9rem;
+  }
+
+  .ls-badge {
+    font-size: 0.7rem;
+    padding: 4px 9px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .ls-header-right {
+    display: none;
+  }
+
+  .ls-exercise-actions {
+    flex-direction: column;
+  }
+
+  .ls-btn--hint {
+    justify-content: center;
+  }
+}

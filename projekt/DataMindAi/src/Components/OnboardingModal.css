@@ -1,0 +1,299 @@
+/* ── Keyframes ─────────────────────────────────────────── */
+
+@keyframes ob-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ob-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ob-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ob-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ob-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Card ──────────────────────────────────────────────── */
+
+.ob-card {
+  width: 100%;
+  max-width: 700px;
+  background: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 24px;
+  padding: 52px 52px 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: VennRegular;
+  animation: ob-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Logo ──────────────────────────────────────────────── */
+
+.ob-logo {
+  width: 220px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 24px;
+  animation: ob-item-in 0.5s 0.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Progress ──────────────────────────────────────────── */
+
+.ob-progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  animation: ob-item-in 0.5s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ob-progress-bar {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--borderColor);
+  transition: background 0.4s ease;
+}
+
+.ob-progress-bar--active {
+  background: var(--accentColor);
+}
+
+/* ── Step wrapper ──────────────────────────────────────── */
+
+.ob-step {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ob-step--level {
+  animation: ob-step-back 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ob-step--interests {
+  animation: ob-step-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Titles ────────────────────────────────────────────── */
+
+.ob-title {
+  font-family: VennBold;
+  font-size: 2.2rem;
+  color: var(--primaryText);
+  margin: 0 0 8px;
+  text-align: center;
+  animation: ob-item-in 0.5s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ob-subtitle {
+  font-family: VennRegular;
+  font-size: 1.05rem;
+  color: var(--secondaryText);
+  margin: 0 0 28px;
+  text-align: center;
+  line-height: 1.5;
+  animation: ob-item-in 0.5s 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Level cards ───────────────────────────────────────── */
+
+.ob-levels {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.ob-level-card {
+  width: 100%;
+  background: var(--inputBg);
+  border: 2px solid var(--borderColor);
+  border-radius: 14px;
+  padding: 22px 26px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  animation: ob-item-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.ob-level-card:nth-child(1) { animation-delay: 0.22s; }
+.ob-level-card:nth-child(2) { animation-delay: 0.30s; }
+.ob-level-card:nth-child(3) { animation-delay: 0.38s; }
+
+.ob-level-card:hover {
+  border-color: var(--accentColor);
+  transform: translateY(-1px);
+}
+
+.ob-level-card:active {
+  transform: scale(0.99);
+}
+
+.ob-level-card--active {
+  border-color: #39498f;
+  background: #39498f;
+}
+
+.ob-level-card--active .ob-level-name {
+  color: #f3f7ff;
+}
+
+.ob-level-card--active .ob-level-desc {
+  color: #b8c4e8;
+}
+
+.ob-level-name {
+  font-family: VennBold;
+  font-size: 1.08rem;
+  color: var(--primaryText);
+}
+
+.ob-level-desc {
+  font-family: VennRegular;
+  font-size: 0.95rem;
+  color: var(--secondaryText);
+}
+
+/* ── Actions row ───────────────────────────────────────── */
+
+.ob-actions {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  animation: ob-item-in 0.5s 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ob-btn {
+  height: 54px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, opacity 0.2s;
+}
+
+.ob-btn--primary {
+  background: var(--accentColor);
+  color: #fff;
+  flex: 1;
+}
+
+.ob-btn--primary:hover {
+  background: var(--btnHoverBlue);
+  transform: translateY(-1px);
+}
+
+.ob-btn--primary:active {
+  transform: scale(0.98);
+}
+
+.ob-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ob-btn--ghost {
+  background: var(--inputBg);
+  color: var(--secondaryText);
+  border: 2px solid var(--borderColor);
+  padding: 0 22px;
+  flex: 0 0 auto;
+}
+
+.ob-btn--ghost:hover {
+  border-color: var(--accentColor);
+  color: var(--primaryText);
+}
+
+/* ── Chat box (modifier dla kontekstu onboardingu) ─────── */
+
+.ob-aichat-box {
+  width: 100%;
+  height: 280px;
+  margin-bottom: 20px;
+  animation: ob-item-in 0.45s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Animacja bąbelków */
+.aichat-bubble {
+  animation: ob-bubble-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+
+@media screen and (max-width: 740px) {
+  .ob-card {
+    padding: 40px 28px 32px;
+  }
+}
+
+@media screen and (max-width: 580px) {
+  .ob-card {
+    border-radius: 0;
+    min-height: 100dvh;
+    padding: 32px 20px 28px;
+  }
+
+  .ob-title {
+    font-size: 1.6rem;
+  }
+
+  .ob-logo {
+    width: 170px;
+  }
+}

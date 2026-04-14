@@ -107,6 +107,28 @@
     color: #f3f7ff;
 }
 
+.dashboard-nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: #e05a5a;
+    color: #fff;
+    font-size: 0.7rem;
+    font-family: VennBold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: badge-pop 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes badge-pop {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
 .dashboard-nav-icon {
     width: 18px;
     height: 18px;

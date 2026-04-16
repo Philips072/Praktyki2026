@@ -4,45 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
-
-const MISTRAL_KEY = import.meta.env.VITE_MISTRAL_KEY
-
-async function askMistral(userText) {
-  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${MISTRAL_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'mistral-small-latest',
-      messages: [
-        {
-          role: 'system',
-          content: `Jesteś przyjaznym asystentem platformy DataMindAI do nauki SQL. Użytkownik pisze Ci o swoich zainteresowaniach. Odpowiedz w formacie JSON (i tylko JSON, bez markdown):
-{
-  "message": "<ciepła, ludzka reakcja po polsku, 2-3 zdania — zacznij od czegoś w stylu 'Okej, super!' albo 'Fajnie!', odnieś się do tego co użytkownik napisał i powiedz że dostosujesz ćwiczenia SQL do tych zainteresowań>",
-  "interests": "<przepisz zainteresowania użytkownika w 2. osobie liczby pojedynczej po polsku — używaj WYŁĄCZNIE informacji które użytkownik podał, nie dodawaj żadnych szczegółów, przykładów ani domysłów których nie było w wiadomości>"
-}`,
-        },
-        { role: 'user', content: userText },
-      ],
-      max_tokens: 250,
-      temperature: 0.8,
-    }),
-  })
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => ({}))
-    throw new Error(errBody?.error?.message || `HTTP ${res.status}`)
-  }
-  const data = await res.json()
-  const raw = data.choices[0].message.content.trim()
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return { message: raw, interests: raw }
-  }
-}
+import { askInterests } from '../api'
 
 const AiAvatar = () => (
   <div className="aichat-avatar">
@@ -68,7 +30,7 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
     setThinking(true)
     setError('')
     try {
-      const { message, interests } = await askMistral(trimmed)
+      const { message, interests } = await askInterests(trimmed)
       setAiMessage(message)
       await supabase.from('profiles').update({ interests }).eq('id', userId)
       onSaved(interests)

@@ -2,6 +2,7 @@ import './OnboardingModal.css'
 import './AiChat.css'
 import { useState } from 'react'
 import logo from '../assets/nazwa.PNG'
+import { askInterests } from '../api'
 
 const LEVELS = [
   {
@@ -56,50 +57,6 @@ function LevelStep({ selected, onSelect, onNext }) {
   )
 }
 
-const AI_MODEL = 'mistral-small-latest'
-const MISTRAL_KEY = import.meta.env.VITE_MISTRAL_KEY
-
-async function askGemma(userText) {
-  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${MISTRAL_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `Jesteś przyjaznym asystentem platformy DataMindAI do nauki SQL. Użytkownik pisze Ci o swoich zainteresowaniach. Odpowiedz w formacie JSON (i tylko JSON, bez markdown):
-{
-  "message": "<ciepła, ludzka reakcja po polsku, 2-3 zdania — zacznij od czegoś w stylu 'Okej, super!' albo 'Fajnie!', odnieś się do tego co użytkownik napisał i powiedz że dostosujesz ćwiczenia SQL do tych zainteresowań>",
-  "interests": "<przepisz zainteresowania użytkownika w 2. osobie liczby pojedynczej po polsku — używaj WYŁĄCZNIE informacji które użytkownik podał, nie dodawaj żadnych szczegółów, przykładów ani domysłów których nie było w wiadomości>"
-}`,
-        },
-        {
-          role: 'user',
-          content: userText,
-        },
-      ],
-      max_tokens: 250,
-      temperature: 0.8,
-    }),
-  })
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => ({}))
-    const msg = errBody?.error?.message || errBody?.message || `HTTP ${res.status}`
-    throw new Error(msg)
-  }
-  const data = await res.json()
-  const raw = data.choices[0].message.content.trim()
-  try {
-    return JSON.parse(raw)
-  } catch {
-    // Fallback jeśli AI nie zwróci poprawnego JSON
-    return { message: raw, interests: raw }
-  }
-}
 
 // Krok 2 — chat AI o zainteresowaniach
 function InterestsStep({ onBack, onFinish, loading }) {
@@ -118,7 +75,7 @@ function InterestsStep({ onBack, onFinish, loading }) {
     setThinking(true)
     setError('')
     try {
-      const { message, interests } = await askGemma(trimmed)
+      const { message, interests } = await askInterests(trimmed)
       setAiMessage(message)
       setAiInterests(interests)
     } catch (err) {

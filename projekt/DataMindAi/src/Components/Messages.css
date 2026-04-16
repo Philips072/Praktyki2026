@@ -598,6 +598,9 @@
   background: var(--btnHoverBlue);
   border-color: var(--btnHoverBlue);
 }
+.msg-bubble--unread {
+  box-shadow: 0 0 0 1.5px var(--primaryText);
+}
 
 /* ── Responsive ────────────────────────────────────────── */
 

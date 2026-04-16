@@ -1,0 +1,1090 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TeacherPanel.css
+   Używa wyłącznie zmiennych CSS z index.css:
+     --primaryBg, --containerBoxBg, --sidebarBg, --primaryText, --secondaryText,
+     --grayBtnBg, --inputBg, --borderColor, --accentColor, --inactiveBlueBtn,
+     --btnHoverBlue, --btnHoverGray, --aiMessageBg
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Korzeń komponentu ───────────────────────────────────────────────────── */
+.tp-root {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--primaryBg);
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+}
+
+/* ── Nawigacja boczna (desktop) / górna belka tabs (mobile) ─────────────── */
+.tp-nav {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  min-width: 220px;
+  background-color: var(--sidebarBg);
+  border-right: 1px solid var(--borderColor);
+  padding: 1.5rem 0;
+  gap: 0.25rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tp-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--secondaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s, background-color 0.2s, border-left-color 0.2s;
+}
+
+.tp-nav-item:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.tp-nav-item--active {
+  color: var(--primaryText);
+  background-color: var(--inactiveBlueBtn);
+  border-left-color: var(--accentColor);
+}
+
+/* Badge z liczbą nieprzeczytanych na nav-item */
+.tp-nav-badge {
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  font-size: 0.7rem;
+  font-family: VennBold, sans-serif;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+/* ── Główna treść ────────────────────────────────────────────────────────── */
+.tp-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  min-width: 0;
+  min-height: 0; /* konieczne żeby flex-child mógł scrollować wewnętrznie */
+}
+
+/* ── Sekcja ogólna ───────────────────────────────────────────────────────── */
+.tp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tp-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tp-section-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.4rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.tp-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tp-section-block {
+  margin-top: 1rem;
+}
+
+/* ── Karty ───────────────────────────────────────────────────────────────── */
+.tp-card {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.tp-card-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1rem;
+  color: var(--primaryText);
+  margin: 0 0 1rem;
+}
+
+/* ── Przyciski ───────────────────────────────────────────────────────────── */
+.tp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.tp-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tp-btn--primary {
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+}
+.tp-btn--primary:hover:not(:disabled) {
+  background-color: var(--btnHoverBlue);
+}
+
+.tp-btn--secondary {
+  background-color: var(--grayBtnBg);
+  color: var(--secondaryText);
+  border: 1px solid var(--borderColor);
+}
+.tp-btn--secondary:hover:not(:disabled) {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+/* Przycisk AI — wyróżniony kolorem aiMessageBg */
+.tp-btn--ai {
+  background-color: var(--aiMessageBg);
+  color: var(--primaryText);
+}
+.tp-btn--ai:hover:not(:disabled) {
+  background-color: var(--btnHoverBlue);
+}
+
+.tp-btn--ghost {
+  background-color: transparent;
+  color: var(--secondaryText);
+  border: 1px solid var(--borderColor);
+}
+.tp-btn--ghost:hover:not(:disabled) {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+/* Przyciski eksportu — wspólna baza */
+.tp-btn--export {
+  background-color: var(--grayBtnBg);
+  border: 1px solid var(--borderColor);
+  font-family: VennBold, sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.tp-btn--export-csv {
+  color: #5cba7d;
+  border-color: rgba(92, 186, 125, 0.3);
+}
+.tp-btn--export-csv:hover:not(:disabled) {
+  background-color: rgba(92, 186, 125, 0.1);
+  border-color: rgba(92, 186, 125, 0.6);
+  box-shadow: 0 0 0 3px rgba(92, 186, 125, 0.08);
+}
+
+.tp-btn--export-pdf {
+  color: #e07575;
+  border-color: rgba(224, 117, 117, 0.3);
+}
+.tp-btn--export-pdf:hover:not(:disabled) {
+  background-color: rgba(224, 117, 117, 0.1);
+  border-color: rgba(224, 117, 117, 0.6);
+  box-shadow: 0 0 0 3px rgba(224, 117, 117, 0.08);
+}
+
+.tp-btn--sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+/* Przełącznik widoku tabela/karty */
+.tp-view-btn {
+  padding: 0.4rem 0.7rem;
+  background-color: var(--grayBtnBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 6px;
+  color: var(--secondaryText);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+.tp-view-btn:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+.tp-view-btn--active {
+  background-color: var(--inactiveBlueBtn);
+  color: var(--primaryText);
+  border-color: var(--accentColor);
+}
+
+/* ── Formularze ──────────────────────────────────────────────────────────── */
+.tp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tp-form--ai {
+  border-left: 3px solid var(--accentColor);
+}
+
+.tp-form-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.tp-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.tp-form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tp-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tp-label {
+  font-size: 0.825rem;
+  color: var(--secondaryText);
+}
+
+.tp-input {
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  padding: 0.6rem 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tp-input:focus {
+  border-color: var(--accentColor);
+}
+
+.tp-textarea {
+  resize: vertical;
+}
+
+/* Pole SQL z czcionką monospace */
+.tp-textarea--code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.82rem;
+}
+
+.tp-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a6a6a6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2rem;
+}
+
+/* ── Tabela ───────────────────────────────────────────────────────────────── */
+.tp-table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--borderColor);
+}
+
+.tp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tp-table th {
+  background-color: var(--containerBoxBg);
+  color: var(--secondaryText);
+  font-family: VennBold, sans-serif;
+  font-weight: normal;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--borderColor);
+  white-space: nowrap;
+}
+
+.tp-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--borderColor);
+  color: var(--primaryText);
+  vertical-align: middle;
+}
+
+.tp-table-row:last-child td {
+  border-bottom: none;
+}
+
+.tp-table-row:hover td {
+  background-color: var(--btnHoverGray);
+}
+
+.tp-table--compact td,
+.tp-table--compact th {
+  padding: 0.55rem 0.85rem;
+}
+
+/* Złota linia dla nr 1 w rankingu */
+.tp-table-row--gold td {
+  background-color: rgba(50, 66, 119, 0.25);
+}
+
+.tp-rank-cell {
+  font-size: 1.1rem;
+  text-align: center;
+  width: 2.5rem;
+}
+
+/* ── Avatar z inicjałami ─────────────────────────────────────────────────── */
+.tp-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  font-family: VennBold, sans-serif;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tp-avatar--sm  { width: 2rem;   height: 2rem;   font-size: 0.8rem; }
+.tp-avatar--lg  { width: 3rem;   height: 3rem;   font-size: 1.1rem; }
+.tp-avatar--xl  { width: 3.5rem; height: 3.5rem; font-size: 1.3rem; }
+
+/* ── Komórka z imieniem ucznia w tabeli ──────────────────────────────────── */
+.tp-student-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* ── Badge (poziom, trudność) ────────────────────────────────────────────── */
+.tp-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: VennBold, sans-serif;
+  white-space: nowrap;
+}
+
+/* Poziomy uczniów — dostosuj kolory do swoich wartości */
+.tp-badge--level-beginner,
+.tp-badge--level-łatwy,
+.tp-badge--level-1     { background-color: rgba(50, 66, 119, 0.5); color: var(--primaryText); }
+.tp-badge--level-intermediate,
+.tp-badge--level-średni,
+.tp-badge--level-2     { background-color: rgba(49, 116, 80, 0.5); color: #9dffb4; }
+.tp-badge--level-advanced,
+.tp-badge--level-trudny,
+.tp-badge--level-3     { background-color: rgba(119, 50, 50, 0.5); color: #ffb4b4; }
+
+/* Poziomy trudności zadań */
+.tp-badge--difficulty-easy   { background-color: rgba(49, 116, 80, 0.4); color: #9dffb4; }
+.tp-badge--difficulty-medium { background-color: rgba(119, 100, 50, 0.4); color: #ffd9a0; }
+.tp-badge--difficulty-hard   { background-color: rgba(119, 50, 50, 0.4); color: #ffb4b4; }
+
+/* ── Karty uczniów (widok kart) ──────────────────────────────────────────── */
+.tp-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.tp-student-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.tp-student-card:hover {
+  border-color: var(--accentColor);
+  background-color: var(--inactiveBlueBtn);
+}
+
+.tp-student-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tp-student-card-name {
+  font-family: VennBold, sans-serif;
+  font-size: 0.9rem;
+  color: var(--primaryText);
+}
+
+.tp-student-card-meta {
+  font-size: 0.78rem;
+}
+
+/* ── Lista zadań ─────────────────────────────────────────────────────────── */
+.tp-exercises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tp-exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tp-exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.tp-exercise-title {
+  font-family: VennBold, sans-serif;
+  font-size: 0.9rem;
+  color: var(--primaryText);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-exercise-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Statystyki klasy — karty summary ────────────────────────────────────── */
+.tp-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.tp-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 1.5rem 1rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.tp-stat-card-value {
+  font-family: VennBold, sans-serif;
+  font-size: 2rem;
+  color: var(--primaryText);
+  line-height: 1;
+}
+
+.tp-stat-card-label {
+  font-size: 0.8rem;
+  color: var(--secondaryText);
+}
+
+.tp-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Lista błędów ─────────────────────────────────────────────────────────── */
+.tp-errors-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tp-error-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+}
+
+.tp-error-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  background-color: var(--inactiveBlueBtn);
+  color: var(--secondaryText);
+  font-size: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Lista przypisywania ──────────────────────────────────────────────────── */
+.tp-assign-list {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.tp-assign-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.tp-assign-item:last-child {
+  border-bottom: none;
+}
+
+.tp-assign-item span:nth-child(2) {
+  flex: 1;
+  color: var(--primaryText);
+  font-size: 0.9rem;
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.tp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.tp-modal {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tp-modal--large {
+  max-width: 680px;
+}
+
+.tp-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tp-modal-student-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tp-modal-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.15rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.tp-modal-close {
+  background: none;
+  border: none;
+  color: var(--secondaryText);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.tp-modal-close:hover {
+  color: var(--primaryText);
+  background-color: var(--btnHoverGray);
+}
+
+.tp-modal-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tp-modal-stat {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: var(--inputBg);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.tp-modal-stat-value {
+  font-family: VennBold, sans-serif;
+  font-size: 1.4rem;
+  color: var(--primaryText);
+}
+
+.tp-modal-stat-label {
+  font-size: 0.75rem;
+  color: var(--secondaryText);
+  margin-top: 0.2rem;
+}
+
+.tp-modal-section-title {
+  font-family: VennBold, sans-serif;
+  font-size: 0.95rem;
+  color: var(--secondaryText);
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Placeholder wykresu Chart.js ────────────────────────────────────────── */
+/* Podepnij Chart.js przez: new Chart(document.getElementById('chart-{id}'), config) */
+.chart-placeholder {
+  width: 100%;
+  height: 200px;
+  background-color: var(--inputBg);
+  border: 2px dashed var(--borderColor);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-placeholder-label {
+  font-size: 0.8rem;
+  color: var(--secondaryText);
+  pointer-events: none;
+}
+
+/* ── Czat ─────────────────────────────────────────────────────────────────── */
+.tp-chat {
+  display: flex;
+  height: 100%;
+  gap: 0;
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--containerBoxBg);
+}
+
+.tp-chat-sidebar {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid var(--borderColor);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.tp-chat-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--borderColor);
+  background-color: var(--sidebarBg);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tp-chat-sidebar-title {
+  font-family: VennBold, sans-serif;
+  font-size: 0.9rem;
+  color: var(--secondaryText);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tp-chat-conv-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--borderColor);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background-color 0.15s;
+}
+
+.tp-chat-conv-item:hover {
+  background-color: var(--btnHoverGray);
+}
+
+.tp-chat-conv-item--active {
+  background-color: var(--inactiveBlueBtn);
+}
+
+.tp-chat-conv-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tp-chat-conv-name {
+  font-family: VennBold, sans-serif;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-chat-conv-preview {
+  font-size: 0.78rem;
+  color: var(--secondaryText);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-chat-unread-badge {
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  font-size: 0.7rem;
+  font-family: VennBold, sans-serif;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  min-width: 1.4rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tp-chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tp-chat-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondaryText);
+  font-size: 0.9rem;
+}
+
+.tp-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--borderColor);
+  background-color: var(--sidebarBg);
+}
+
+.tp-chat-header-name {
+  font-family: VennBold, sans-serif;
+  font-size: 0.95rem;
+  color: var(--primaryText);
+}
+
+.tp-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tp-chat-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+}
+
+/* Wiadomości nauczyciela — prawa strona */
+.tp-chat-bubble--teacher {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+/* Wiadomości ucznia — lewa strona */
+.tp-chat-bubble--student {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.tp-chat-bubble-content {
+  padding: 0.65rem 0.95rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.tp-chat-bubble--teacher .tp-chat-bubble-content {
+  background-color: var(--accentColor);
+  border-bottom-right-radius: 3px;
+}
+
+.tp-chat-bubble--student .tp-chat-bubble-content {
+  background-color: var(--aiMessageBg);
+  border-bottom-left-radius: 3px;
+}
+
+.tp-chat-bubble-time {
+  font-size: 0.7rem;
+  color: var(--secondaryText);
+  margin-top: 0.25rem;
+  padding: 0 0.3rem;
+}
+
+.tp-chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--borderColor);
+  background-color: var(--sidebarBg);
+}
+
+.tp-chat-input {
+  flex: 1;
+  resize: none;
+}
+
+.tp-chat-send-btn {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+/* ── Pomocnicze ──────────────────────────────────────────────────────────── */
+.tp-text-secondary {
+  color: var(--secondaryText);
+  font-size: 0.85rem;
+}
+
+.tp-empty-state {
+  color: var(--secondaryText);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.tp-status-msg {
+  font-size: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+}
+
+.tp-status-msg--loading {
+  color: var(--secondaryText);
+  background-color: var(--containerBoxBg);
+}
+
+.tp-status-msg--error {
+  color: #e07575;
+  background-color: rgba(224, 117, 117, 0.08);
+  border-color: rgba(224, 117, 117, 0.3);
+}
+
+.tp-student-count {
+  font-family: VennRegular, sans-serif;
+  font-size: 1rem;
+  color: var(--secondaryText);
+}
+
+.tp-empty-state--chat {
+  padding: 1.5rem 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSYWNOŚĆ
+   Poniżej 900px: sidebar staje się górną belką z zakładkami (tabs).
+   Poniżej 640px: tabela uczniów → karty, stats-grid → jedna kolumna.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .tp-root {
+    flex-direction: column;
+    overflow-y: auto; /* na mobile root scrolluje, nie tp-main */
+  }
+
+  .tp-nav {
+    flex-direction: row;
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--borderColor);
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .tp-nav-item {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.85rem 1rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    justify-content: center;
+  }
+
+  .tp-nav-item--active {
+    border-bottom-color: var(--accentColor);
+    border-left: none;
+    background-color: transparent;
+  }
+
+  .tp-main {
+    padding: 1.25rem;
+    overflow-y: visible; /* na mobile scrolluje tp-root */
+    min-height: unset;
+  }
+
+  .tp-chat {
+    height: auto;
+    min-height: 600px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Tabela uczniów → automatycznie ukryta, karta domyślna */
+  .tp-table-wrapper {
+    display: none;
+  }
+
+  /* Na bardzo małych ekranach zawsze pokazuj widok kart */
+  .tp-cards-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tp-stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tp-form-row {
+    flex-direction: column;
+  }
+
+  /* Czat: sidebar i main panel jeden nad drugim */
+  .tp-chat {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 8rem);
+  }
+
+  .tp-chat-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 35vh;
+    border-right: none;
+    border-bottom: 1px solid var(--borderColor);
+  }
+
+  .tp-chat-messages {
+    max-height: 40vh;
+  }
+
+  .tp-chat-bubble {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 390px) {
+  .tp-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-main {
+    padding: 0.85rem;
+  }
+}

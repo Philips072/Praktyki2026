@@ -1,8 +1,206 @@
 import './UserSettings.css'
+import './AiChat.css'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
+
+const MISTRAL_KEY = import.meta.env.VITE_MISTRAL_KEY
+
+async function askMistral(userText) {
+  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${MISTRAL_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'mistral-small-latest',
+      messages: [
+        {
+          role: 'system',
+          content: `Jesteś przyjaznym asystentem platformy DataMindAI do nauki SQL. Użytkownik pisze Ci o swoich zainteresowaniach. Odpowiedz w formacie JSON (i tylko JSON, bez markdown):
+{
+  "message": "<ciepła, ludzka reakcja po polsku, 2-3 zdania — zacznij od czegoś w stylu 'Okej, super!' albo 'Fajnie!', odnieś się do tego co użytkownik napisał i powiedz że dostosujesz ćwiczenia SQL do tych zainteresowań>",
+  "interests": "<przepisz zainteresowania użytkownika w 2. osobie liczby pojedynczej po polsku — używaj WYŁĄCZNIE informacji które użytkownik podał, nie dodawaj żadnych szczegółów, przykładów ani domysłów których nie było w wiadomości>"
+}`,
+        },
+        { role: 'user', content: userText },
+      ],
+      max_tokens: 250,
+      temperature: 0.8,
+    }),
+  })
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}))
+    throw new Error(errBody?.error?.message || `HTTP ${res.status}`)
+  }
+  const data = await res.json()
+  const raw = data.choices[0].message.content.trim()
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return { message: raw, interests: raw }
+  }
+}
+
+const AiAvatar = () => (
+  <div className="aichat-avatar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#fcf6f3"/>
+    </svg>
+  </div>
+)
+
+function InterestsChatBox({ currentInterests, userId, onSaved }) {
+  const [input, setInput] = useState('')
+  const [userMessage, setUserMessage] = useState('')
+  const [aiMessage, setAiMessage] = useState('')
+  const [thinking, setThinking] = useState(false)
+  const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const handleSend = async () => {
+    const trimmed = input.trim()
+    if (!trimmed) return
+    setUserMessage(trimmed)
+    setInput('')
+    setThinking(true)
+    setError('')
+    try {
+      const { message, interests } = await askMistral(trimmed)
+      setAiMessage(message)
+      await supabase.from('profiles').update({ interests }).eq('id', userId)
+      onSaved(interests)
+      setSaved(true)
+    } catch (err) {
+      setError(`Błąd AI: ${err.message}`)
+      setUserMessage('')
+    } finally {
+      setThinking(false)
+    }
+  }
+
+  const handleReset = () => {
+    setInput('')
+    setUserMessage('')
+    setAiMessage('')
+    setError('')
+    setSaved(false)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const replied = !!aiMessage
+
+  return (
+    <div className="aichat-box settings-interests-chat">
+      <div className="aichat-messages settings-interests-messages">
+
+        {/* Aktualne zainteresowania */}
+        {currentInterests && !replied && (
+          <div className="aichat-row aichat-row--ai">
+            <AiAvatar />
+            <div className="aichat-bubble aichat-bubble--ai">
+              <p className="aichat-line" style={{ opacity: 0.65, fontSize: '0.82rem' }}>Obecne zainteresowania:</p>
+              <p className="aichat-line"><em>{currentInterests}</em></p>
+            </div>
+          </div>
+        )}
+
+        {/* Powitanie AI */}
+        <div className="aichat-row aichat-row--ai">
+          <AiAvatar />
+          <div className="aichat-bubble aichat-bubble--ai">
+            <p className="aichat-line">
+              {currentInterests
+                ? 'Chcesz zaktualizować zainteresowania? Napisz czym się teraz interesujesz.'
+                : 'Napisz czym się interesujesz — dostosujemy do tego przykłady i ćwiczenia SQL.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Wiadomość użytkownika */}
+        {userMessage && (
+          <div className="aichat-row aichat-row--user">
+            <div className="aichat-bubble aichat-bubble--user">
+              <p className="aichat-line">{userMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Typing indicator */}
+        {thinking && (
+          <div className="aichat-row aichat-row--ai">
+            <AiAvatar />
+            <div className="aichat-bubble aichat-bubble--ai msg-bubble--typing">
+              <span /><span /><span />
+            </div>
+          </div>
+        )}
+
+        {/* Odpowiedź AI */}
+        {replied && (
+          <div className="aichat-row aichat-row--ai">
+            <AiAvatar />
+            <div className="aichat-bubble aichat-bubble--ai">
+              <p className="aichat-line">{aiMessage}</p>
+              {saved && (
+                <p className="aichat-line" style={{ marginTop: 6, opacity: 0.65, fontSize: '0.82rem' }}>
+                  Zainteresowania zostały zaktualizowane.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      {!replied && !thinking && (
+        <div className="aichat-input-bar">
+          {error && <p style={{ color: '#e05a5a', fontSize: '0.8rem', padding: '0 12px 8px', margin: 0 }}>{error}</p>}
+          <input
+            className="aichat-input"
+            type="text"
+            placeholder="Np. analiza danych, marketing, finanse..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            className="aichat-send-btn"
+            onClick={handleSend}
+            disabled={!input.trim()}
+            type="button"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="#fcf6f3"/>
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Przycisk resetu */}
+      {replied && (
+        <div className="aichat-input-bar">
+          <button
+            className="settings-save-btn"
+            onClick={handleReset}
+            type="button"
+            style={{ margin: '4px 0' }}
+          >
+            Zaktualizuj ponownie
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const EyeOpen = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -22,7 +220,7 @@ const EyeClosed = () => (
 
 function UserSettings() {
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -303,22 +501,15 @@ function UserSettings() {
 
         <div className="settings-card settings-card--wide">
           <h2 className="settings-card-title">Zainteresowania</h2>
-          <p className="settings-card-desc">Opisz czym się interesujesz — AI dostosuje do tego przykłady i ćwiczenia</p>
-          <textarea
-            className="settings-interests-box"
-            placeholder="Np. analiza danych sprzedażowych, marketing, finanse, e-commerce..."
-            value={interests}
-            onChange={e => setInterests(e.target.value)}
+          <p className="settings-card-desc">AI zapyta o Twoje zainteresowania i automatycznie zaktualizuje profil</p>
+          <InterestsChatBox
+            currentInterests={interests}
+            userId={user?.id}
+            onSaved={(newInterests) => {
+              setInterests(newInterests)
+              refreshProfile(user?.id)
+            }}
           />
-          {interestsStatus.error && <p className="settings-status settings-status--error">{interestsStatus.error}</p>}
-          {interestsStatus.success && <p className="settings-status settings-status--success">{interestsStatus.success}</p>}
-          <button
-            className="settings-save-btn"
-            onClick={handleSaveInterests}
-            disabled={interestsStatus.loading}
-          >
-            {interestsStatus.loading ? 'Zapisywanie...' : 'Zapisz zainteresowania'}
-          </button>
         </div>
 
       </div>

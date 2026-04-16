@@ -286,31 +286,39 @@
   color: var(--secondaryText);
 }
 
-/* INTERESTS TEXTAREA */
-.settings-interests-box {
-  width: 100%;
-  background: var(--inputBg);
-  border: 2px solid var(--borderColor);
-  border-radius: 12px;
+/* INTERESTS CHAT */
+.settings-interests-chat {
+  height: 320px;
+  flex: unset !important;
+}
+
+.settings-interests-messages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.msg-bubble--typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   padding: 14px 16px;
-  color: var(--primaryText);
-  font-size: 0.97rem;
-  font-family: VennRegular;
-  line-height: 1.6;
-  resize: vertical;
-  min-height: 90px;
-  outline: none;
-  transition: border-color 0.2s;
-  margin-bottom: 12px;
-  box-sizing: border-box;
 }
 
-.settings-interests-box::placeholder {
-  color: #8d94a5;
+.msg-bubble--typing span {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--secondaryText);
+  animation: settings-typing 1.2s infinite;
 }
 
-.settings-interests-box:focus {
-  border-color: var(--accentColor);
+.msg-bubble--typing span:nth-child(2) { animation-delay: 0.2s; }
+.msg-bubble--typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes settings-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
 }
 
 /* Generic save button for new cards */

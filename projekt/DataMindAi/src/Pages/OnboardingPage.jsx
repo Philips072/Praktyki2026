@@ -6,7 +6,7 @@ import OnboardingContent from '../Components/OnboardingModal'
 
 function OnboardingPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
 
   const handleComplete = async ({ sql_level, interests }) => {
     if (user?.id) {
@@ -14,6 +14,7 @@ function OnboardingPage() {
         .from('profiles')
         .update({ sql_level, interests })
         .eq('id', user.id)
+      await refreshProfile(user.id)
     }
     navigate('/dashboard')
   }

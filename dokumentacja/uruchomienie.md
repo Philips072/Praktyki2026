@@ -4,11 +4,15 @@
 
 - **Node.js** w wersji 18 lub nowszej
 - **npm** (instalowany razem z Node.js)
-- **react-router-dom** v7 (instalowany automatycznie przez `npm install`)
 - **Konto Supabase** — projekt z włączoną autoryzacją i tabelą `profiles`
+- **Klucz Mistral AI** — wygenerowany na [console.mistral.ai](https://console.mistral.ai/)
 - Przeglądarka internetowa (Chrome, Firefox, Edge)
 
-## Kroki
+---
+
+## Uruchomienie
+
+Projekt składa się z dwóch niezależnych serwerów — **backendu** i **frontendu**. Oba muszą działać jednocześnie.
 
 ### 1. Sklonuj repozytorium
 
@@ -17,40 +21,94 @@ git clone https://github.com/Philips072/Praktyki2026.git
 cd Praktyki2026
 ```
 
-### 2. Przejdź do folderu projektu
+---
+
+### 2. Backend (Node.js / Express)
 
 ```bash
-cd projekt/DataMindAi
-```
-
-### 3. Zainstaluj zależności
-
-```bash
+cd projekt/backend
 npm install
 ```
 
-### 4. Skonfiguruj zmienne środowiskowe
+Utwórz plik `.env` w folderze `projekt/backend/` (lub uzupełnij istniejący):
 
-W folderze `projekt/DataMindAi` utwórz plik `.env`:
+```env
+PORT=3001
+FRONTEND_URL=http://localhost:5173
+MISTRAL_KEY=twoj_klucz_mistral
+```
+
+Uruchom serwer:
+
+```bash
+npm run dev        # tryb deweloperski (auto-restart przy zmianach)
+# lub
+npm start          # tryb produkcyjny
+```
+
+Backend będzie dostępny pod adresem: `http://localhost:3001`
+
+---
+
+### 3. Frontend (React / Vite)
+
+```bash
+cd projekt/DataMindAi
+npm install
+```
+
+Utwórz plik `.env` w folderze `projekt/DataMindAi/` (lub uzupełnij istniejący):
 
 ```env
 VITE_SUPABASE_URL=https://<twoj-projekt>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<twoj-anon-key>
+VITE_BACKEND_URL=http://localhost:3001
 ```
 
-Wartości znajdziesz w panelu Supabase: **Project Settings → API**.
+Wartości Supabase znajdziesz w panelu: **Project Settings → API**.
 
-### 5. Uruchom serwer deweloperski
+Uruchom serwer deweloperski:
 
 ```bash
 npm run dev
 ```
 
-Aplikacja będzie dostępna pod adresem: `http://localhost:5173`
+Frontend będzie dostępny pod adresem: `http://localhost:5173`
 
-> **Uwaga:** bez pliku `.env` z poprawnymi kluczami Supabase autoryzacja i pobieranie danych nie będą działać.
+---
+
+## Zmienne środowiskowe
+
+### `projekt/backend/.env`
+
+| Zmienna | Opis | Przykład |
+|---------|------|---------|
+| `PORT` | Port serwera Express | `3001` |
+| `FRONTEND_URL` | Adres frontendu (CORS) | `http://localhost:5173` |
+| `MISTRAL_KEY` | Klucz API Mistral AI | `FIa3uTI3...` |
+
+### `projekt/DataMindAi/.env`
+
+| Zmienna | Opis |
+|---------|------|
+| `VITE_SUPABASE_URL` | URL projektu Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Klucz anon Supabase |
+| `VITE_BACKEND_URL` | Adres serwera backend (domyślnie `http://localhost:3001`) |
+
+> **Uwaga:** Pliki `.env` nie są commitowane do repozytorium (znajdują się w `.gitignore`).
+
+---
 
 ## Dostępne skrypty
+
+### Backend (`projekt/backend/`)
+
+| Skrypt | Opis |
+|--------|------|
+| `npm run dev` | Uruchamia serwer z `--watch` (auto-restart) |
+| `npm start` | Uruchamia serwer bez auto-restartu |
+
+### Frontend (`projekt/DataMindAi/`)
 
 | Skrypt | Opis |
 |--------|------|
@@ -59,9 +117,19 @@ Aplikacja będzie dostępna pod adresem: `http://localhost:5173`
 | `npm run preview` | Podgląd zbudowanej wersji produkcyjnej |
 | `npm run lint` | Sprawdza kod przez ESLint |
 
+---
+
 ## Zależności
 
-### Produkcyjne
+### Backend
+
+| Pakiet | Wersja | Opis |
+|--------|--------|------|
+| express | ^4.21.2 | Framework HTTP |
+| cors | ^2.8.5 | Obsługa CORS |
+| dotenv | ^16.5.0 | Zmienne środowiskowe |
+
+### Frontend
 
 | Pakiet | Wersja | Opis |
 |--------|--------|------|
@@ -70,26 +138,20 @@ Aplikacja będzie dostępna pod adresem: `http://localhost:5173`
 | react-router-dom | ^7.14.0 | Routing po stronie klienta |
 | @supabase/supabase-js | ^2.103.0 | Klient Supabase (auth, baza danych) |
 
-### Deweloperskie
-
-| Pakiet | Wersja | Opis |
-|--------|--------|------|
-| vite | ^8.0.4 | Bundler i serwer deweloperski |
-| @vitejs/plugin-react | ^6.0.1 | Wsparcie React dla Vite |
-| eslint | ^9.39.4 | Linter kodu |
+---
 
 ## Routing — dostępne strony
 
-| Ścieżka | Strona |
-|---------|--------|
-| `/` | Strona główna |
-| `/logowanie` | Logowanie |
-| `/rejestracja` | Rejestracja |
-| `/reset-hasla` | Resetowanie hasła |
-| `/onboarding` | Ankieta powitalna |
-| `/dashboard` | Panel użytkownika |
-| `/lekcje` | Lista lekcji SQL |
-| `/lekcja/:id` | Pojedyncza lekcja |
-| `/ai-chat` | Czat z AI |
-| `/wiadomosci` | Wiadomości |
-| `/ustawienia` | Ustawienia konta |
+| Ścieżka | Strona | Wymaga logowania |
+|---------|--------|-----------------|
+| `/` | Strona główna | Nie |
+| `/logowanie` | Logowanie | Nie (tylko niezalogowani) |
+| `/rejestracja` | Rejestracja | Nie (tylko niezalogowani) |
+| `/reset-hasla` | Resetowanie hasła | Nie |
+| `/onboarding` | Ankieta powitalna | Tak |
+| `/dashboard` | Panel użytkownika | Tak |
+| `/lekcje` | Lista lekcji SQL | Tak |
+| `/lekcja/:id` | Pojedyncza lekcja | Tak |
+| `/ai-chat` | Czat z AI | Tak |
+| `/wiadomosci` | Wiadomości | Tak |
+| `/ustawienia` | Ustawienia konta | Tak |

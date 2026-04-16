@@ -49,7 +49,7 @@ function TheorySection({ section }) {
     case 'hint':
       return (
         <div className="ls-hint">
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" flexShrink="0">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
             <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
             <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
@@ -89,7 +89,7 @@ function Exercise({ exercise }) {
       <div className="ls-exercise-actions">
         <button className="ls-btn ls-btn--check">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-            <path d="M12 3l1.5 3 3.5.5-2.5 2.5.5 3.5L12 11l-3 1.5.5-3.5L7 6.5 10.5 6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Sprawdź odpowiedź
         </button>
@@ -139,6 +139,8 @@ function LessonPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [activeExercise, setActiveExercise] = useState(0)
+  const [exercisesOpen, setExercisesOpen] = useState(true)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
 
@@ -229,7 +231,7 @@ function LessonPage() {
         </section>
 
         {/* Prawa kolumna — Ćwiczenia */}
-        <section className="ls-col ls-col--exercises">
+        <section className={`ls-col ls-col--exercises${exercisesOpen ? '' : ' ls-col--collapsed'}`}>
           <div className="ls-section-header">
             <div className="ls-section-icon ls-section-icon--green">
               <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
@@ -237,26 +239,43 @@ function LessonPage() {
               </svg>
             </div>
             <h2 className="ls-section-title">Ćwiczenia</h2>
+            {!exercisesOpen && (
+              <span className="ls-exercises-count">{lesson.exercises.length} zadań</span>
+            )}
+            <button
+              className="ls-collapse-btn"
+              onClick={() => setExercisesOpen(o => !o)}
+              title={exercisesOpen ? 'Zwiń ćwiczenia' : 'Rozwiń ćwiczenia'}
+            >
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"
+                style={{ transform: exercisesOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.25s' }}>
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
 
-          {/* Tabs */}
-          <div className="ls-tabs">
-            {lesson.exercises.map((ex, i) => (
-              <button
-                key={ex.id}
-                className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}`}
-                onClick={() => setActiveExercise(i)}
-              >
-                Zadanie {ex.id}
-              </button>
-            ))}
-          </div>
+          {(exercisesOpen || isMobile) && (
+            <>
+              {/* Tabs */}
+              <div className="ls-tabs">
+                {lesson.exercises.map((ex, i) => (
+                  <button
+                    key={ex.id}
+                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}`}
+                    onClick={() => setActiveExercise(i)}
+                  >
+                    Zadanie {ex.id}
+                  </button>
+                ))}
+              </div>
 
-          {/* Aktywne ćwiczenie */}
-          <Exercise
-            key={activeExercise}
-            exercise={lesson.exercises[activeExercise]}
-          />
+              {/* Aktywne ćwiczenie */}
+              <Exercise
+                key={activeExercise}
+                exercise={lesson.exercises[activeExercise]}
+              />
+            </>
+          )}
         </section>
 
       </div>

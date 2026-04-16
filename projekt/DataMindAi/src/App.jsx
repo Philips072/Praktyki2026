@@ -1,6 +1,7 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './AuthContext'
 import PublicRoute from './Components/PublicRoute'
+import PrivateRoute from './Components/PrivateRoute'
 import HomePage from './Pages/HomePage'
 import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
@@ -20,17 +21,21 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
       <Routes>
+        {/* Publiczne */}
         <Route path="/" element={<HomePage />} />
         <Route path="/logowanie" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/rejestracja" element={<PublicRoute><RegisterPage /></PublicRoute>} />
         <Route path="/reset-hasla" element={<ForgotPasswordPage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/lekcje" element={<LecturesPage />} />
-        <Route path="/lekcja/:id" element={<LessonPage />} />
-        <Route path="/ai-chat" element={<AIChatPage />} />
-        <Route path="/wiadomosci" element={<MessagesPage />} />
-        <Route path="/ustawienia" element={<UserSettingsPage />} />
+
+        {/* Wymaga zalogowania */}
+        <Route path="/onboarding"   element={<PrivateRoute><OnboardingPage /></PrivateRoute>} />
+        <Route path="/dashboard"    element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+        <Route path="/lekcje"       element={<PrivateRoute><LecturesPage /></PrivateRoute>} />
+        <Route path="/lekcja/:id"   element={<PrivateRoute><LessonPage /></PrivateRoute>} />
+        <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
+        <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
+        <Route path="/ustawienia"   element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </BrowserRouter>

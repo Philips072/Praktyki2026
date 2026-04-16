@@ -25,8 +25,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Wyświetl wszystkie dane z tabeli gracze.', placeholder: 'SELECT ...', hint: 'Użyj * żeby wybrać wszystkie kolumny.', expectedColumns: ['id', 'imie', 'nazwisko', 'pozycja'], expectedRows: [['1', 'Robert', 'Lewandowski', 'napastnik'], ['2', 'Kevin', 'De Bruyne', 'pomocnik']] },
-      { id: 2, task: '[Placeholder] Wyświetl tylko imię i nazwisko graczy.', placeholder: 'SELECT ...', hint: 'Wypisz nazwy kolumn po przecinku.', expectedColumns: ['imie', 'nazwisko'], expectedRows: [['Robert', 'Lewandowski'], ['Kevin', 'De Bruyne']] },
+      { id: 1, task: 'Wyświetl wszystkie dane z tabeli gracze.', placeholder: 'SELECT ...', hint: 'Użyj * żeby wybrać wszystkie kolumny.', expectedColumns: ['id', 'imie', 'nazwisko', 'pozycja'], expectedRows: [['1', 'Robert', 'Lewandowski', 'napastnik'], ['2', 'Kevin', 'De Bruyne', 'pomocnik']] },
+      { id: 2, task: 'Wyświetl tylko imię i nazwisko graczy.', placeholder: 'SELECT ...', hint: 'Wypisz nazwy kolumn po przecinku.', expectedColumns: ['imie', 'nazwisko'], expectedRows: [['Robert', 'Lewandowski'], ['Kevin', 'De Bruyne']] },
+      { id: 3, task: 'Wyświetl tylko kolumnę pozycja z tabeli gracze.', placeholder: 'SELECT pozycja FROM ...', hint: 'Wpisz nazwę tabeli po słowie FROM.', expectedColumns: ['pozycja'], expectedRows: [['napastnik'], ['pomocnik']] },
+      { id: 4, task: 'Wyświetl id oraz pozycję wszystkich graczy.', placeholder: 'SELECT id, pozycja FROM ...', hint: 'Wypisz dwie nazwy kolumn oddzielone przecinkiem.', expectedColumns: ['id', 'pozycja'], expectedRows: [['1', 'napastnik'], ['2', 'pomocnik']] },
     ],
   },
   {
@@ -48,8 +50,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Utwórz tabelę produkty z kolumnami id i nazwa.', placeholder: 'CREATE TABLE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Utwórz tabelę klienci z trzema kolumnami.', placeholder: 'CREATE TABLE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Utwórz tabelę produkty z kolumnami id (INTEGER, klucz główny) i nazwa (TEXT).', placeholder: 'CREATE TABLE produkty (...);', hint: 'Użyj składni: id INTEGER PRIMARY KEY, nazwa TEXT NOT NULL', expectedColumns: [], expectedRows: [] },
+      { id: 2, task: 'Utwórz tabelę klienci z kolumnami id, imie i email.', placeholder: 'CREATE TABLE klienci (...);', hint: 'Każda kolumna to: nazwa_kolumny TYP_DANYCH, oddzielone przecinkami.', expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Utwórz tabelę mecze z kolumnami id, data (TEXT), wynik (TEXT) i druzyna_id (INTEGER).', placeholder: 'CREATE TABLE mecze (...);', hint: 'Pamiętaj o przecinkach między kolumnami i nawiasach.', expectedColumns: [], expectedRows: [] },
+      { id: 4, task: 'Utwórz tabelę statystyki z kolumnami id, gracz_id (INTEGER), bramki (INTEGER) i asysty (INTEGER). Bramki i asysty mają mieć domyślną wartość 0.', placeholder: 'CREATE TABLE statystyki (...);', hint: 'Użyj DEFAULT 0 po typie kolumny, np. bramki INTEGER DEFAULT 0', expectedColumns: [], expectedRows: [] },
     ],
   },
   {
@@ -72,8 +76,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Dodaj nowego gracza do tabeli.', placeholder: 'INSERT INTO ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Dodaj dwa rekordy jednym zapytaniem.', placeholder: 'INSERT INTO ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: "Dodaj gracza Roberta Lewandowskiego na pozycję napastnik do tabeli gracze.", placeholder: 'INSERT INTO gracze (imie, pozycja) VALUES (...);', hint: "Wartości tekstowe wpisuj w cudzysłowie: 'Robert'", expectedColumns: [], expectedRows: [] },
+      { id: 2, task: 'Dodaj dwóch graczy jednym zapytaniem INSERT — Kevina (pomocnik) i Marka (obrońca).', placeholder: 'INSERT INTO gracze (imie, pozycja) VALUES (...), (...);', hint: 'Wiele rekordów oddzielaj przecinkiem po VALUES.', expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Dodaj nowego gracza podając wszystkie kolumny: id = 10, imie = Anna, pozycja = bramkarz.', placeholder: 'INSERT INTO gracze VALUES (...);', hint: 'Gdy podajesz wartości dla wszystkich kolumn, możesz pominąć nazwy kolumn.', expectedColumns: [], expectedRows: [] },
+      { id: 4, task: 'Dodaj gracza tylko z imieniem (bez pozycji) — kolumna pozycja ma przyjąć wartość NULL.', placeholder: 'INSERT INTO gracze (imie) VALUES (...);', hint: "Podaj tylko kolumnę imie — brakujące kolumny przyjmą NULL lub wartość domyślną.", expectedColumns: [], expectedRows: [] },
     ],
   },
   {
@@ -96,8 +102,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Zaktualizuj wartość rynkową wybranego gracza.', placeholder: 'UPDATE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Zmień pozycję gracza o id = 3.', placeholder: 'UPDATE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Zmień wartość rynkową gracza o id = 1 na 55 milionów.', placeholder: 'UPDATE gracze SET wartosc_rynkowa = ... WHERE id = ...;', hint: 'Użyj SET do określenia nowej wartości i WHERE do wskazania wiersza.', expectedColumns: [], expectedRows: [] },
+      { id: 2, task: "Zmień pozycję gracza o id = 3 na 'pomocnik'.", placeholder: 'UPDATE gracze SET pozycja = ... WHERE id = ...;', hint: "Pamiętaj o cudzysłowach przy wartościach tekstowych: SET pozycja = 'pomocnik'", expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Zwiększ wartość rynkową wszystkich napastników o 10 milionów.', placeholder: "UPDATE gracze SET wartosc_rynkowa = wartosc_rynkowa + 10 WHERE pozycja = ...;", hint: "Możesz odwołać się do bieżącej wartości kolumny: SET wartosc_rynkowa = wartosc_rynkowa + 10", expectedColumns: [], expectedRows: [] },
+      { id: 4, task: 'Ustaw wartość rynkową na 0 dla wszystkich graczy bez przypisanej pozycji (pozycja IS NULL).', placeholder: 'UPDATE gracze SET wartosc_rynkowa = 0 WHERE pozycja ...;', hint: 'Do sprawdzenia braku wartości użyj: WHERE pozycja IS NULL', expectedColumns: [], expectedRows: [] },
     ],
   },
   {
@@ -122,8 +130,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Usuń gracza o id = 5 z tabeli.', placeholder: 'DELETE FROM ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Usuń wszystkich graczy z pozycją bramkarz.', placeholder: 'DELETE FROM ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Usuń gracza o id = 5 z tabeli gracze.', placeholder: 'DELETE FROM gracze WHERE id = ...;', hint: 'Zawsze używaj WHERE — bez niego usuniesz WSZYSTKIE wiersze!', expectedColumns: [], expectedRows: [] },
+      { id: 2, task: "Usuń wszystkich graczy, których pozycja to 'bramkarz'.", placeholder: "DELETE FROM gracze WHERE pozycja = ...;", hint: "Wpisz: WHERE pozycja = 'bramkarz'", expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Usuń wszystkich graczy z wartością rynkową poniżej 10 milionów.', placeholder: 'DELETE FROM gracze WHERE wartosc_rynkowa < ...;', hint: 'Użyj operatora < w klauzuli WHERE.', expectedColumns: [], expectedRows: [] },
+      { id: 4, task: 'Usuń tabelę tymczasowe_wyniki z bazy danych.', placeholder: 'DROP TABLE ...;', hint: 'DROP TABLE usuwa całą tabelę — nie można tego cofnąć!', expectedColumns: [], expectedRows: [] },
     ],
   },
   {
@@ -147,8 +157,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Dodaj kolumnę email do tabeli gracze.', placeholder: 'ALTER TABLE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Usuń kolumnę pozycja z tabeli.', placeholder: 'ALTER TABLE ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Dodaj kolumnę email (TEXT) do tabeli gracze.', placeholder: 'ALTER TABLE gracze ADD COLUMN ...;', hint: 'Składnia: ADD COLUMN nazwa_kolumny TYP', expectedColumns: [], expectedRows: [] },
+      { id: 2, task: 'Usuń kolumnę wiek z tabeli gracze.', placeholder: 'ALTER TABLE gracze DROP COLUMN ...;', hint: 'Składnia: DROP COLUMN nazwa_kolumny', expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Dodaj kolumnę aktywny (INTEGER) z domyślną wartością 1 do tabeli gracze.', placeholder: 'ALTER TABLE gracze ADD COLUMN aktywny INTEGER DEFAULT ...;', hint: 'Dodaj DEFAULT 1 na końcu definicji kolumny.', expectedColumns: [], expectedRows: [] },
+      { id: 4, task: 'Zmień nazwę tabeli gracze na zawodnicy.', placeholder: 'ALTER TABLE gracze RENAME TO ...;', hint: 'Składnia: ALTER TABLE stara_nazwa RENAME TO nowa_nazwa', expectedColumns: [], expectedRows: [] },
     ],
   },
   {
@@ -180,7 +192,10 @@ const LESSONS = [
     },
     exercises: [
       { id: 1, task: 'Wyświetl imiona i nazwiska wszystkich graczy.', placeholder: 'SELECT ...', hint: 'Wypisz nazwy kolumn: imie, nazwisko po słowie SELECT.', expectedColumns: ['imie', 'nazwisko'], expectedRows: [['Robert', 'Lewandowski'], ['Kevin', 'De Bruyne']] },
-      { id: 2, task: 'Wyświetl wszystkich graczy, których pozycja to "napastnik".', placeholder: 'SELECT ...', hint: 'Użyj klauzuli WHERE pozycja = \'napastnik\'', expectedColumns: ['imie', 'nazwisko', 'pozycja'], expectedRows: [['Robert', 'Lewandowski', 'napastnik']] },
+      { id: 2, task: 'Wyświetl wszystkich graczy, których pozycja to "napastnik".', placeholder: 'SELECT ...', hint: "Użyj klauzuli WHERE pozycja = 'napastnik'", expectedColumns: ['imie', 'nazwisko', 'pozycja'], expectedRows: [['Robert', 'Lewandowski', 'napastnik']] },
+      { id: 3, task: 'Wyświetl imię, nazwisko i wartość rynkową graczy z wartością powyżej 50 milionów.', placeholder: 'SELECT imie, nazwisko, wartosc_rynkowa FROM gracze WHERE ...', hint: 'Użyj operatora > w klauzuli WHERE.', expectedColumns: ['imie', 'nazwisko', 'wartosc_rynkowa'], expectedRows: [['Kevin', 'De Bruyne', '80']] },
+      { id: 4, task: 'Wyświetl wszystkie dane graczy o narodowości "Polska".', placeholder: 'SELECT * FROM gracze WHERE ...', hint: "Wpisz: WHERE narodowosc = 'Polska'", expectedColumns: ['imie', 'nazwisko', 'narodowosc'], expectedRows: [['Robert', 'Lewandowski', 'Polska']] },
+      { id: 5, task: 'Wyświetl imię i pozycję graczy, których imię to "Kevin".', placeholder: 'SELECT imie, pozycja FROM gracze WHERE ...', hint: "Użyj WHERE imie = 'Kevin'", expectedColumns: ['imie', 'pozycja'], expectedRows: [['Kevin', 'pomocnik']] },
     ],
   },
   {
@@ -204,8 +219,11 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Oblicz średnią wartość rynkową graczy.', placeholder: 'SELECT AVG(...)', hint: '[Placeholder] Wskazówka.', expectedColumns: ['avg'], expectedRows: [['62.5']] },
-      { id: 2, task: '[Placeholder] Znajdź gracza z najwyższą wartością rynkową.', placeholder: 'SELECT MAX(...)', hint: '[Placeholder] Wskazówka.', expectedColumns: ['max'], expectedRows: [['80']] },
+      { id: 1, task: 'Oblicz średnią wartość rynkową wszystkich graczy.', placeholder: 'SELECT AVG(...) FROM gracze;', hint: 'Użyj AVG(wartosc_rynkowa).', expectedColumns: ['avg'], expectedRows: [['62.5']] },
+      { id: 2, task: 'Znajdź maksymalną wartość rynkową w tabeli.', placeholder: 'SELECT MAX(...) FROM gracze;', hint: 'Użyj MAX(wartosc_rynkowa).', expectedColumns: ['max'], expectedRows: [['80']] },
+      { id: 3, task: 'Policz ilu graczy jest w tabeli.', placeholder: 'SELECT COUNT(...) FROM gracze;', hint: 'Użyj COUNT(*) żeby policzyć wszystkie wiersze.', expectedColumns: ['count'], expectedRows: [['2']] },
+      { id: 4, task: 'Oblicz łączną wartość rynkową wszystkich graczy.', placeholder: 'SELECT SUM(...) FROM gracze;', hint: 'Użyj SUM(wartosc_rynkowa).', expectedColumns: ['sum'], expectedRows: [['125']] },
+      { id: 5, task: 'Znajdź minimalną liczbę bramek strzelonych przez gracza.', placeholder: 'SELECT MIN(...) FROM gracze;', hint: 'Użyj MIN(bramki).', expectedColumns: ['min'], expectedRows: [['12']] },
     ],
   },
   {
@@ -231,8 +249,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Wyświetl graczy posortowanych malejąco według wartości rynkowej.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: ['imie', 'wartosc_rynkowa'], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Policz graczy na każdej pozycji.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: ['pozycja', 'liczba'], expectedRows: [] },
+      { id: 1, task: 'Wyświetl imię i wartość rynkową graczy posortowanych malejąco.', placeholder: 'SELECT imie, wartosc_rynkowa FROM gracze ORDER BY ...', hint: 'Dodaj ORDER BY wartosc_rynkowa DESC na końcu zapytania.', expectedColumns: ['imie', 'wartosc_rynkowa'], expectedRows: [['Kevin', '80'], ['Robert', '45']] },
+      { id: 2, task: 'Policz ilu graczy gra na każdej pozycji.', placeholder: 'SELECT pozycja, COUNT(*) AS liczba FROM gracze GROUP BY ...', hint: 'Użyj GROUP BY pozycja.', expectedColumns: ['pozycja', 'liczba'], expectedRows: [['napastnik', '1'], ['pomocnik', '1']] },
+      { id: 3, task: 'Wyświetl pozycje, na których gra więcej niż 1 gracz.', placeholder: 'SELECT pozycja, COUNT(*) AS liczba FROM gracze GROUP BY pozycja HAVING ...', hint: 'Użyj HAVING COUNT(*) > 1 po GROUP BY.', expectedColumns: ['pozycja', 'liczba'], expectedRows: [] },
+      { id: 4, task: 'Wyświetl imię gracza z aliasem "Imię zawodnika" i wartość z aliasem "Wartość (mln €)".', placeholder: 'SELECT imie AS ..., wartosc_rynkowa AS ... FROM gracze;', hint: 'Użyj słowa kluczowego AS po nazwie kolumny.', expectedColumns: ['Imię zawodnika', 'Wartość (mln €)'], expectedRows: [] },
     ],
   },
   {
@@ -259,8 +279,11 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Wyświetl graczy z wartością rynkową między 30 a 70 milionów.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: "[Placeholder] Znajdź graczy, których nazwisko zaczyna się na literę 'L'.", placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Wyświetl graczy z wartością rynkową między 30 a 70 milionów.', placeholder: 'SELECT * FROM gracze WHERE wartosc_rynkowa BETWEEN ...', hint: 'Wpisz: BETWEEN 30 AND 70', expectedColumns: ['imie', 'wartosc_rynkowa'], expectedRows: [['Robert', '45']] },
+      { id: 2, task: "Znajdź graczy, których nazwisko zaczyna się na literę 'L'.", placeholder: "SELECT * FROM gracze WHERE nazwisko LIKE ...", hint: "Wzorzec: LIKE 'L%' — % oznacza dowolny ciąg znaków.", expectedColumns: ['imie', 'nazwisko'], expectedRows: [['Robert', 'Lewandowski']] },
+      { id: 3, task: 'Wyświetl unikalne pozycje w tabeli gracze (bez powtórzeń).', placeholder: 'SELECT DISTINCT ... FROM gracze;', hint: 'Użyj DISTINCT przed nazwą kolumny.', expectedColumns: ['pozycja'], expectedRows: [['napastnik'], ['pomocnik']] },
+      { id: 4, task: 'Wyświetl graczy, których pozycja to "napastnik" LUB "bramkarz".', placeholder: 'SELECT * FROM gracze WHERE pozycja = ... OR ...', hint: "Użyj: WHERE pozycja = 'napastnik' OR pozycja = 'bramkarz'", expectedColumns: ['imie', 'pozycja'], expectedRows: [['Robert', 'napastnik']] },
+      { id: 5, task: 'Wyświetl graczy, których wartość rynkowa NIE jest równa 45.', placeholder: 'SELECT * FROM gracze WHERE NOT ...', hint: 'Użyj: WHERE NOT wartosc_rynkowa = 45 lub WHERE wartosc_rynkowa != 45', expectedColumns: ['imie', 'wartosc_rynkowa'], expectedRows: [['Kevin', '80']] },
     ],
   },
   {
@@ -285,8 +308,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Wyświetl imiona graczy wraz z nazwami ich drużyn.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: ['imie', 'nazwa_druzyny'], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Wyświetl wszystkich graczy, nawet tych bez przypisanej drużyny.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Wyświetl imię gracza i nazwę jego drużyny używając INNER JOIN.', placeholder: 'SELECT g.imie, d.nazwa\nFROM gracze g\nINNER JOIN druzyny d ON ...;', hint: 'Warunek łączenia: ON g.druzyna_id = d.id', expectedColumns: ['imie', 'nazwa'], expectedRows: [] },
+      { id: 2, task: 'Wyświetl wszystkich graczy i ich drużyny — uwzględnij też graczy bez drużyny (LEFT JOIN).', placeholder: 'SELECT g.imie, d.nazwa\nFROM gracze g\nLEFT JOIN druzyny d ON ...;', hint: 'LEFT JOIN zwróci NULL w kolumnie drużyny dla graczy bez druzyna_id.', expectedColumns: [], expectedRows: [] },
+      { id: 3, task: 'Wyświetl nazwy drużyn i liczbę graczy w każdej drużynie.', placeholder: 'SELECT d.nazwa, COUNT(g.id) AS liczba_graczy\nFROM druzyny d\nINNER JOIN gracze g ON ...\nGROUP BY d.nazwa;', hint: 'Połącz JOIN z GROUP BY i COUNT(*).', expectedColumns: ['nazwa', 'liczba_graczy'], expectedRows: [] },
+      { id: 4, task: 'Wyświetl imiona graczy i nazwy drużyn, ale tylko dla drużyn z kraju Polska.', placeholder: 'SELECT g.imie, d.nazwa\nFROM gracze g\nINNER JOIN druzyny d ON g.druzyna_id = d.id\nWHERE ...;', hint: "Dodaj WHERE d.kraj = 'Polska' na końcu.", expectedColumns: ['imie', 'nazwa'], expectedRows: [] },
     ],
   },
   {
@@ -311,8 +336,10 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: '[Placeholder] Wyświetl graczy z drużyn z Polski używając podzapytania.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: '[Placeholder] Znajdź graczy, którzy strzelili więcej goli niż średnia.', placeholder: 'SELECT ...', hint: '[Placeholder] Wskazówka.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: "Wyświetl imiona graczy, którzy należą do drużyn z Polski (użyj podzapytania z IN).", placeholder: 'SELECT imie FROM gracze\nWHERE druzyna_id IN (\n    SELECT id FROM druzyny WHERE kraj = ...\n);', hint: "Podzapytanie zwraca listę id drużyn z Polski: WHERE kraj = 'Polska'", expectedColumns: ['imie'], expectedRows: [] },
+      { id: 2, task: 'Znajdź graczy, którzy strzelili więcej bramek niż wynosi średnia wszystkich graczy.', placeholder: 'SELECT imie FROM gracze\nWHERE id IN (\n    SELECT gracz_id FROM statystyki\n    WHERE bramki > (SELECT AVG(bramki) FROM statystyki)\n);', hint: 'Podzapytanie może być zagnieżdżone — SELECT wewnątrz SELECT wewnątrz SELECT.', expectedColumns: ['imie'], expectedRows: [] },
+      { id: 3, task: 'Wyświetl imię i nazwisko gracza z najwyższą wartością rynkową (użyj podzapytania zamiast ORDER BY LIMIT).', placeholder: 'SELECT imie, nazwisko FROM gracze\nWHERE wartosc_rynkowa = (\n    SELECT MAX(...) FROM gracze\n);', hint: 'Podzapytanie zwróci jedną wartość — MAX(wartosc_rynkowa).', expectedColumns: ['imie', 'nazwisko'], expectedRows: [] },
+      { id: 4, task: 'Wyświetl drużyny, które mają przynajmniej jednego gracza (użyj EXISTS).', placeholder: 'SELECT nazwa FROM druzyny d\nWHERE EXISTS (\n    SELECT 1 FROM gracze g WHERE g.druzyna_id = ...\n);', hint: 'EXISTS zwraca prawdę, jeśli podzapytanie zwróci choć jeden wiersz.', expectedColumns: ['nazwa'], expectedRows: [] },
     ],
   },
 ]

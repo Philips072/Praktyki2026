@@ -9,13 +9,30 @@ const LESSONS = [
     theory: {
       keywords: ['SQL', 'DATABASE', 'TABLE', 'ROW', 'COLUMN'],
       sections: [
+        { type: 'heading', content: 'Jak wykonywać zadania?' },
+        { type: 'text', content: 'W każdym zadaniu musisz napisać zapytanie SQL, które pobiera dane z tabeli. Oto najważniejsze słowa kluczowe, których będziesz używać:' },
+        { type: 'table', label: 'Słowa kluczowe SQL:', columns: ['Słowo', 'Co robi'], rows: [['SELECT', 'Wybiera i wyświetla podane kolumny'], ['*', 'Oznacza „wszystkie kolumny"'], ['FROM', 'Wskazuje z której tabeli pobrać dane'], [';', 'Kończy zapytanie SQL']] },
+        { type: 'code', label: 'Schemat zapytania:', content: 'SELECT kolumna1, kolumna2 FROM nazwa_tabeli;\n\n-- Żeby wyświetlić wszystkie kolumny:\nSELECT * FROM nazwa_tabeli;' },
+        { type: 'hint', content: 'Czytaj zapytanie jak zdanie: SELECT (wyświetl) * (wszystko) FROM gracze (z tabeli gracze).' },
+
         { type: 'heading', content: 'Czym jest SQL?' },
         { type: 'text', content: 'SQL (Structured Query Language) to język służący do komunikacji z relacyjnymi bazami danych. Pozwala na pobieranie, dodawanie, modyfikowanie i usuwanie danych.' },
         { type: 'code', label: 'Przykład prostego zapytania:', content: '-- To jest komentarz\nSELECT * FROM gracze;' },
+
+        { type: 'heading', content: 'Komentarze w SQL' },
+        { type: 'text', content: 'Komentarz to fragment kodu, który SQL całkowicie ignoruje — nie jest wykonywany. Służy jako notatka dla osoby czytającej kod, np. żeby wyjaśnić co dany fragment robi. Możesz napisać tam cokolwiek — baza danych tego nie przeczyta.' },
+        { type: 'code', label: 'Rodzaje komentarzy:', content: '-- To jest komentarz jednoliniowy (zaczyna się od --)\nSELECT * FROM gracze; -- komentarz może być też na końcu linii\n\n/*\n  To jest komentarz wieloliniowy.\n  Może zajmować wiele linii.\n  Przydatny do dłuższych opisów.\n*/\nSELECT imie FROM gracze;' },
+        { type: 'hint', content: 'Komentarze to dobra praktyka — pomagają zrozumieć kod gdy wracasz do niego po czasie lub gdy czyta go ktoś inny.' },
+
         { type: 'heading', content: 'Czym jest tabela?' },
         { type: 'text', content: 'Baza danych przechowuje dane w tabelach — podobnie jak arkusz kalkulacyjny. Każda tabela ma kolumny (pola) i wiersze (rekordy).' },
         { type: 'table', label: 'Przykładowa tabela gracze:', columns: ['id', 'imie', 'nazwisko', 'pozycja'], rows: [['1', 'Robert', 'Lewandowski', 'napastnik'], ['2', 'Kevin', 'De Bruyne', 'pomocnik']] },
         { type: 'hint', content: 'Każda tabela musi mieć unikalny identyfikator (klucz główny) — zazwyczaj kolumnę o nazwie id.' },
+
+        { type: 'heading', content: 'Typy danych' },
+        { type: 'text', content: 'Każda kolumna w tabeli przechowuje dane określonego typu. Typ danych mówi bazie, co może znajdować się w danej kolumnie.' },
+        { type: 'table', label: 'Najważniejsze typy danych:', columns: ['Typ', 'Co przechowuje', 'Przykład'], rows: [['INTEGER', 'Liczby całkowite', '1, 42, -7'], ['REAL / FLOAT', 'Liczby dziesiętne', '3.14, 99.99'], ['TEXT', 'Dowolny tekst (znaki)', "'Robert', 'napastnik'"], ['BOOLEAN', 'Prawda lub fałsz', 'TRUE, FALSE'], ['DATE', 'Data', "'2024-03-15'"]] },
+        { type: 'hint', content: 'W tabeli gracze: id to INTEGER (liczba), a imie, nazwisko i pozycja to TEXT (tekst). Typ danych decyduje m.in. czy możesz na kolumnie wykonywać działania matematyczne.' },
       ],
       schema: [
         { name: 'id', type: 'INTEGER', desc: 'Unikalny identyfikator gracza' },

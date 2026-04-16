@@ -3,7 +3,7 @@ import ForgotPassword from '../Components/ForgotPassword'
 
 function ForgotPasswordPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="fp-page">
       <HomeHeader />
       <ForgotPassword />
     </div>

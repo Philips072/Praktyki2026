@@ -292,6 +292,11 @@
   white-space: pre;
 }
 
+.ls-code-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
 /* Tabela przykładowa */
 .ls-example-table-wrap {
   display: flex;
@@ -442,6 +447,10 @@
   color: #fff;
 }
 
+.ls-tab--done.ls-tab--active {
+  background: #1e6b40;
+}
+
 .ls-tab:not(.ls-tab--active):hover {
   background: var(--inputBg);
   color: var(--primaryText);
@@ -547,6 +556,18 @@
 .ls-btn--hint:hover {
   border-color: var(--accentColor);
   color: var(--primaryText);
+}
+
+.ls-btn--done {
+  flex: 1;
+  background: #1a9e50;
+  color: #fff;
+  justify-content: center;
+  cursor: default;
+}
+
+.ls-btn--done:hover {
+  background: #1a9e50;
 }
 
 /* Podpowiedź rozwijana */

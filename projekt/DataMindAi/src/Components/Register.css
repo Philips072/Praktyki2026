@@ -8,9 +8,12 @@
     position: relative;
 
     background:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
         radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
         radial-gradient(circle at 68% 65%, rgba(46, 160, 248, 0.10), transparent 22%),
         linear-gradient(120deg, #0b0c10 0%, #111318 50%, #0b0c10 100%);
+    background-size: 40px 40px, 40px 40px, auto, auto, auto;
 }
 
 .register-page * {
@@ -203,9 +206,12 @@
         inset: 0;
         z-index: -1;
         background:
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
             radial-gradient(circle at 20% 20%, rgba(46, 160, 248, 0.12), transparent 35%),
             radial-gradient(circle at 68% 65%, rgba(46, 160, 248, 0.10), transparent 22%),
             linear-gradient(120deg, #0b0c10 0%, #111318 50%, #0b0c10 100%);
+        background-size: 40px 40px, 40px 40px, auto, auto, auto;
     }
 
     .register-back {

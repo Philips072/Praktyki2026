@@ -14,6 +14,7 @@ import ForgotPasswordPage from './Pages/ForgotPasswordPage'
 import OnboardingPage from './Pages/OnboardingPage'
 import LessonPage from './Pages/LessonPage'
 import MessagesPage from './Pages/MessagesPage'
+import TeacherPanelPage from './Pages/TeacherPanelPage'
 
 
 function App() {
@@ -34,7 +35,8 @@ function App() {
         <Route path="/lekcja/:id"   element={<PrivateRoute><LessonPage /></PrivateRoute>} />
         <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
-        <Route path="/ustawienia"   element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
+        <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
+        <Route path="/panel-nauczyciela"   element={<PrivateRoute><TeacherPanelPage /></PrivateRoute>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

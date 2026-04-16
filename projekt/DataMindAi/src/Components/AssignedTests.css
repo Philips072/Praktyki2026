@@ -1,0 +1,209 @@
+.at-wrapper {
+    padding: 1.5rem 2rem;
+    background-color: var(--primaryBg);
+    color: var(--primaryText);
+    font-family: VennRegular, sans-serif;
+}
+
+.at-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.at-title {
+    font-family: VennBold, sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.at-count {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background-color: var(--inactiveBlueBtn);
+    color: var(--secondaryText);
+}
+
+.at-empty {
+    color: var(--secondaryText);
+    font-size: 0.9rem;
+    padding: 1.5rem;
+    border: 1px dashed var(--borderColor);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.at-status {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--borderColor);
+}
+
+.at-status--loading {
+    color: var(--secondaryText);
+    background-color: var(--containerBoxBg);
+}
+
+.at-status--error {
+    color: #e07575;
+    background-color: rgba(224, 117, 117, 0.08);
+    border-color: rgba(224, 117, 117, 0.3);
+}
+
+/* Lista testów */
+.at-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.at-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--borderColor);
+    background-color: var(--containerBoxBg);
+    transition: border-color 0.2s;
+}
+
+.at-item--pending {
+    border-left: 3px solid var(--accentColor);
+}
+
+.at-item--completed {
+    opacity: 0.65;
+    border-left: 3px solid #4caf80;
+}
+
+.at-item:hover {
+    border-color: var(--accentColor);
+}
+
+.at-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.at-item-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.at-item-title {
+    font-family: VennBold, sans-serif;
+    font-size: 0.95rem;
+    color: var(--primaryText);
+}
+
+.at-item-desc {
+    font-size: 0.83rem;
+    color: var(--secondaryText);
+    margin: 0;
+    line-height: 1.5;
+    /* Pokaż maksymalnie 2 linie */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.at-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.2rem;
+}
+
+/* Badge statusu */
+.at-badge {
+    font-size: 0.72rem;
+    font-family: VennBold, sans-serif;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.at-badge--pending {
+    background-color: rgba(50, 66, 119, 0.5);
+    color: #a0b0ff;
+}
+
+.at-badge--completed {
+    background-color: rgba(49, 116, 80, 0.4);
+    color: #9dffb4;
+}
+
+/* Tagi metadanych */
+.at-meta-tag {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    background-color: var(--inputBg);
+    color: var(--secondaryText);
+    border: 1px solid var(--borderColor);
+}
+
+.at-meta-tag--easy   { color: #9dffb4; border-color: rgba(92, 186, 125, 0.3); }
+.at-meta-tag--medium { color: #ffd9a0; border-color: rgba(119, 100, 50, 0.4); }
+.at-meta-tag--hard   { color: #ffb4b4; border-color: rgba(224, 117, 117, 0.3); }
+
+.at-meta-date {
+    font-size: 0.75rem;
+    color: var(--secondaryText);
+}
+
+/* Przycisk "Rozpocznij test" */
+.at-btn-start {
+    flex-shrink: 0;
+    padding: 0.55rem 1.1rem;
+    border-radius: 8px;
+    border: none;
+    background-color: var(--accentColor);
+    color: var(--primaryText);
+    font-family: VennRegular, sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.at-btn-start:hover:not(:disabled) {
+    background-color: var(--btnHoverBlue);
+}
+
+.at-btn-start:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .at-wrapper {
+        padding: 1.25rem;
+    }
+
+    .at-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .at-btn-start {
+        width: 100%;
+        text-align: center;
+    }
+}

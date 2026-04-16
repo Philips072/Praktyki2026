@@ -17,8 +17,7 @@ const Home1 = () => {
                 </h1>
 
                 <p className="home-desc">
-                    Opanuj bazy danych ucząc się na przykładach z piłki nożnej, muzyki, gier i
-                    innych tematów, które Cię interesują. AI dostosuje się do Twojego poziomu.
+                    Opanuj bazy danych ucząc się na personalizowanych przykładach z twoich własnych tematów, które Cię interesują. AI dostosuje się do Twojego poziomu.
                 </p>
 
                 <div className="btn-container">

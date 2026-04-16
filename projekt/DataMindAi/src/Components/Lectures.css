@@ -47,35 +47,79 @@
 }
 
 .lecture-badge {
-  min-width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: var(--accentDarkBlue);
-  color: var(--primaryText);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #324277;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 2px;
   flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.lecture-badge-num {
+  color: #fff;
+  font-size: 16px;
+  font-family: VennBold;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .lecture-content {
   flex: 1;
+  min-width: 0;
+}
+
+.lecture-top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
 }
 
 .lecture-title {
   font-size: 20px;
   font-weight: 700;
   color: var(--primaryText);
-  margin: 0 0 6px 0;
+  margin: 0;
+}
+
+.lecture-progress-text {
+  font-size: 12px;
+  color: var(--secondaryText);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .lecture-desc {
   font-size: 13px;
   color: var(--secondaryText);
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
+}
+
+.lecture-progress-bar {
+  height: 4px;
+  background: var(--borderColor);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.lecture-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b4f8f, #5c74c4);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.lecture-card--done .lecture-progress-fill {
+  background: linear-gradient(90deg, #1e6b40, #2fa05e);
+}
+
+.lecture-card--done .lecture-badge {
+  background: #1e6b40;
 }
 
 .lecture-button {
@@ -95,6 +139,18 @@
 
 .lecture-button:hover {
   background-color: var(--btnHoverBlue);
+}
+
+.lecture-card--done .lecture-button {
+  background-color: #1e6b40;
+}
+
+.lecture-card--done .lecture-button:hover {
+  background-color: #2a8050;
+}
+
+.lecture-card--done:hover {
+  border-color: #1e6b40;
 }
 
 .lecture-play-icon {

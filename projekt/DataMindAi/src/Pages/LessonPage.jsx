@@ -2,6 +2,36 @@ import './LessonPage.css'
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
+import { useAuth } from '../AuthContext'
+
+function highlightSQL(code) {
+  const parts = []
+  let i = 0
+  let current = ''
+
+  while (i < code.length) {
+    if (code[i] === '/' && code[i + 1] === '*') {
+      if (current) parts.push(<span key={parts.length}>{current}</span>)
+      current = ''
+      const end = code.indexOf('*/', i + 2)
+      const comment = end === -1 ? code.slice(i) : code.slice(i, end + 2)
+      parts.push(<span key={parts.length} className="ls-code-comment">{comment}</span>)
+      i = end === -1 ? code.length : end + 2
+    } else if (code[i] === '-' && code[i + 1] === '-') {
+      if (current) parts.push(<span key={parts.length}>{current}</span>)
+      current = ''
+      const end = code.indexOf('\n', i)
+      const comment = end === -1 ? code.slice(i) : code.slice(i, end)
+      parts.push(<span key={parts.length} className="ls-code-comment">{comment}</span>)
+      i = end === -1 ? code.length : end
+    } else {
+      current += code[i]
+      i++
+    }
+  }
+  if (current) parts.push(<span key={parts.length}>{current}</span>)
+  return parts
+}
 
 const LEVEL_LABELS = {
   beginner: 'Początkujący',
@@ -23,7 +53,7 @@ function TheorySection({ section }) {
       return (
         <div className="ls-code-block">
           {section.label && <p className="ls-code-label">{section.label}</p>}
-          <pre><code>{section.content}</code></pre>
+          <pre><code>{highlightSQL(section.content)}</code></pre>
         </div>
       )
 
@@ -66,12 +96,12 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise }) {
+function Exercise({ exercise, isCompleted, onComplete }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
 
   return (
-    <div className="ls-exercise">
+    <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
       <div className="ls-exercise-task">
         <p className="ls-exercise-task-label">Zadanie:</p>
         <p className="ls-exercise-task-text">{exercise.task}</p>
@@ -80,18 +110,21 @@ function Exercise({ exercise }) {
       <p className="ls-sql-label">Twoje zapytanie SQL:</p>
       <textarea
         className="ls-sql-editor"
-        placeholder={exercise.placeholder}
+        placeholder=""
         value={query}
         onChange={e => setQuery(e.target.value)}
         spellCheck={false}
       />
 
       <div className="ls-exercise-actions">
-        <button className="ls-btn ls-btn--check">
+        <button
+          className={`ls-btn${isCompleted ? ' ls-btn--done' : ' ls-btn--check'}`}
+          onClick={onComplete}
+        >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
             <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          Sprawdź odpowiedź
+          {isCompleted ? 'Ukończone' : 'Sprawdź odpowiedź'}
         </button>
         <button
           className="ls-btn ls-btn--hint"
@@ -137,12 +170,33 @@ function Exercise({ exercise }) {
 
 function LessonPage() {
   const { id } = useParams()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [activeExercise, setActiveExercise] = useState(0)
   const [exercisesOpen, setExercisesOpen] = useState(true)
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
+
+  const progressKey = `lesson_progress_${user?.id}`
+
+  const [completed, setCompleted] = useState(() => {
+    if (!lesson || !user) return new Set()
+    const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+    return new Set(data[lesson.id] || [])
+  })
+
+  function markComplete(exerciseId) {
+    setCompleted(prev => {
+      if (prev.has(exerciseId)) return prev
+      const next = new Set(prev)
+      next.add(exerciseId)
+      const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+      data[lesson.id] = [...next]
+      localStorage.setItem(progressKey, JSON.stringify(data))
+      return next
+    })
+  }
 
   if (!lesson) {
     return (
@@ -153,7 +207,7 @@ function LessonPage() {
     )
   }
 
-  const completedCount = 0 // placeholder — będzie z backendu
+  const completedCount = completed.size
 
   return (
     <div className="ls-page">
@@ -261,7 +315,7 @@ function LessonPage() {
                 {lesson.exercises.map((ex, i) => (
                   <button
                     key={ex.id}
-                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}`}
+                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
                     onClick={() => setActiveExercise(i)}
                   >
                     Zadanie {ex.id}
@@ -273,6 +327,8 @@ function LessonPage() {
               <Exercise
                 key={activeExercise}
                 exercise={lesson.exercises[activeExercise]}
+                isCompleted={completed.has(lesson.exercises[activeExercise].id)}
+                onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
               />
             </>
           )}

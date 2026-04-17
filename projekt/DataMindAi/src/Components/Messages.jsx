@@ -18,7 +18,28 @@ function getInitials(name, email) {
 }
 
 function fmtTime(iso) {
-  return new Date(iso).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+  const now = new Date()
+  const date = new Date(iso)
+  const diffMs = now - date
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  const timeStr = date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+
+  if (diffDays === 0) {
+    return timeStr // Dziś: tylko godzina
+  } else if (diffDays === 1) {
+    return `Wczoraj, ${timeStr}` // Wczoraj
+  } else if (diffDays < 7) {
+    return `${diffDays}d temu, ${timeStr}` // 2-6 dni temu (skrócone "dni" -> "d")
+  } else if (diffDays < 30) {
+    return `${diffDays}d temu, ${timeStr}` // Do miesiąca: też skrócone
+  } else {
+    return date.toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }) + `, ${timeStr}` // Pełna data dla starszych wiadomości
+  }
 }
 
 const AVATAR_COLORS = ['#39498f', '#2d6e4e', '#6b3a8f', '#8f3a3a', '#7a5c1e', '#1e6b7a', '#5c3a6b']
@@ -112,11 +133,75 @@ function Messages() {
   const [mobileView, setMobileView] = useState('list')
   const [showAddModal, setShowAddModal] = useState(false)
   const [loadingConvs, setLoadingConvs] = useState(true)
+  const [onlineUsers, setOnlineUsers] = useState(new Set())
   const messagesEndRef = useRef(null)
   const selectedRef = useRef(null)
   selectedRef.current = selected
 
   const myInitials = getInitials(myProfile?.name, user?.email)
+
+  // ── Presence tracking ────────────────────────────────────
+
+  // Globalny kanał presence dla wszystkich użytkowników
+  useEffect(() => {
+    if (!user) return
+
+    const presenceChannel = supabase.channel('global-presence', {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    })
+
+    // Nasłuchuj zmian presence
+    presenceChannel.on('presence', { event: 'sync' }, () => {
+      const state = presenceChannel.presenceState()
+      const newOnlineUsers = new Set()
+      Object.values(state).forEach(presences => {
+        presences.forEach(p => {
+          if (p.user_id && p.user_id !== user.id) {
+            newOnlineUsers.add(p.user_id)
+          }
+        })
+      })
+      setOnlineUsers(newOnlineUsers)
+    })
+
+    // Dołącz do kanału i ustaw status online
+    presenceChannel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({
+          user_id: user.id,
+          online_at: new Date().toISOString(),
+        })
+      }
+    })
+
+    // Kiedy użytkownik opuszcza stronę, wyloguj się z presence
+    const handleBeforeUnload = () => {
+      presenceChannel.untrack()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        presenceChannel.track({
+          user_id: user.id,
+          online_at: new Date().toISOString(),
+        })
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      presenceChannel.untrack()
+      supabase.removeChannel(presenceChannel)
+    }
+  }, [user])
 
   // ── Ładowanie rozmów ───────────────────────────────────
 
@@ -165,7 +250,7 @@ function Messages() {
         name: other?.name || other?.email || 'Nieznany',
         role: ROLE_LABELS[other?.role] ?? 'Użytkownik',
         initials: getInitials(other?.name, other?.email),
-        online: false,
+        online: onlineUsers.has(otherId),
         time: last ? fmtTime(last.created_at) : '',
         lastMessage: last?.deleted ? 'Wiadomość usunięta' : (last?.text ?? 'Brak wiadomości'),
         unread: unread ?? 0,
@@ -182,7 +267,7 @@ function Messages() {
 
     setConvs(convList)
     setLoadingConvs(false)
-  }, [user])
+  }, [user, onlineUsers])
 
   useEffect(() => { loadConversations() }, [loadConversations])
 
@@ -337,7 +422,7 @@ function Messages() {
       name: otherProfile.name || otherProfile.email,
       role: ROLE_LABELS[otherProfile.role] ?? 'Użytkownik',
       initials: getInitials(otherProfile.name, otherProfile.email),
-      online: false,
+      online: onlineUsers.has(otherProfile.id),
       time: '',
       lastMessage: 'Brak wiadomości',
       unread: 0,
@@ -406,7 +491,7 @@ function Messages() {
             >
               <div className="msg-conv-avatar-wrap">
                 <Avatar initials={conv.initials} colorIndex={i} />
-                {conv.online && <span className="msg-online-dot" />}
+                {onlineUsers.has(conv.otherUserId) && <span className="msg-online-dot" />}
               </div>
               <div className="msg-conv-info">
                 <div className="msg-conv-row">
@@ -437,8 +522,8 @@ function Messages() {
               <Avatar initials={selected.initials} size="sm" />
               <div className="msg-chat-header-info">
                 <span className="msg-chat-name">{selected.name}</span>
-                <span className={`msg-chat-status ${selected.online ? 'msg-chat-status--online' : ''}`}>
-                  {selected.online ? 'Online' : 'Offline'}
+                <span className={`msg-chat-status ${onlineUsers.has(selected.otherUserId) ? 'msg-chat-status--online' : ''}`}>
+                  {onlineUsers.has(selected.otherUserId) ? 'Online' : 'Offline'}
                 </span>
               </div>
             </div>

@@ -35,7 +35,11 @@ function StudentsSection({
   selectedClassId,
   onFilterByClass,
   selectedStudentIds,
-  onStudentSelectionChange
+  onStudentSelectionChange,
+  isAdmin = false,
+  onDeleteUser = null,
+  onChangeUserRole = null,
+  allStudents = null
 }) {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [viewMode, setViewMode] = useState('table') // 'table' | 'cards'
@@ -154,6 +158,7 @@ function StudentsSection({
                 <th>Imię i nazwisko</th>
                 <th>Klasa</th>
                 <th>Poziom</th>
+                {isAdmin && <th>Rola</th>}
                 <th>Ostatnia aktywność</th>
                 <th>Postęp</th>
                 <th>Akcje</th>
@@ -190,6 +195,20 @@ function StudentsSection({
                       {student.level}
                     </span>
                   </td>
+                  {isAdmin && (
+                    <td>
+                      <select
+                        className="tp-input tp-select"
+                        value={student.role || 'uczen'}
+                        onChange={(e) => onChangeUserRole && onChangeUserRole(student.id, e.target.value, student.name)}
+                        style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                      >
+                        <option value="uczen">Uczeń</option>
+                        <option value="nauczyciel">Nauczyciel</option>
+                        <option value="administrator">Administrator</option>
+                      </select>
+                    </td>
+                  )}
                   <td className="tp-text-secondary">{student.lastActive ?? '—'}</td>
                   <td>
                     <div className="tp-progress-cell">
@@ -209,12 +228,22 @@ function StudentsSection({
                     </div>
                   </td>
                   <td>
-                    <button
-                      className="tp-btn tp-btn--ghost tp-btn--sm"
-                      onClick={() => setSelectedStudent(student)}
-                    >
-                      Szczegóły
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        className="tp-btn tp-btn--ghost tp-btn--sm"
+                        onClick={() => setSelectedStudent(student)}
+                      >
+                        Szczegóły
+                      </button>
+                      {isAdmin && onDeleteUser && (
+                        <button
+                          className="tp-btn tp-btn--ghost tp-btn--sm tp-btn--danger"
+                          onClick={() => onDeleteUser(student.id, student.name)}
+                        >
+                          Usuń
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -654,6 +683,9 @@ function TeacherPanel({
   allStudents, // dla ClassManagement
   classStudentsData, // dane z tabeli class_students
   onExportResults,
+  isAdmin = false, // czy panel admina
+  onDeleteUser = null, // funkcja usuwania użytkownika (tylko admin)
+  onChangeUserRole = null, // funkcja zmiany roli (tylko admin)
 }) {
   const TABS = [
     { id: 'students', label: 'Lista uczniów' },
@@ -692,6 +724,10 @@ function TeacherPanel({
             onFilterByClass={onFilterByClass}
             selectedStudentIds={selectedStudentIds}
             onStudentSelectionChange={onStudentSelectionChange}
+            isAdmin={isAdmin}
+            onDeleteUser={onDeleteUser}
+            onChangeUserRole={onChangeUserRole}
+            allStudents={allStudents}
           />
         )}
         {activeTab === 'tests' && (

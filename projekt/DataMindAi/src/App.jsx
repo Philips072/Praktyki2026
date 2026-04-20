@@ -2,6 +2,7 @@ import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './AuthContext'
 import PublicRoute from './Components/PublicRoute'
 import PrivateRoute from './Components/PrivateRoute'
+import AdminRoute from './Components/AdminRoute'
 import HomePage from './Pages/HomePage'
 import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
@@ -15,6 +16,7 @@ import OnboardingPage from './Pages/OnboardingPage'
 import LessonPage from './Pages/LessonPage'
 import MessagesPage from './Pages/MessagesPage'
 import TeacherPanelPage from './Pages/TeacherPanelPage'
+import AdminPanelPage from './Pages/AdminPanelPage'
 
 
 function App() {
@@ -37,6 +39,7 @@ function App() {
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
         <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
         <Route path="/panel-nauczyciela"   element={<PrivateRoute><TeacherPanelPage /></PrivateRoute>} />
+        <Route path="/panel-admina"        element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

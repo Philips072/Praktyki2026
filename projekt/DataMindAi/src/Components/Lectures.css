@@ -100,7 +100,7 @@
 }
 
 .lecture-progress-bar {
-  height: 4px;
+  height: 6px;
   background: var(--borderColor);
   border-radius: 99px;
   overflow: hidden;
@@ -151,6 +151,11 @@
 
 .lecture-card--done:hover {
   border-color: #1e6b40;
+}
+
+.lecture-card--done .lecture-progress-text {
+  color: #2fa05e;
+  font-weight: 600;
 }
 
 .lecture-play-icon {

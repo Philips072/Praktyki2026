@@ -1,23 +1,74 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import './AiChat.css';
+import { sendChat } from '../api';
 
 const initialMessages = [
   {
     id: 1,
     role: 'ai',
-    text: 'Cześć! Jestem Twoim asystentem AI :3',
+    text: `Cześć! Jestem Twoim asystentem AI w DataMindAI!
+
+Pomagam w nauce SQL i analizie danych. Możesz mnie zapytać o podstawy, zaawansowane zapytania, optymalizację lub wytłumaczenie kodu. Wpisz swoje pytanie, a postaram się pomóc!`,
   },
 ];
 
 function AiChat() {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: trimmed }]);
+    if (!trimmed || isLoading) return;
+
+    // Dodaj wiadomość użytkownika
+    const userMessage = { id: Date.now(), role: 'user', text: trimmed };
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Przygotuj wiadomości w formacie wymaganym przez API
+      const apiMessages = messages
+        .slice(1) // Pomiń wstępną wiadomość powitalną
+        .map(msg => ({
+          role: msg.role === 'ai' ? 'assistant' : 'user',
+          content: msg.text
+        }));
+
+      // Dodaj nową wiadomość użytkownika
+      apiMessages.push({
+        role: 'user',
+        content: trimmed
+      });
+
+      const response = await sendChat(apiMessages);
+
+      // Dodaj odpowiedź AI
+      const aiMessage = {
+        id: Date.now() + 1,
+        role: 'ai',
+        text: response.reply
+      };
+      setMessages(prev => [...prev, aiMessage]);
+
+    } catch (err) {
+      console.error('Błąd podczas wysyłania wiadomości:', err);
+      setError('Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie.');
+
+      // Dodaj wiadomość o błędzie
+      const errorMessage = {
+        id: Date.now() + 1,
+        role: 'ai',
+        text: 'Przepraszam, wystąpił błąd. Spróbuj ponownie.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -48,27 +99,77 @@ function AiChat() {
                 </div>
               )}
               <div className={`aichat-bubble ${msg.role === 'ai' ? 'aichat-bubble--ai' : 'aichat-bubble--user'}`}>
-                {msg.text.split('\n').map((line, i) => (
-                  <p key={i} className="aichat-line">{line}</p>
-                ))}
+                {msg.role === 'ai' ? (
+                  <ReactMarkdown
+                    components={{
+                      code: ({ node, inline, className, children, ...props }) => {
+                        return (
+                          <code className="aichat-inline-code" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                      p: ({ children }) => <p className="aichat-line">{children}</p>,
+                      strong: ({ children }) => <strong className="aichat-strong">{children}</strong>,
+                      em: ({ children }) => <em className="aichat-em">{children}</em>,
+                      table: ({ children }) => <div className="aichat-table-wrapper"><div className="aichat-table-container"><table className="aichat-table">{children}</table></div></div>,
+                      thead: ({ children }) => <thead className="aichat-table-head">{children}</thead>,
+                      tbody: ({ children }) => <tbody className="aichat-table-body">{children}</tbody>,
+                      tr: ({ children }) => <tr className="aichat-table-row">{children}</tr>,
+                      th: ({ children }) => <th className="aichat-table-header">{children}</th>,
+                      td: ({ children }) => <td className="aichat-table-cell">{children}</td>,
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                ) : (
+                  msg.text.split('\n').map((line, i) => (
+                    <p key={i} className="aichat-line">{line}</p>
+                  ))
+                )}
               </div>
             </div>
           ))}
+
+          {/* Wskaźnik ładowania */}
+          {isLoading && (
+            <div className="aichat-row aichat-row--ai">
+              <div className="aichat-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#fcf6f3"/>
+                </svg>
+              </div>
+              <div className="aichat-bubble aichat-bubble--ai aichat-loading">
+                <span className="aichat-dot"></span>
+                <span className="aichat-dot"></span>
+                <span className="aichat-dot"></span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="aichat-input-bar">
           <input
             className="aichat-input"
             type="text"
-            placeholder="Zadaj pytanie o SQL..."
+            placeholder={isLoading ? "AI pisze..." : "Zadaj pytanie o SQL..."}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            disabled={isLoading}
           />
-          <button className="aichat-send-btn" onClick={sendMessage}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="#fcf6f3"/>
-            </svg>
+          <button
+            className={`aichat-send-btn ${isLoading ? 'aichat-send-btn--disabled' : ''}`}
+            onClick={sendMessage}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="aichat-send-spinner"></span>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="#fcf6f3"/>
+              </svg>
+            )}
           </button>
         </div>
       </div>

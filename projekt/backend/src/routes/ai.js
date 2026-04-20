@@ -13,25 +13,30 @@ router.post('/chat', async (req, res, next) => {
       return res.status(400).json({ error: 'Brak wiadomości w żądaniu.' });
     }
 
-    const mistralKey = process.env.MISTRAL_KEY;
-    if (!mistralKey) {
-      return res.status(500).json({ error: 'Klucz Mistral nie jest skonfigurowany.' });
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${mistralKey}`,
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'mistral-small-latest',
+        model: 'google/gemma-4-26b-a4b-it',
         messages: [
           {
             role: 'system',
             content:
               'Jesteś pomocnym asystentem AI w aplikacji DataMindAI, która uczy podstaw SQL i analizy danych. ' +
-              'Odpowiadaj po polsku, krótko i konkretnie. Pomagaj użytkownikom rozumieć SQL, zapytania bazodanowe i analizę danych.',
+              'Odpowiadaj po polsku, krótko i konkretnie. Pomagaj użytkownikom rozumieć SQL, zapytania bazodanowe i analizę danych. ' +
+              'Możesz używać formatowania tekstu: pogrubienia (**tekst**), kursywy (*tekst*), inline code (`tekst`) oraz tabel Markdown. ' +
+              'NIE używaj blokowych code blocks (```), ani żadnych innych znaków formatujących. ' +
+              'Tylko inline code i tabele, nie na całą szerokość.',
           },
           ...messages,
         ],
@@ -40,7 +45,7 @@ router.post('/chat', async (req, res, next) => {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      return res.status(response.status).json({ error: err.message || 'Błąd Mistral API.' });
+      return res.status(response.status).json({ error: err.message || 'Błąd OpenRouter API.' });
     }
 
     const data = await response.json();
@@ -63,19 +68,21 @@ router.post('/interests', async (req, res, next) => {
       return res.status(400).json({ error: 'Brak wiadomości w żądaniu.' });
     }
 
-    const mistralKey = process.env.MISTRAL_KEY;
-    if (!mistralKey) {
-      return res.status(500).json({ error: 'Klucz Mistral nie jest skonfigurowany.' });
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${mistralKey}`,
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'mistral-small-latest',
+        model: 'google/gemma-4-26b-a4b-it',
         max_tokens: 250,
         temperature: 0.8,
         messages: [
@@ -94,7 +101,7 @@ router.post('/interests', async (req, res, next) => {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      return res.status(response.status).json({ error: err?.error?.message || err.message || 'Błąd Mistral API.' });
+      return res.status(response.status).json({ error: err?.error?.message || err.message || 'Błąd OpenRouter API.' });
     }
 
     const data = await response.json();

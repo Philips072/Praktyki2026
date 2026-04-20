@@ -129,6 +129,7 @@ praktyki2026/
 | `AIChatPage.jsx` | `/ai-chat` | zalogowani | Czat z asystentem AI |
 | `MessagesPage.jsx` | `/wiadomosci` | zalogowani | Wiadomości między użytkownikami |
 | `UserSettingsPage.jsx` | `/ustawienia` | zalogowani | Ustawienia konta |
+| `TeacherPanelPage.jsx` | `/panel-nauczyciela` | zalogowani (nauczyciel) | Panel nauczyciela z zakładkami: Lista uczniów, Testy, Zarządzanie klasami, Statystyki klasy |
 | `NotFoundPage.jsx` | `*` | publiczna | Strona 404 |
 
 ## Komponenty (Components)
@@ -175,6 +176,9 @@ praktyki2026/
 | `AnimateOnScroll` | Wrapper animacji przy wejściu elementu w viewport |
 | `DateHeader` | Nagłówek z aktualną datą |
 | `Sidebar` | Nawigacja boczna dashboardu |
+| `ClassManagement` | Zarządzanie klasami — tworzenie, edycja, usuwanie klas, zarządzanie uczniami w klasach |
+| `BulkAssignmentModal` | Modal do masowego przypisywania testów z zakładkami dla wyboru uczniów/klas |
+| `StudentSelector` | Komponent do wyboru uczniów przez checkboxy z obsługą masowego wyboru |
 
 ## Podział odpowiedzialności: frontend vs backend
 
@@ -207,6 +211,38 @@ Tabela `profiles` w Supabase:
 | `role` | text | Rola: `uczen` / `nauczyciel` / `administrator` |
 | `sql_level` | text | Poziom: `poczatkujacy` / `sredniozaawansowany` / `zaawansowany` |
 | `interests` | text | Zainteresowania zapisane przez AI podczas onboardingu |
+| `class_id` | uuid (FK → classes) | Identyfikator klasy ucznia (opcjonalne) |
+
+### Tabele Systemu Klas
+
+#### `classes` Table
+Przechowuje informacje o klasach stworzonych przez nauczycieli:
+
+| Kolumna | Typ | Opis |
+|---------|-----|------|
+| `id` | UUID (PK) | Unikalny identyfikator klasy |
+| `name` | VARCHAR(50) | Nazwa klasy (np. "2a", "3f", "10b") - musi pasować do wzorca `^[0-9][a-zA-Z]{1,2}$` |
+| `description` | TEXT | Opcjonalny opis klasy |
+| `created_by` | UUID (FK → auth.users) | ID nauczyciela, który utworzył klasę |
+| `created_at` | TIMESTAMP | Data utworzenia klasy |
+| `updated_at` | TIMESTAMP | Data ostatniej aktualizacji klasy |
+
+#### `class_students` Table
+Tabela łącząca klasy z uczniami (relacja many-to-many):
+
+| Kolumna | Typ | Opis |
+|---------|-----|------|
+| `id` | UUID (PK) | Unikalny identyfikator rekordu |
+| `class_id` | UUID (FK → classes) | ID klasy |
+| `student_id` | UUID (FK → profiles) | ID ucznia |
+| `joined_at` | TIMESTAMP | Data dołączenia ucznia do klasy |
+| `added_by` | UUID (FK → auth.users) | ID nauczyciela, który dodał ucznia do klasy |
+
+**Kluczowe cechy systemu klas:**
+- Jeden uczeń może należeć do wielu klas (w przyszłości)
+- Jedna klasa może zawierać wielu uczniów
+- Kasowanie klasy automatycznie usuwa relacje w `class_students` (CASCADE DELETE)
+- Nazwa klasy jest unikalna i walidowana (tylko format: cyfra + 1-2 litery)
 
 Tabele wiadomości w Supabase:
 

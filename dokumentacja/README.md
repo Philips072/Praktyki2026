@@ -5,6 +5,7 @@
 - [Architektura](architektura.md) — struktura folderów, technologie, endpointy backendu, komponenty
 - [Uruchomienie](uruchomienie.md) — jak uruchomić frontend i backend, zmienne środowiskowe
 - [Wymagania](wymagania.md) — wymagania funkcjonalne i niefunkcjonalne
+- [System Klas](class_system_readme.md) — dokumentacja systemu zarządzania klasami i masowego przypisywania testów
 
 ## Skrócony opis
 

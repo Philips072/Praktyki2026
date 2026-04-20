@@ -17,12 +17,17 @@ function getStats(userId) {
     }
   })
 
-  const visitKey = `first_visit_${userId}`
-  if (!localStorage.getItem(visitKey)) {
-    localStorage.setItem(visitKey, new Date().toISOString())
+  // Licz dni od pierwszego ukończonego zadania
+  const firstTaskKey = `first_task_${userId}`
+  const storedDate = localStorage.getItem(firstTaskKey)
+  const now = new Date()
+
+  if (totalSolved > 0 && !storedDate) {
+    localStorage.setItem(firstTaskKey, now.toISOString())
   }
-  const start = new Date(localStorage.getItem(visitKey))
-  const days = Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+  const start = storedDate ? new Date(storedDate) : now
+  const days = totalSolved > 0 ? Math.floor((now - start.getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0
 
   return { completedLessons, totalSolved, days }
 }

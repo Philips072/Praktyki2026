@@ -20,6 +20,11 @@ const Dashboard2 = () => {
   const { user } = useAuth()
   const [nextLesson, setNextLesson] = useState(() => getNextLesson(user?.id))
 
+  const hasStarted = () => {
+    const data = JSON.parse(localStorage.getItem(`lesson_progress_${user?.id}`) || '{}')
+    return Object.values(data).some(arr => arr && arr.length > 0)
+  }
+
   useEffect(() => {
     const refresh = () => setNextLesson(getNextLesson(user?.id))
     window.addEventListener('storage', refresh)
@@ -34,7 +39,7 @@ const Dashboard2 = () => {
     <>
       <div className="dashboard2-wrapper">
         <h1 className="dashboard2-h1">
-          Rozpocznij naukę
+          {hasStarted() ? 'Kontynuuj naukę' : 'Rozpocznij naukę'}
         </h1>
 
         <div className="learning-container">

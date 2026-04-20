@@ -332,7 +332,7 @@
   flex-direction: column;
   gap: 3px;
   max-width: 68%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .msg-row--me .msg-bubble-wrap { align-items: flex-end; }

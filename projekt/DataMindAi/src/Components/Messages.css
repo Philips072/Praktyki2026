@@ -399,22 +399,14 @@
   opacity: 0.7;
 }
 
-.msg-time {
-  font-size: 0.72rem;
-  color: var(--secondaryText);
-  padding: 0 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
 /* Reply button i actions */
 .msg-message-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
   justify-content: flex-start;
+  position: relative;
+  min-width: 60px;
+  margin-top: 4px;
 }
 
 .msg-row--me .msg-message-actions {
@@ -422,8 +414,8 @@
 }
 
 .msg-reply-btn {
-  display: flex;
-  opacity: 0.6;
+  position: absolute;
+  display: none;
   width: 24px;
   height: 24px;
   border-radius: 6px;
@@ -434,24 +426,56 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s, color 0.15s, border-color 0.15s;
   z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.msg-row--them .msg-reply-btn {
+  left: 0;
+}
+
+.msg-row--me .msg-reply-btn {
+  right: 0;
 }
 
 .msg-reply-btn:hover {
   background: var(--accentColor);
   color: #fff;
   border-color: var(--accentColor);
-  opacity: 1;
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
 .msg-row:hover .msg-reply-btn {
-  opacity: 0.8;
+  display: flex;
 }
 
-.msg-row:hover .msg-reply-btn:hover {
-  opacity: 1;
+.msg-time {
+  font-size: 0.72rem;
+  color: var(--secondaryText);
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  transition: margin-left 0.2s ease, margin-right 0.2s ease;
+}
+
+.msg-row--them .msg-time {
+  margin-left: 0;
+}
+
+.msg-row--them:hover .msg-time {
+  margin-left: 28px;
+}
+
+.msg-row--me .msg-time {
+  margin-right: 0;
+}
+
+.msg-row--me:hover .msg-time {
+  margin-right: 28px;
 }
 
 /* Reply preview in input */
@@ -768,5 +792,17 @@
 
   .msg-sidebar-top {
     padding-top: 4px;
+  }
+
+  .msg-reply-btn {
+    display: flex;
+    position: relative;
+    transform: none;
+  }
+
+  .msg-row--them .msg-time,
+  .msg-row--me .msg-time {
+    margin-left: 0;
+    margin-right: 0;
   }
 }

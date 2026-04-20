@@ -596,6 +596,7 @@ function Messages() {
 
                 return (
                   <div key={msg.id} className={`msg-row ${isMe ? 'msg-row--me' : 'msg-row--them'}`}>
+                    {isMe && <Avatar initials={myInitials} size="sm" />}
                     {!isMe && <Avatar initials={selected.initials} size="sm" />}
                     <div className="msg-bubble-wrap">
                       {repliedMsg && (
@@ -640,7 +641,6 @@ function Messages() {
                         <span className={`msg-time ${isMe ? 'msg-time--me' : ''}`}>{fmtTime(msg.created_at)}</span>
                       </div>
                     </div>
-                    {isMe && <Avatar initials={myInitials} size="sm" />}
                   </div>
                 )
               })}

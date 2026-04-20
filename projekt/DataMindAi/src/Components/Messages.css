@@ -158,7 +158,7 @@
 }
 
 .msg-conv-role {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: var(--secondaryText);
 }
 
@@ -352,6 +352,7 @@
   border: 1px solid var(--borderColor);
   color: var(--primaryText);
   border-bottom-left-radius: 4px;
+  width: fit-content;
 }
 
 .msg-bubble--me {
@@ -402,6 +403,10 @@
   font-size: 0.72rem;
   color: var(--secondaryText);
   padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 /* Input */

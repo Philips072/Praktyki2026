@@ -2,6 +2,36 @@ import './LessonPage.css'
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
+import { useAuth } from '../AuthContext'
+
+function highlightSQL(code) {
+  const parts = []
+  let i = 0
+  let current = ''
+
+  while (i < code.length) {
+    if (code[i] === '/' && code[i + 1] === '*') {
+      if (current) parts.push(<span key={parts.length}>{current}</span>)
+      current = ''
+      const end = code.indexOf('*/', i + 2)
+      const comment = end === -1 ? code.slice(i) : code.slice(i, end + 2)
+      parts.push(<span key={parts.length} className="ls-code-comment">{comment}</span>)
+      i = end === -1 ? code.length : end + 2
+    } else if (code[i] === '-' && code[i + 1] === '-') {
+      if (current) parts.push(<span key={parts.length}>{current}</span>)
+      current = ''
+      const end = code.indexOf('\n', i)
+      const comment = end === -1 ? code.slice(i) : code.slice(i, end)
+      parts.push(<span key={parts.length} className="ls-code-comment">{comment}</span>)
+      i = end === -1 ? code.length : end
+    } else {
+      current += code[i]
+      i++
+    }
+  }
+  if (current) parts.push(<span key={parts.length}>{current}</span>)
+  return parts
+}
 
 const LEVEL_LABELS = {
   beginner: 'Początkujący',
@@ -23,7 +53,7 @@ function TheorySection({ section }) {
       return (
         <div className="ls-code-block">
           {section.label && <p className="ls-code-label">{section.label}</p>}
-          <pre><code>{section.content}</code></pre>
+          <pre><code>{highlightSQL(section.content)}</code></pre>
         </div>
       )
 
@@ -49,7 +79,7 @@ function TheorySection({ section }) {
     case 'hint':
       return (
         <div className="ls-hint">
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" flexShrink="0">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
             <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
             <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
@@ -66,12 +96,12 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise }) {
+function Exercise({ exercise, isCompleted, onComplete }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
 
   return (
-    <div className="ls-exercise">
+    <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
       <div className="ls-exercise-task">
         <p className="ls-exercise-task-label">Zadanie:</p>
         <p className="ls-exercise-task-text">{exercise.task}</p>
@@ -80,18 +110,21 @@ function Exercise({ exercise }) {
       <p className="ls-sql-label">Twoje zapytanie SQL:</p>
       <textarea
         className="ls-sql-editor"
-        placeholder={exercise.placeholder}
+        placeholder=""
         value={query}
         onChange={e => setQuery(e.target.value)}
         spellCheck={false}
       />
 
       <div className="ls-exercise-actions">
-        <button className="ls-btn ls-btn--check">
+        <button
+          className={`ls-btn${isCompleted ? ' ls-btn--done' : ' ls-btn--check'}`}
+          onClick={onComplete}
+        >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-            <path d="M12 3l1.5 3 3.5.5-2.5 2.5.5 3.5L12 11l-3 1.5.5-3.5L7 6.5 10.5 6z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          Sprawdź odpowiedź
+          {isCompleted ? 'Ukończone' : 'Sprawdź odpowiedź'}
         </button>
         <button
           className="ls-btn ls-btn--hint"
@@ -137,10 +170,33 @@ function Exercise({ exercise }) {
 
 function LessonPage() {
   const { id } = useParams()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [activeExercise, setActiveExercise] = useState(0)
+  const [exercisesOpen, setExercisesOpen] = useState(true)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
+
+  const progressKey = `lesson_progress_${user?.id}`
+
+  const [completed, setCompleted] = useState(() => {
+    if (!lesson || !user) return new Set()
+    const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+    return new Set(data[lesson.id] || [])
+  })
+
+  function markComplete(exerciseId) {
+    setCompleted(prev => {
+      if (prev.has(exerciseId)) return prev
+      const next = new Set(prev)
+      next.add(exerciseId)
+      const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+      data[lesson.id] = [...next]
+      localStorage.setItem(progressKey, JSON.stringify(data))
+      return next
+    })
+  }
 
   if (!lesson) {
     return (
@@ -151,7 +207,7 @@ function LessonPage() {
     )
   }
 
-  const completedCount = 0 // placeholder — będzie z backendu
+  const completedCount = completed.size
 
   return (
     <div className="ls-page">
@@ -229,7 +285,7 @@ function LessonPage() {
         </section>
 
         {/* Prawa kolumna — Ćwiczenia */}
-        <section className="ls-col ls-col--exercises">
+        <section className={`ls-col ls-col--exercises${exercisesOpen ? '' : ' ls-col--collapsed'}`}>
           <div className="ls-section-header">
             <div className="ls-section-icon ls-section-icon--green">
               <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
@@ -237,26 +293,45 @@ function LessonPage() {
               </svg>
             </div>
             <h2 className="ls-section-title">Ćwiczenia</h2>
+            {!exercisesOpen && (
+              <span className="ls-exercises-count">{lesson.exercises.length} zadań</span>
+            )}
+            <button
+              className="ls-collapse-btn"
+              onClick={() => setExercisesOpen(o => !o)}
+              title={exercisesOpen ? 'Zwiń ćwiczenia' : 'Rozwiń ćwiczenia'}
+            >
+              <svg viewBox="0 0 24 24" fill="none" width="16" height="16"
+                style={{ transform: exercisesOpen ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.25s' }}>
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
 
-          {/* Tabs */}
-          <div className="ls-tabs">
-            {lesson.exercises.map((ex, i) => (
-              <button
-                key={ex.id}
-                className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}`}
-                onClick={() => setActiveExercise(i)}
-              >
-                Zadanie {ex.id}
-              </button>
-            ))}
-          </div>
+          {(exercisesOpen || isMobile) && (
+            <>
+              {/* Tabs */}
+              <div className="ls-tabs">
+                {lesson.exercises.map((ex, i) => (
+                  <button
+                    key={ex.id}
+                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
+                    onClick={() => setActiveExercise(i)}
+                  >
+                    Zadanie {ex.id}
+                  </button>
+                ))}
+              </div>
 
-          {/* Aktywne ćwiczenie */}
-          <Exercise
-            key={activeExercise}
-            exercise={lesson.exercises[activeExercise]}
-          />
+              {/* Aktywne ćwiczenie */}
+              <Exercise
+                key={activeExercise}
+                exercise={lesson.exercises[activeExercise]}
+                isCompleted={completed.has(lesson.exercises[activeExercise].id)}
+                onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
+              />
+            </>
+          )}
         </section>
 
       </div>

@@ -1,0 +1,479 @@
+import { useState, useEffect } from 'react'
+import SidebarHeader from '../Components/SidebarHeader'
+import TeacherPanel from '../Components/TeacherPanel'
+import { supabase } from '../supabaseClient'
+import { useAuth } from '../AuthContext'
+
+function TeacherPanelPage() {
+  const { user } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  // ── Uczniowie ────────────────────────────────────────────────────────────
+  const [allStudents, setAllStudents] = useState([])
+  const [students, setStudents] = useState([])
+  const [studentsLoading, setStudentsLoading] = useState(true)
+  const [studentsError, setStudentsError] = useState(null)
+  const [selectedClassId, setSelectedClassId] = useState(null)
+  const [selectedStudentIds, setSelectedStudentIds] = useState([])
+
+  const fetchStudents = async () => {
+    setStudentsLoading(true)
+    setStudentsError(null)
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, sql_level, class_id, classes(name)')
+      .eq('role', 'uczen')
+      .order('name', { ascending: true })
+
+    if (error) { setStudentsError(error.message); setStudentsLoading(false); return }
+
+    const studentsList = (data ?? []).map(p => ({
+      id:             p.id,
+      name:           p.name ?? 'Brak nazwy',
+      level:          p.sql_level ?? 'beginner',
+      lastActive:     '—',
+      completedTasks:  0,
+      totalAssigned:  0,
+      errors:         [],
+      className:      p.classes?.name || null,
+      classId:        p.class_id || null,
+    }))
+
+    setAllStudents(studentsList)
+    setStudentsLoading(false)
+  }
+
+  const fetchStudentStats = async () => {
+    if (allStudents.length === 0) return
+
+    try {
+      // Pobierz wszystkie przypisania dla uczniów
+      const { data: assignments, error } = await supabase
+        .from('assignments')
+        .select('student_id, status, assigned_at')
+        .in('student_id', allStudents.map(s => s.id))
+
+      if (error) {
+        console.error('Błąd pobierania statystyk uczniów:', error)
+        return
+      }
+
+      // Grupuj przypisania według uczniów
+      const studentStats = {}
+      assignments?.forEach(assignment => {
+        if (!studentStats[assignment.student_id]) {
+          studentStats[assignment.student_id] = {
+            totalAssigned: 0,
+            completedTasks: 0,
+            lastActive: null
+          }
+        }
+
+        studentStats[assignment.student_id].totalAssigned++
+        if (assignment.status === 'completed') {
+          studentStats[assignment.student_id].completedTasks++
+        }
+
+        // Znajdź ostatnią aktywność
+        const activityDate = assignment.assigned_at
+        if (!studentStats[assignment.student_id].lastActive ||
+            new Date(activityDate) > new Date(studentStats[assignment.student_id].lastActive)) {
+          studentStats[assignment.student_id].lastActive = activityDate
+        }
+      })
+
+      // Zaktualizuj dane uczniów ze statystykami
+      setAllStudents(prevStudents => prevStudents.map(student => {
+        const stats = studentStats[student.id] || {
+          totalAssigned: 0,
+          completedTasks: 0,
+          lastActive: null
+        }
+
+        return {
+          ...student,
+          totalAssigned: stats.totalAssigned,
+          completedTasks: stats.completedTasks,
+          lastActive: stats.lastActive
+            ? new Date(stats.lastActive).toLocaleDateString('pl-PL', {
+                day: 'numeric', month: 'short', year: 'numeric'
+              })
+            : '—',
+          avgScore: 0, // Placeholder - do zaimplementowania po dodaniu pola score do assignments
+          score: 0
+        }
+      }))
+    } catch (error) {
+      console.error('Błąd w fetchStudentStats:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchStudents()
+  }, [])
+
+  useEffect(() => {
+    if (allStudents.length > 0) {
+      fetchStudentStats()
+    }
+  }, [allStudents.length])
+
+  // ── Klasy ────────────────────────────────────────────────────────────────
+  const [classes, setClasses] = useState([])
+  const [classesLoading, setClassesLoading] = useState(true)
+  const [classesError, setClassesError] = useState(null)
+  const [classStudentsData, setClassStudentsData] = useState([]) // Dane z tabeli class_students
+
+  const fetchClasses = async () => {
+    setClassesLoading(true)
+    setClassesError(null)
+
+    const { data, error } = await supabase
+      .from('classes')
+      .select('*, class_students(count)')
+      .eq('created_by', user.id)
+      .order('name', { ascending: true })
+
+    if (error) { setClassesError(error.message); setClassesLoading(false); return }
+
+    const classesWithCounts = (data ?? []).map(cls => ({
+      ...cls,
+      studentCount: cls.class_students?.[0]?.count || 0
+    }))
+
+    setClasses(classesWithCounts)
+    setClassesLoading(false)
+  }
+
+  const fetchClassStudents = async () => {
+    const { data } = await supabase
+      .from('class_students')
+      .select('*')
+
+    setClassStudentsData(data ?? [])
+  }
+
+  useEffect(() => { fetchClasses() }, [user])
+  useEffect(() => { fetchClassStudents() }, [classes])
+
+  // ── Testy ────────────────────────────────────────────────────────────────
+  const [tests, setTests] = useState([])
+  const [testsLoading, setTestsLoading] = useState(true)
+  const [testsError, setTestsError] = useState(null)
+
+  const fetchTests = async () => {
+    setTestsLoading(true)
+    setTestsError(null)
+
+    const { data, error } = await supabase
+      .from('tests')
+      .select('id, title, difficulty, skill, created_at')
+      .order('created_at', { ascending: false })
+
+    if (error) { setTestsError(error.message); setTestsLoading(false); return }
+    setTests(data ?? [])
+    setTestsLoading(false)
+  }
+
+  useEffect(() => { fetchTests() }, [])
+
+  // ── Callbacki ─────────────────────────────────────────────────────────────
+
+  const handleCreateTest = async (formData) => {
+    const { error } = await supabase
+      .from('tests')
+      .insert({
+        title:        formData.title,
+        description:  formData.description,
+        expected_sql: formData.expectedSql,
+        difficulty:   formData.difficulty,
+        skill:        formData.skill,
+        created_by:   user.id,
+      })
+
+    if (error) { alert('Błąd zapisu testu: ' + error.message); return }
+    fetchTests()
+  }
+
+  const handleGenerateWithAI = (skill, difficulty, count) => {
+    // TODO: podpiąć pod /api/ai/generate-tests gdy endpoint będzie gotowy
+    console.log('generateWithAI', { skill, difficulty, count })
+  }
+
+  const handleAssignTest = async (testId, studentId) => {
+    const { data: existing } = await supabase
+      .from('assignments')
+      .select('id')
+      .eq('test_id', testId)
+      .eq('student_id', studentId)
+      .maybeSingle()
+
+    if (existing) { alert('Ten test jest już przypisany temu uczniowi.'); return }
+
+    const { error } = await supabase
+      .from('assignments')
+      .insert({
+        test_id:     testId,
+        student_id:  studentId,
+        assigned_by: user.id,
+        status:      'pending',
+      })
+
+    if (error) { alert('Błąd przypisania testu: ' + error.message); return }
+  }
+
+  const handleExportResults = (format) => {
+    // TODO: GET /api/export?format=csv|pdf
+    console.log('exportResults', format)
+  }
+
+  // Oblicz statystyki klasy na podstawie rzeczywistych danych uczniów
+  const calculateClassStats = () => {
+    const studentsWithStats = allStudents.filter(s => s.avgScore !== undefined)
+
+    const totalStudents = allStudents.length
+    const avgScore = studentsWithStats.length > 0
+      ? Math.round(studentsWithStats.reduce((sum, s) => sum + (s.avgScore || 0), 0) / studentsWithStats.length)
+      : 0
+
+    // Utwórz ranking uczniów według średniego wyniku
+    const ranking = studentsWithStats
+      .filter(s => s.completedTasks > 0)
+      .map(s => ({
+        name: s.name,
+        points: s.avgScore || 0
+      }))
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 10) // Top 10
+
+    // Oblicz liczbę testów ukończonych w tym tygodniu
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const weeklyTasks = allStudents.reduce((sum, s) => {
+      if (s.lastActive && s.lastActive !== '—') {
+        const lastActiveDate = new Date(s.lastActive.split('.').reverse().join('-'))
+        if (lastActiveDate >= weekAgo) {
+          return sum + s.completedTasks
+        }
+      }
+      return sum
+    }, 0)
+
+    return {
+      totalStudents,
+      avgScore,
+      weeklyTasks,
+      ranking,
+      commonErrors: [] // Placeholder - do zaimplementowania po dodaniu tabeli błędów
+    }
+  }
+
+  const classStats = calculateClassStats()
+
+  // Filtrowanie uczniów według klasy
+  const filteredStudents = selectedClassId
+    ? allStudents.filter(s => s.classId === selectedClassId)
+    : allStudents
+
+  const handleCreateClass = async (formData) => {
+    const { error } = await supabase
+      .from('classes')
+      .insert({
+        name: formData.name,
+        description: formData.description,
+        created_by: user.id
+      })
+
+    if (error) { alert('Błąd tworzenia klasy: ' + error.message); return }
+    fetchClasses()
+  }
+
+  const handleUpdateClass = async (classId, formData) => {
+    const { error } = await supabase
+      .from('classes')
+      .update({
+        name: formData.name,
+        description: formData.description
+      })
+      .eq('id', classId)
+
+    if (error) { alert('Błąd aktualizacji klasy: ' + error.message); return }
+    fetchClasses()
+  }
+
+  const handleDeleteClass = async (classId) => {
+    if (!confirm('Czy na pewno chcesz usunąć tę klasę? Uczniowie pozostaną w systemie.')) return
+
+    const { error } = await supabase
+      .from('classes')
+      .delete()
+      .eq('id', classId)
+
+    if (error) { alert('Błąd usuwania klasy: ' + error.message); return }
+    fetchClasses()
+    if (selectedClassId === classId) setSelectedClassId(null)
+  }
+
+  const handleAddStudentsToClass = async (classId, studentIds) => {
+    // Check which students are already in the class
+    const { data: existingStudents } = await supabase
+      .from('class_students')
+      .select('student_id')
+      .eq('class_id', classId)
+      .in('student_id', studentIds)
+
+    const existingStudentIds = existingStudents?.map(es => es.student_id) || []
+
+    // Filter out students who are already in the class
+    const newStudentIds = studentIds.filter(id => !existingStudentIds.includes(id))
+
+    if (newStudentIds.length === 0) {
+      alert('Wszyscy wybrani uczniowie są już w tej klasie.')
+      return
+    }
+
+    if (newStudentIds.length < studentIds.length) {
+      const alreadyInClass = studentIds.length - newStudentIds.length
+      alert(`${alreadyInClass} uczniów jest już w tej klasie. Dodam pozostałych ${newStudentIds.length}.`)
+    }
+
+    // Insert only new students
+    const { error } = await supabase
+      .from('class_students')
+      .insert(
+        newStudentIds.map(studentId => ({
+          class_id: classId,
+          student_id: studentId,
+          added_by: user.id
+        }))
+      )
+
+    if (error) {
+      alert('Błąd dodawania uczniów: ' + error.message)
+      return
+    }
+
+    // Update class_id in profiles for all students in the class (to keep consistency)
+    // First, get all students currently in this class
+    const { data: allClassStudents } = await supabase
+      .from('class_students')
+      .select('student_id')
+      .eq('class_id', classId)
+
+    if (allClassStudents && allClassStudents.length > 0) {
+      const allStudentIdsInClass = allClassStudents.map(cs => cs.student_id)
+
+      // Update class_id in profiles for all students in this class
+      await supabase
+        .from('profiles')
+        .update({ class_id: classId })
+        .in('id', allStudentIdsInClass)
+    }
+
+    alert(`Pomyślnie dodano ${newStudentIds.length} uczniów do klasy.`)
+    fetchClasses()
+    fetchStudents()
+  }
+
+  const handleRemoveStudentFromClass = async (classId, studentId) => {
+    const { error } = await supabase
+      .from('class_students')
+      .delete()
+      .eq('class_id', classId)
+      .eq('student_id', studentId)
+
+    if (error) { alert('Błąd usuwania ucznia: ' + error.message); return }
+
+    // Update class_id in profiles to NULL when removing student from class
+    await supabase
+      .from('profiles')
+      .update({ class_id: null })
+      .eq('id', studentId)
+
+    fetchClasses()
+    fetchStudents()
+  }
+
+  const handleBulkAssignTest = async (testId, recipientData) => {
+    // recipientData: { type: 'students'|'class', ids: [] }
+    let studentIds = []
+
+    if (recipientData.type === 'class') {
+      const { data: classStudents } = await supabase
+        .from('class_students')
+        .select('student_id')
+        .eq('class_id', recipientData.ids[0])
+
+      studentIds = classStudents?.map(cs => cs.student_id) || []
+    } else {
+      studentIds = recipientData.ids
+    }
+
+    // Check for existing assignments
+    const { data: existing } = await supabase
+      .from('assignments')
+      .select('student_id')
+      .eq('test_id', testId)
+      .in('student_id', studentIds)
+
+    const existingIds = existing?.map(e => e.student_id) || []
+    const newStudentIds = studentIds.filter(id => !existingIds.includes(id))
+
+    if (newStudentIds.length === 0) {
+      alert('Wszyscy wybrani uczniowie mają już przypisany ten test.')
+      return
+    }
+
+    const { error } = await supabase
+      .from('assignments')
+      .insert(
+        newStudentIds.map(studentId => ({
+          test_id: testId,
+          student_id: studentId,
+          assigned_by: user.id,
+          status: 'pending'
+        }))
+      )
+
+    if (error) { alert('Błąd masowego przypisania: ' + error.message); return }
+    alert(`Pomyślnie przypisano test do ${newStudentIds.length} uczniów.`)
+    // Odśwież statystyki po przypisaniu
+    fetchStudentStats()
+  }
+
+  return (
+    <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} noPadding>
+      <TeacherPanel
+        students={filteredStudents}
+        allStudents={allStudents}
+        studentsLoading={studentsLoading}
+        studentsError={studentsError}
+        tests={tests}
+        testsLoading={testsLoading}
+        testsError={testsError}
+        classStats={classStats}
+        classes={classes}
+        classesLoading={classesLoading}
+        classesError={classesError}
+        selectedClassId={selectedClassId}
+        onFilterByClass={setSelectedClassId}
+        selectedStudentIds={selectedStudentIds}
+        onStudentSelectionChange={setSelectedStudentIds}
+        onCreateTest={handleCreateTest}
+        onGenerateWithAI={handleGenerateWithAI}
+        onAssignTest={handleAssignTest}
+        onBulkAssignTest={handleBulkAssignTest}
+        onCreateClass={handleCreateClass}
+        onUpdateClass={handleUpdateClass}
+        onDeleteClass={handleDeleteClass}
+        onAddStudentsToClass={handleAddStudentsToClass}
+        onRemoveStudentFromClass={handleRemoveStudentFromClass}
+        classStudentsData={classStudentsData}
+        onExportResults={handleExportResults}
+      />
+    </SidebarHeader>
+  )
+}
+
+export default TeacherPanelPage

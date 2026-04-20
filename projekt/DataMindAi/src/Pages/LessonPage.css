@@ -122,6 +122,66 @@
   border-right: 2px solid var(--borderColor);
 }
 
+.ls-col--exercises {
+  transition: flex 0.3s cubic-bezier(0.22, 1, 0.36, 1), min-width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ls-col--collapsed {
+  flex: 0 0 64px;
+  min-width: 64px;
+  overflow: hidden;
+  padding: 28px 16px;
+}
+
+.ls-collapse-btn {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+  background: none;
+  color: var(--secondaryText);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.ls-collapse-btn:hover {
+  border-color: var(--accentColor);
+  color: var(--primaryText);
+}
+
+.ls-exercises-count {
+  font-size: 0.8rem;
+  color: var(--secondaryText);
+  white-space: nowrap;
+}
+
+.ls-col--collapsed .ls-section-header {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ls-col--collapsed .ls-section-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 1rem;
+}
+
+.ls-col--collapsed .ls-exercises-count {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin: 0;
+}
+
+.ls-col--collapsed .ls-collapse-btn {
+  margin: 0;
+}
+
 /* ── Nagłówek sekcji ───────────────────────────────────── */
 
 .ls-section-header {
@@ -230,6 +290,11 @@
   color: #a9c7f5;
   line-height: 1.6;
   white-space: pre;
+}
+
+.ls-code-comment {
+  color: #6a9955;
+  font-style: italic;
 }
 
 /* Tabela przykładowa */
@@ -382,6 +447,10 @@
   color: #fff;
 }
 
+.ls-tab--done.ls-tab--active {
+  background: #1e6b40;
+}
+
 .ls-tab:not(.ls-tab--active):hover {
   background: var(--inputBg);
   color: var(--primaryText);
@@ -489,6 +558,18 @@
   color: var(--primaryText);
 }
 
+.ls-btn--done {
+  flex: 1;
+  background: #1a9e50;
+  color: #fff;
+  justify-content: center;
+  cursor: default;
+}
+
+.ls-btn--done:hover {
+  background: #1a9e50;
+}
+
 /* Podpowiedź rozwijana */
 .ls-hint-box {
   background: rgba(50, 66, 119, 0.2);
@@ -544,6 +625,34 @@
     border-bottom: 2px solid var(--borderColor);
   }
 
+  /* Na mobilce nie można zwijać — zawsze pełna szerokość */
+  .ls-col--exercises,
+  .ls-col--collapsed {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .ls-collapse-btn { display: none; }
+  .ls-exercises-count { display: none; }
+
+  .ls-col--collapsed .ls-section-header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .ls-col--collapsed .ls-section-title {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: 1.3rem;
+  }
+
+  /* Wymuś widoczność zawartości ćwiczeń nawet gdy panel "zwinięty" */
+  .ls-col--collapsed .ls-tabs,
+  .ls-col--collapsed .ls-exercise {
+    display: flex !important;
+  }
+
   .ls-header {
     padding: 0 16px;
     height: auto;
@@ -571,7 +680,10 @@
     flex-direction: column;
   }
 
-  .ls-btn--hint {
+  .ls-btn {
+    width: 100%;
     justify-content: center;
+    padding: 13px 20px;
+    box-sizing: border-box;
   }
 }

@@ -2,6 +2,7 @@ import './OnboardingModal.css'
 import './AiChat.css'
 import { useState } from 'react'
 import logo from '../assets/nazwa.PNG'
+import { askInterests } from '../api'
 
 const LEVELS = [
   {
@@ -56,17 +57,33 @@ function LevelStep({ selected, onSelect, onNext }) {
   )
 }
 
+
 // Krok 2 — chat AI o zainteresowaniach
 function InterestsStep({ onBack, onFinish, loading }) {
   const [input, setInput] = useState('')
   const [userMessage, setUserMessage] = useState('')
-  const [replied, setReplied] = useState(false)
+  const [aiMessage, setAiMessage] = useState('')
+  const [aiInterests, setAiInterests] = useState('')
+  const [thinking, setThinking] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim()
     if (!trimmed) return
     setUserMessage(trimmed)
-    setReplied(true)
+    setInput('')
+    setThinking(true)
+    setError('')
+    try {
+      const { message, interests } = await askInterests(trimmed)
+      setAiMessage(message)
+      setAiInterests(interests)
+    } catch (err) {
+      setError(`Błąd AI: ${err.message}`)
+      setUserMessage('')
+    } finally {
+      setThinking(false)
+    }
   }
 
   const handleKeyDown = (e) => {
@@ -76,6 +93,8 @@ function InterestsStep({ onBack, onFinish, loading }) {
     }
   }
 
+  const replied = !!aiMessage
+
   return (
     <div className="ob-step ob-step--interests">
       <img src={logo} alt="DataMindAI" className="ob-logo" />
@@ -84,11 +103,10 @@ function InterestsStep({ onBack, onFinish, loading }) {
         <div className="ob-progress-bar ob-progress-bar--active" />
       </div>
 
-      {/* Box identyczny jak na AIChatPage */}
       <div className="aichat-box ob-aichat-box">
         <div className="aichat-messages">
 
-          {/* Wiadomość AI */}
+          {/* Wiadomość AI — pytanie */}
           <div className="aichat-row aichat-row--ai">
             <div className="aichat-avatar">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -96,13 +114,13 @@ function InterestsStep({ onBack, onFinish, loading }) {
               </svg>
             </div>
             <div className="aichat-bubble aichat-bubble--ai">
-              <p className="aichat-line">Świetnie! Napisz czym się interesujesz — dostosujemy do tego przykłady i ćwiczenia.</p>
-              <p className="aichat-line">Możesz napisać o swojej pracy, hobby lub dziedzinach, które Cię fascynują.</p>
+              <p className="aichat-line">Hej! Zanim zaczniemy naukę SQL — napisz czym się interesujesz.</p>
+              <p className="aichat-line">Może to być praca, hobby, sport, finanse — cokolwiek. Dostosujemy do tego przykłady i ćwiczenia.</p>
             </div>
           </div>
 
-          {/* Odpowiedź użytkownika */}
-          {replied && (
+          {/* Wiadomość użytkownika */}
+          {userMessage && (
             <div className="aichat-row aichat-row--user">
               <div className="aichat-bubble aichat-bubble--user">
                 <p className="aichat-line">{userMessage}</p>
@@ -110,7 +128,21 @@ function InterestsStep({ onBack, onFinish, loading }) {
             </div>
           )}
 
-          {/* Odpowiedź AI po wysłaniu */}
+          {/* Wskaźnik pisania */}
+          {thinking && (
+            <div className="aichat-row aichat-row--ai">
+              <div className="aichat-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#fcf6f3"/>
+                </svg>
+              </div>
+              <div className="aichat-bubble aichat-bubble--ai msg-bubble--typing">
+                <span /><span /><span />
+              </div>
+            </div>
+          )}
+
+          {/* Odpowiedź AI */}
           {replied && (
             <div className="aichat-row aichat-row--ai">
               <div className="aichat-avatar">
@@ -119,15 +151,19 @@ function InterestsStep({ onBack, onFinish, loading }) {
                 </svg>
               </div>
               <div className="aichat-bubble aichat-bubble--ai">
-                <p className="aichat-line">Doskonale! Twój profil jest gotowy. Czas zacząć naukę!</p>
+                <p className="aichat-line">{aiMessage}</p>
+                <p className="aichat-line" style={{ marginTop: 6, opacity: 0.7, fontSize: '0.82rem' }}>
+                  Twój profil zainteresowań został zapisany. Gotowy do nauki!
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Input bar — tylko przed wysłaniem */}
-        {!replied && (
+        {/* Input bar */}
+        {!replied && !thinking && (
           <div className="aichat-input-bar">
+            {error && <p style={{ color: '#e05a5a', fontSize: '0.8rem', padding: '0 12px 8px' }}>{error}</p>}
             <input
               className="aichat-input"
               type="text"
@@ -152,15 +188,20 @@ function InterestsStep({ onBack, onFinish, loading }) {
       </div>
 
       <div className="ob-actions">
-        {!replied && (
+        {!replied && !thinking && (
           <button className="ob-btn ob-btn--ghost" onClick={onBack} type="button">
             Wstecz
+          </button>
+        )}
+        {!replied && !thinking && (
+          <button className="ob-btn ob-btn--ghost" onClick={() => onFinish(null)} type="button">
+            Pomiń
           </button>
         )}
         {replied && (
           <button
             className="ob-btn ob-btn--primary"
-            onClick={() => onFinish(userMessage)}
+            onClick={() => onFinish(aiInterests)}
             disabled={loading}
             type="button"
           >

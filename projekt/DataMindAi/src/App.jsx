@@ -1,5 +1,7 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './AuthContext'
+import { ToastContainer } from 'react-toastify'
+import './Toastify.css'
 import PublicRoute from './Components/PublicRoute'
 import PrivateRoute from './Components/PrivateRoute'
 import AdminRoute from './Components/AdminRoute'
@@ -43,6 +45,17 @@ function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       </BrowserRouter>
     </AuthProvider>
   )

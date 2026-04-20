@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import './TeacherPanel.css'
 
 function ClassManagement({
@@ -21,7 +22,7 @@ function ClassManagement({
   const validateClassName = (name) => {
     const pattern = /^[0-9][a-zA-Z]{1,2}$/
     if (!pattern.test(name)) {
-      alert('Nieprawidłowy format nazwy klasy. Użyj formatu: cyfra + 1-2 litery (np. 2a, 10b)')
+      toast.error('Nieprawidłowy format nazwy klasy. Użyj formatu: cyfra + 1-2 litery (np. 2a, 10b)')
       return false
     }
     return true
@@ -223,7 +224,7 @@ function ClassStudentsModal({ classId, className, onClose, onManageStudents, all
       await onRemoveStudentFromClass(classId, studentId)
       setLoading(false)
     } catch (error) {
-      alert('Błąd usuwania ucznia: ' + error.message)
+      toast.error('Błąd usuwania ucznia: ' + error.message)
       setLoading(false)
     }
   }
@@ -237,7 +238,7 @@ function ClassStudentsModal({ classId, className, onClose, onManageStudents, all
       setStudentIdsToAdd([])
       setLoading(false)
     } catch (error) {
-      alert('Błąd dodawania uczniów: ' + error.message)
+      toast.error('Błąd dodawania uczniów: ' + error.message)
       setLoading(false)
     }
   }

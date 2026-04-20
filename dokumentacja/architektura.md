@@ -14,11 +14,11 @@ Przeglądarka
 │  - Supabase client  │        │  /api/health             │
 └─────────────────────┘        └──────────┬───────────────┘
          │                                │
-         │ Supabase JS SDK                │ fetch (klucz serwera)
+         │ Supabase JS SDK                │ fetch (klucz API)
          ▼                                ▼
 ┌─────────────────────┐        ┌──────────────────────────┐
-│  Supabase           │        │  Mistral AI API          │
-│  - Auth             │        │  mistral-small-latest    │
+│  Supabase           │        │  OpenRouter API           │
+│  - Auth             │        │  (Google Gemma 4)         │
 │  - PostgreSQL       │        └──────────────────────────┘
 │  - Realtime         │
 └─────────────────────┘
@@ -30,10 +30,12 @@ Przeglądarka
 
 | Technologia | Wersja | Rola |
 |-------------|--------|------|
-| React | 19 | Biblioteka UI — komponenty, stan, renderowanie |
-| Vite | 8 | Bundler, serwer deweloperski, HMR |
-| React Router DOM | 7 | Routing po stronie klienta (SPA) |
-| Supabase JS | 2 | Auth, baza danych (PostgreSQL), realtime |
+| React | 19.2.4 | Biblioteka UI — komponenty, stan, renderowanie |
+| Vite | 8.0.4 | Bundler, serwer deweloperski, HMR |
+| React Router DOM | 7.14.1 | Routing po stronie klienta (SPA) |
+| Supabase JS | 2.103.0 | Auth, baza danych (PostgreSQL), realtime |
+| react-toastify | 11.1.0 | Powiadomienia (toasty) |
+| react-markdown | 9.1.0 | Renderowanie Markdown (odpowiedzi AI) |
 | CSS (własne arkusze) | — | Stylowanie komponentów |
 
 ### Backend (`projekt/backend/`)
@@ -41,10 +43,10 @@ Przeglądarka
 | Technologia | Wersja | Rola |
 |-------------|--------|------|
 | Node.js | ≥ 18 | Środowisko uruchomieniowe |
-| Express | 4 | Framework HTTP |
-| cors | 2 | Obsługa nagłówków CORS |
-| dotenv | 16 | Wczytywanie zmiennych środowiskowych |
-| Mistral AI API | — | Model językowy (wywołania server-side) |
+| Express | 4.22.1 | Framework HTTP |
+| cors | 2.8.6 | Obsługa nagłówków CORS |
+| dotenv | 16.5.0 | Wczytywanie zmiennych środowiskowych |
+| OpenRouter API | — | Agregator modeli AI (Google Gemma 4) |
 
 ## Struktura folderów
 
@@ -65,6 +67,7 @@ praktyki2026/
     │   │   ├── hooks/             # Custom hooki React
     │   │   ├── data/              # Dane statyczne (lekcje SQL)
     │   │   ├── api.js             # Helper do komunikacji z backendem
+    │   │   ├── Toastify.css       # Style dla react-toastify
     │   │   ├── App.jsx            # Główny komponent z routingiem
     │   │   ├── AuthContext.jsx    # Kontekst autoryzacji (Supabase)
     │   │   ├── supabaseClient.js  # Inicjalizacja klienta Supabase
@@ -80,7 +83,7 @@ praktyki2026/
         │   │   └── ai.js          # Endpointy AI (chat, interests)
         │   └── middleware/
         │       └── errorHandler.js
-        ├── .env                   # Zmienne środowiskowe backendu (klucz Mistral)
+        ├── .env                   # Zmienne środowiskowe backendu (klucz OpenRouter)
         ├── .env.example
         ├── package.json
         └── server.js              # Punkt wejścia — Express + routing
@@ -95,6 +98,8 @@ praktyki2026/
 | `POST` | `/api/ai/interests` | AI przetwarza zainteresowania użytkownika (onboarding, ustawienia) |
 
 ### POST `/api/ai/chat`
+
+Używa modelu **Google Gemma 4-26B** przez OpenRouter.
 
 ```json
 // Żądanie
@@ -129,7 +134,8 @@ praktyki2026/
 | `AIChatPage.jsx` | `/ai-chat` | zalogowani | Czat z asystentem AI |
 | `MessagesPage.jsx` | `/wiadomosci` | zalogowani | Wiadomości między użytkownikami |
 | `UserSettingsPage.jsx` | `/ustawienia` | zalogowani | Ustawienia konta |
-| `TeacherPanelPage.jsx` | `/panel-nauczyciela` | zalogowani (nauczyciel) | Panel nauczyciela z zakładkami: Lista uczniów, Testy, Zarządzanie klasami, Statystyki klasy |
+| `TeacherPanelPage.jsx` | `/panel-nauczyciela` | zalogowani (nauczyciel) | Panel nauczyciela |
+| `AdminPanelPage.jsx` | `/panel-admina` | zalogowani (administrator) | Panel administratora |
 | `NotFoundPage.jsx` | `*` | publiczna | Strona 404 |
 
 ## Komponenty (Components)
@@ -162,12 +168,31 @@ praktyki2026/
 | `ForgotPassword` | Formularz resetowania hasła |
 | `PublicRoute` | Wrapper — przekierowuje zalogowanych z `/logowanie` i `/rejestracja` |
 | `PrivateRoute` | Wrapper — przekierowuje niezalogowanych na `/logowanie` |
+| `AdminRoute` | Wrapper — przekierowuje nie-administratorów na `/dashboard` |
+
+### Panel nauczyciela
+
+| Komponent | Opis |
+|-----------|------|
+| `TeacherPanel` | Główny panel nauczyciela z zakładkami |
+| `ClassManagement` | Zarządzanie klasami — tworzenie, edycja, usuwanie |
+| `BulkAssignmentModal` | Modal do masowego przypisywania testów |
+| `StudentSelector` | Komponent do wyboru uczniów przez checkboxy |
+| `AssignedTests` | Lista przypisanych testów |
+| `StudentDetail` | Szczegóły ucznia |
+| `ChatPanel` | Panel czatu z uczniem |
+
+### Panel administratora
+
+| Komponent | Opis |
+|-----------|------|
+| `AdminPanelPage` | Główny panel administratora z zakładkami (Użytkownicy, Klasy, Statystyki) |
 
 ### Pozostałe
 
 | Komponent | Opis |
 |-----------|------|
-| `AiChat` | Interfejs czatu z asystentem AI — wysyła wiadomości przez backend |
+| `AiChat` | Interfejs czatu z asystentem AI — wyświetla odpowiedzi w Markdown |
 | `Lectures` | Lista dostępnych lekcji SQL |
 | `Messages` | Widok wiadomości z real-time (Supabase Realtime) |
 | `OnboardingModal` | Ankieta onboardingowa — krok 1: poziom, krok 2: zainteresowania (AI) |
@@ -176,9 +201,6 @@ praktyki2026/
 | `AnimateOnScroll` | Wrapper animacji przy wejściu elementu w viewport |
 | `DateHeader` | Nagłówek z aktualną datą |
 | `Sidebar` | Nawigacja boczna dashboardu |
-| `ClassManagement` | Zarządzanie klasami — tworzenie, edycja, usuwanie klas, zarządzanie uczniami w klasach |
-| `BulkAssignmentModal` | Modal do masowego przypisywania testów z zakładkami dla wyboru uczniów/klas |
-| `StudentSelector` | Komponent do wyboru uczniów przez checkboxy z obsługą masowego wyboru |
 
 ## Podział odpowiedzialności: frontend vs backend
 
@@ -187,8 +209,8 @@ praktyki2026/
 | Autoryzacja (login, logout, rejestracja) | ✅ Supabase Auth client-side | — |
 | Pobieranie/zapis profilu | ✅ Supabase JS (anon key + RLS) | — |
 | Wiadomości (realtime) | ✅ Supabase Realtime | — |
-| Wywołania Mistral AI | ❌ przeniesione | ✅ klucz API serwera |
-| Klucz Mistral | ❌ usunięty z `.env` | ✅ `MISTRAL_KEY` w `.env` |
+| Wywołania AI | ❌ przeniesione | ✅ klucz API serwera |
+| Klucz OpenRouter | ❌ usunięty z `.env` | ✅ `OPENROUTER_API_KEY` w `.env` |
 
 > **Dlaczego Supabase jest w frontendzie?**
 > Klucz `anon` jest publiczny z założenia — dostęp do danych chroni Row Level Security (RLS) po stronie PostgreSQL. Supabase Realtime wymaga połączenia WebSocket bezpośrednio z przeglądarką.
@@ -212,6 +234,7 @@ Tabela `profiles` w Supabase:
 | `sql_level` | text | Poziom: `poczatkujacy` / `sredniozaawansowany` / `zaawansowany` |
 | `interests` | text | Zainteresowania zapisane przez AI podczas onboardingu |
 | `class_id` | uuid (FK → classes) | Identyfikator klasy ucznia (opcjonalne) |
+| `created_at` | timestamp | Data utworzenia profilu |
 
 ### Tabele Systemu Klas
 
@@ -239,12 +262,38 @@ Tabela łącząca klasy z uczniami (relacja many-to-many):
 | `added_by` | UUID (FK → auth.users) | ID nauczyciela, który dodał ucznia do klasy |
 
 **Kluczowe cechy systemu klas:**
-- Jeden uczeń może należeć do wielu klas (w przyszłości)
+- Jeden uczeń może należeć do wielu klas
 - Jedna klasa może zawierać wielu uczniów
 - Kasowanie klasy automatycznie usuwa relacje w `class_students` (CASCADE DELETE)
 - Nazwa klasy jest unikalna i walidowana (tylko format: cyfra + 1-2 litery)
 
-Tabele wiadomości w Supabase:
+### Tabele testów i przypisań
+
+#### `tests` Table
+Przechowuje testy stworzone przez nauczycieli:
+
+| Kolumna | Typ | Opis |
+|---------|-----|------|
+| `id` | UUID (PK) | Unikalny identyfikator testu |
+| `title` | VARCHAR(255) | Tytuł testu |
+| `description` | TEXT | Opis testu |
+| `questions` | JSONB | Pytania testu |
+| `created_by` | UUID (FK → auth.users) | ID nauczyciela |
+| `created_at` | TIMESTAMP | Data utworzenia |
+
+#### `assignments` Table
+Przypisania testów do uczniów:
+
+| Kolumna | Typ | Opis |
+|---------|-----|------|
+| `id` | UUID (PK) | Unikalny identyfikator przypisania |
+| `test_id` | UUID (FK → tests) | ID testu |
+| `student_id` | UUID (FK → profiles) | ID ucznia |
+| `status` | VARCHAR(20) | Status: `pending` / `in_progress` / `completed` |
+| `assigned_at` | TIMESTAMP | Data przypisania |
+| `completed_at` | TIMESTAMP | Data ukończenia |
+
+### Tabele wiadomości w Supabase:
 
 | Tabela | Opis |
 |--------|------|
@@ -272,3 +321,38 @@ Globalne zmienne zdefiniowane w `index.css`:
 | > 900px | Sidebar pełnej szerokości (280px), layout desktop |
 | 641px – 900px | Sidebar węższy (220px) |
 | ≤ 640px | Sidebar jako nakładka (position: fixed) z backdrop |
+
+## Powiadomienia (Toastify)
+
+Aplikacja używa `react-toastify` do wyświetlania powiadomień:
+
+- Pozycja: `top-right`
+- Auto-zamykanie: 4000ms
+- Wspiera sukces, błędy, ostrzeżenia i informacje
+
+## Funkcje panelu administratora
+
+Panel administratora (`/panel-admina`) zawiera trzy zakładki:
+
+### 1. Użytkownicy
+- Pełna lista użytkowników z danymi: imię, email, rola, poziom SQL, klasa, data utworzenia
+- Wyszukiwanie po imieniu lub emailu
+- Filtrowanie po roli (wszyscy, uczniowie, nauczyciele, administratorzy)
+- Edycja profilu użytkownika (imię, email, poziom SQL)
+- Zmiana roli użytkownika (dropdown)
+- Usuwanie użytkownika (z usunięciem przypisań i powiązań z klasami)
+- Ochrona przed zmianą/usunięciem własnego konta
+
+### 2. Klasy
+- Lista wszystkich klas z danymi: nazwa, opis, liczba uczniów, twórca
+- Tworzenie nowych klas (tylko administrator i nauczyciel)
+- Edycja nazwy i opisu klasy (tylko twórca lub administrator)
+- Usuwanie klas (tylko twórca lub administrator)
+- Walidacja nazwy klasy (format: cyfra + 1-2 litery)
+
+### 3. Statystyki
+- Całkowita liczba użytkowników
+- Liczba użytkowników według roli (uczniowie, nauczyciele, administratorzy)
+- Liczba klas
+- Liczba testów
+- Liczba przypisań (wszystkie i ukończone)

@@ -88,37 +88,6 @@ function AdminPanelPage() {
 
   useEffect(() => { fetchClasses() }, [])
 
-  // ── Testy ────────────────────────────────────────────────────────────────
-  const [tests, setTests] = useState([])
-  const [testsLoading, setTestsLoading] = useState(true)
-  const [testsError, setTestsError] = useState(null)
-
-  const fetchTests = async () => {
-    setTestsLoading(true)
-    setTestsError(null)
-
-    const { data, error } = await supabase
-      .from('tests')
-      .select('id, title, difficulty, skill, profiles(name)')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      setTestsError(error.message)
-      setTestsLoading(false)
-      return
-    }
-
-    const testsList = (data ?? []).map(test => ({
-      ...test,
-      creator: test.profiles?.name || '—',
-    }))
-
-    setTests(testsList)
-    setTestsLoading(false)
-  }
-
-  useEffect(() => { fetchTests() }, [])
-
   // ── Statystyki ───────────────────────────────────────────────────────────
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -437,15 +406,6 @@ function AdminPanelPage() {
     fetchStats()
   }
 
-  // ── Puste funkcje dla testów ───────────────────────────────────────────
-  const handleCreateTest = () => {
-    toast.info('Funkcja tworzenia testu jest obecnie nieaktywna.')
-  }
-
-  const handleDeleteTest = () => {
-    toast.info('Funkcja usuwania testu jest obecnie nieaktywna.')
-  }
-
   return (
     <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} noPadding>
       <div className="admin-panel">
@@ -464,12 +424,6 @@ function AdminPanelPage() {
               onClick={() => setActiveTab('classes')}
             >
               Klasy
-            </button>
-            <button
-              className={`admin-tab ${activeTab === 'tests' ? 'admin-tab--active' : ''}`}
-              onClick={() => setActiveTab('tests')}
-            >
-              Testy
             </button>
             <button
               className={`admin-tab ${activeTab === 'stats' ? 'admin-tab--active' : ''}`}
@@ -724,59 +678,6 @@ function AdminPanelPage() {
                             🗑️ Usuń
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-
-        {/* Sekcja: Testy */}
-        {activeTab === 'tests' && (
-          <div className="admin-section">
-            <div className="admin-section-header">
-              <h2 className="admin-section-title">Zarządzanie testami</h2>
-              <button
-                className="admin-btn admin-btn--primary"
-                onClick={handleCreateTest}
-              >
-                + Nowy test
-              </button>
-            </div>
-
-            {testsLoading ? (
-              <p className="admin-status admin-status--loading">Ładowanie testów…</p>
-            ) : testsError ? (
-              <p className="admin-status admin-status--error">Błąd: {testsError}</p>
-            ) : (
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Tytuł</th>
-                    <th>Poziom</th>
-                    <th>Umiejętność</th>
-                    <th>Akcje</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tests.map(test => (
-                    <tr key={test.id} className="admin-table-row">
-                      <td><strong>{test.title}</strong></td>
-                      <td>
-                        <span className={`admin-badge admin-badge--${test.difficulty}`}>
-                          {test.difficulty}
-                        </span>
-                      </td>
-                      <td>{test.skill || '—'}</td>
-                      <td>
-                        <button
-                          className="admin-btn admin-btn--delete"
-                          onClick={handleDeleteTest}
-                        >
-                          🗑️ Usuń
-                        </button>
                       </td>
                     </tr>
                   ))}

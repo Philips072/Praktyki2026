@@ -150,6 +150,20 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
         </svg>
       ),
     }] : []),
+    // Widoczne tylko dla administratora
+    ...(profile?.role === 'administrator' ? [{
+      label: 'Panel administratora',
+      path: '/panel-admina',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <path d="M3 14h7M14 14h7M3 14v7M14 14v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      ),
+    }] : []),
   ]
 
   return (

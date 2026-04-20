@@ -1,8 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import './Lectures.css';
-import LESSONS from '../data/lessonsData';
-import { useAuth } from '../AuthContext';
 
 const lessons = [
   { id: 1,  title: 'Język DDL — tworzenie i usuwanie tabel',              description: 'Poznaj instrukcje CREATE DATABASE i CREATE TABLE. Naucz się definiować kolumny z typami danych: INT, TEXT, VARCHAR i innymi.' },
@@ -30,14 +27,6 @@ const lessons = [
 
 function Lectures() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [, forceUpdate] = useState(0);
-
-  useEffect(() => {
-    const onStorage = () => forceUpdate(n => n + 1);
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
 
   return (
     <div className="lectures-page">
@@ -62,8 +51,8 @@ function Lectures() {
                 </button>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );

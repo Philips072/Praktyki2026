@@ -10,6 +10,7 @@ import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
 import DashboardPage from './Pages/DashboardPage'
 import LecturesPage from './Pages/LecturesPage'
+import SandboxPage from './Pages/SandboxPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 import AIChatPage from './Pages/AIChatPage'
@@ -37,6 +38,7 @@ function App() {
         <Route path="/dashboard"    element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/lekcje"       element={<PrivateRoute><LecturesPage /></PrivateRoute>} />
         <Route path="/lekcja/:id"   element={<PrivateRoute><LessonPage /></PrivateRoute>} />
+        <Route path="/sandbox"      element={<PrivateRoute><SandboxPage /></PrivateRoute>} />
         <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
         <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />

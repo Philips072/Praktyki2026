@@ -406,6 +406,7 @@
   justify-content: flex-start;
   position: relative;
   min-width: 60px;
+  margin-top: 4px;
 }
 
 .msg-row--me .msg-message-actions {

@@ -638,7 +638,7 @@ function Messages() {
                             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </button>
-                        <span className={`msg-time ${isMe ? 'msg-time--me' : ''}`}>{fmtTime(msg.created_at)}</span>
+                        <span className="msg-time">{fmtTime(msg.created_at)}</span>
                       </div>
                     </div>
                   </div>

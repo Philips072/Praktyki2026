@@ -64,7 +64,10 @@ function TheorySection({ section }) {
           <div className="ls-table-scroll">
             <table className="ls-example-table">
               <thead>
-                <tr>{section.columns.map(c => <th key={c}>{c}</th>)}</tr>
+                <tr>
+                  {section.columns.map(c => <th key={c}>{c}</th>)}
+                  {section.rows[0]?.length > section.columns.length && <th key="extra">Przykład</th>}
+                </tr>
               </thead>
               <tbody>
                 {section.rows.map((row, i) => (
@@ -221,7 +224,17 @@ function LessonPage() {
             </svg>
           </button>
           <div className="ls-header-titles">
-            <h1 className="ls-header-title">Lekcja {lesson.id}: {lesson.title}</h1>
+            <h1 className="ls-header-title">
+              Lekcja {lesson.id}: {lesson.title}
+              {completedCount === lesson.exercises.length && (
+                <span className="ls-title-check">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#2fa05e" strokeWidth="2" fill="rgba(47, 160, 94, 0.15)"/>
+                    <path d="M8 12l3 3 5-6" stroke="#2fa05e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              )}
+            </h1>
             <p className="ls-header-subtitle">{lesson.subtitle}</p>
           </div>
         </div>

@@ -158,7 +158,7 @@
 }
 
 .msg-conv-role {
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   color: var(--secondaryText);
 }
 
@@ -352,6 +352,7 @@
   border: 1px solid var(--borderColor);
   color: var(--primaryText);
   border-bottom-left-radius: 4px;
+  width: fit-content;
 }
 
 .msg-bubble--me {
@@ -398,20 +399,174 @@
   opacity: 0.7;
 }
 
+/* Reply button i actions */
+.msg-message-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  min-width: 60px;
+  margin-top: 4px;
+}
+
+.msg-row--me .msg-message-actions {
+  justify-content: flex-end;
+}
+
+.msg-reply-btn {
+  position: absolute;
+  display: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--borderColor);
+  background: transparent;
+  color: var(--secondaryText);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s, color 0.15s, border-color 0.15s;
+  z-index: 1;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.msg-row--them .msg-reply-btn {
+  left: 0;
+}
+
+.msg-row--me .msg-reply-btn {
+  right: 0;
+}
+
+.msg-reply-btn:hover {
+  background: var(--accentColor);
+  color: #fff;
+  border-color: var(--accentColor);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.msg-row:hover .msg-reply-btn {
+  display: flex;
+}
+
 .msg-time {
   font-size: 0.72rem;
   color: var(--secondaryText);
   padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  transition: margin-left 0.2s ease, margin-right 0.2s ease;
+}
+
+.msg-row--them .msg-time {
+  margin-left: 0;
+}
+
+.msg-row--them:hover .msg-time {
+  margin-left: 28px;
+}
+
+.msg-row--me .msg-time {
+  margin-right: 0;
+}
+
+.msg-row--me:hover .msg-time {
+  margin-right: 28px;
+}
+
+/* Reply preview in input */
+.msg-reply-preview {
+  background: var(--aiMessageBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.msg-reply-label {
+  font-size: 0.7rem;
+  color: var(--secondaryText);
+  font-weight: 500;
+}
+
+.msg-reply-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--primaryText);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-reply-cancel {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: none;
+  color: var(--secondaryText);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.msg-reply-cancel:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--primaryText);
+}
+
+/* Reply indicator in chat */
+.msg-reply-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(57, 73, 143, 0.15);
+  border-left: 2px solid var(--accentColor);
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.msg-reply-preview-text {
+  font-size: 0.75rem;
+  color: var(--secondaryText);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Input */
 .msg-input-bar {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 0;
   padding: 12px 20px;
   border-top: 1px solid var(--borderColor);
   flex-shrink: 0;
+}
+
+.msg-reply-preview {
+  width: 100%;
+  background: var(--aiMessageBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
 }
 
 .msg-input {
@@ -426,6 +581,13 @@
   font-size: 0.92rem;
   outline: none;
   transition: border-color 0.2s;
+}
+
+.msg-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .msg-input::placeholder { color: var(--secondaryText); }
@@ -630,5 +792,17 @@
 
   .msg-sidebar-top {
     padding-top: 4px;
+  }
+
+  .msg-reply-btn {
+    display: flex;
+    position: relative;
+    transform: none;
+  }
+
+  .msg-row--them .msg-time,
+  .msg-row--me .msg-time {
+    margin-left: 0;
+    margin-right: 0;
   }
 }

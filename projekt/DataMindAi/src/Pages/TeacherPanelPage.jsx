@@ -3,6 +3,7 @@ import SidebarHeader from '../Components/SidebarHeader'
 import TeacherPanel from '../Components/TeacherPanel'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
+import { toast } from 'react-toastify'
 
 function TeacherPanelPage() {
   const { user } = useAuth()
@@ -192,7 +193,7 @@ function TeacherPanelPage() {
         created_by:   user.id,
       })
 
-    if (error) { alert('Błąd zapisu testu: ' + error.message); return }
+    if (error) { toast.error('Błąd zapisu testu: ' + error.message); return }
     fetchTests()
   }
 
@@ -209,7 +210,7 @@ function TeacherPanelPage() {
       .eq('student_id', studentId)
       .maybeSingle()
 
-    if (existing) { alert('Ten test jest już przypisany temu uczniowi.'); return }
+    if (existing) { toast.warning('Ten test jest już przypisany temu uczniowi.'); return }
 
     const { error } = await supabase
       .from('assignments')
@@ -220,7 +221,7 @@ function TeacherPanelPage() {
         status:      'pending',
       })
 
-    if (error) { alert('Błąd przypisania testu: ' + error.message); return }
+    if (error) { toast.error('Błąd przypisania testu: ' + error.message); return }
   }
 
   const handleExportResults = (format) => {
@@ -285,7 +286,7 @@ function TeacherPanelPage() {
         created_by: user.id
       })
 
-    if (error) { alert('Błąd tworzenia klasy: ' + error.message); return }
+    if (error) { toast.error('Błąd tworzenia klasy: ' + error.message); return }
     fetchClasses()
   }
 
@@ -298,7 +299,7 @@ function TeacherPanelPage() {
       })
       .eq('id', classId)
 
-    if (error) { alert('Błąd aktualizacji klasy: ' + error.message); return }
+    if (error) { toast.error('Błąd aktualizacji klasy: ' + error.message); return }
     fetchClasses()
   }
 
@@ -310,7 +311,7 @@ function TeacherPanelPage() {
       .delete()
       .eq('id', classId)
 
-    if (error) { alert('Błąd usuwania klasy: ' + error.message); return }
+    if (error) { toast.error('Błąd usuwania klasy: ' + error.message); return }
     fetchClasses()
     if (selectedClassId === classId) setSelectedClassId(null)
   }
@@ -329,13 +330,13 @@ function TeacherPanelPage() {
     const newStudentIds = studentIds.filter(id => !existingStudentIds.includes(id))
 
     if (newStudentIds.length === 0) {
-      alert('Wszyscy wybrani uczniowie są już w tej klasie.')
+      toast.info('Wszyscy wybrani uczniowie są już w tej klasie.')
       return
     }
 
     if (newStudentIds.length < studentIds.length) {
       const alreadyInClass = studentIds.length - newStudentIds.length
-      alert(`${alreadyInClass} uczniów jest już w tej klasie. Dodam pozostałych ${newStudentIds.length}.`)
+      toast.info(`${alreadyInClass} uczniów jest już w tej klasie. Dodam pozostałych ${newStudentIds.length}.`)
     }
 
     // Insert only new students
@@ -350,7 +351,7 @@ function TeacherPanelPage() {
       )
 
     if (error) {
-      alert('Błąd dodawania uczniów: ' + error.message)
+      toast.error('Błąd dodawania uczniów: ' + error.message)
       return
     }
 
@@ -371,7 +372,7 @@ function TeacherPanelPage() {
         .in('id', allStudentIdsInClass)
     }
 
-    alert(`Pomyślnie dodano ${newStudentIds.length} uczniów do klasy.`)
+    toast.success(`Pomyślnie dodano ${newStudentIds.length} uczniów do klasy.`)
     fetchClasses()
     fetchStudents()
   }
@@ -383,7 +384,7 @@ function TeacherPanelPage() {
       .eq('class_id', classId)
       .eq('student_id', studentId)
 
-    if (error) { alert('Błąd usuwania ucznia: ' + error.message); return }
+    if (error) { toast.error('Błąd usuwania ucznia: ' + error.message); return }
 
     // Update class_id in profiles to NULL when removing student from class
     await supabase
@@ -421,7 +422,7 @@ function TeacherPanelPage() {
     const newStudentIds = studentIds.filter(id => !existingIds.includes(id))
 
     if (newStudentIds.length === 0) {
-      alert('Wszyscy wybrani uczniowie mają już przypisany ten test.')
+      toast.info('Wszyscy wybrani uczniowie mają już przypisany ten test.')
       return
     }
 
@@ -436,8 +437,8 @@ function TeacherPanelPage() {
         }))
       )
 
-    if (error) { alert('Błąd masowego przypisania: ' + error.message); return }
-    alert(`Pomyślnie przypisano test do ${newStudentIds.length} uczniów.`)
+    if (error) { toast.error('Błąd masowego przypisania: ' + error.message); return }
+    toast.success(`Pomyślnie przypisano test do ${newStudentIds.length} uczniów.`)
     // Odśwież statystyki po przypisaniu
     fetchStudentStats()
   }

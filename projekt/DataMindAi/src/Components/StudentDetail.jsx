@@ -53,16 +53,18 @@ function StudentDetail({ student, onClose }) {
         {/* Statystyki ucznia */}
         <div className="tp-modal-stats">
           <div className="tp-modal-stat">
-            <span className="tp-modal-stat-value">{student.completedTasks}</span>
-            <span className="tp-modal-stat-label">Wykonanych zadań</span>
+            <span className="tp-modal-stat-value">
+              {student.completedTasks ?? 0}/{student.totalAssigned ?? 0}
+            </span>
+            <span className="tp-modal-stat-label">Wykonane testy</span>
           </div>
           <div className="tp-modal-stat">
-            <span className="tp-modal-stat-value">{student.lastActive}</span>
+            <span className="tp-modal-stat-value">{student.avgScore ?? 0}%</span>
+            <span className="tp-modal-stat-label">Średni wynik</span>
+          </div>
+          <div className="tp-modal-stat">
+            <span className="tp-modal-stat-value">{student.lastActive ?? '—'}</span>
             <span className="tp-modal-stat-label">Ostatnia aktywność</span>
-          </div>
-          <div className="tp-modal-stat">
-            <span className="tp-modal-stat-value">{student.errors?.length ?? 0}</span>
-            <span className="tp-modal-stat-label">Typów błędów</span>
           </div>
         </div>
 

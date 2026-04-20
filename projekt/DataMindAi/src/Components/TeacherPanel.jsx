@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import StudentDetail from './StudentDetail'
+import ClassManagement from './ClassManagement'
+import BulkAssignmentModal from './BulkAssignmentModal'
+import StudentSelector from './StudentSelector'
 import './TeacherPanel.css'
 
 const IconCSV = () => (
@@ -23,9 +26,20 @@ const IconPDF = () => (
 )
 
 // ─── Sekcja: Lista uczniów ─────────────────────────────────────────────────
-function StudentsSection({ students, studentsLoading, studentsError, onExportResults }) {
+function StudentsSection({
+  students,
+  studentsLoading,
+  studentsError,
+  onExportResults,
+  classes,
+  selectedClassId,
+  onFilterByClass,
+  selectedStudentIds,
+  onStudentSelectionChange
+}) {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [viewMode, setViewMode] = useState('table') // 'table' | 'cards'
+  const [bulkMode, setBulkMode] = useState(false) // true/false for bulk selection
 
   if (studentsLoading) return (
     <div className="tp-section">
@@ -39,11 +53,54 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
     </div>
   )
 
+  const toggleBulkMode = () => {
+    setBulkMode(!bulkMode)
+    if (bulkMode) {
+      onStudentSelectionChange([])
+    }
+  }
+
+  const handleToggleStudent = (studentId) => {
+    if (selectedStudentIds.includes(studentId)) {
+      onStudentSelectionChange(selectedStudentIds.filter(id => id !== studentId))
+    } else {
+      onStudentSelectionChange([...selectedStudentIds, studentId])
+    }
+  }
+
+  const handleSelectAll = () => {
+    if (selectedStudentIds.length === students.length) {
+      onStudentSelectionChange([])
+    } else {
+      onStudentSelectionChange(students.map(s => s.id))
+    }
+  }
+
   return (
     <div className="tp-section">
       <div className="tp-section-header">
         <h2 className="tp-section-title">Lista uczniów <span className="tp-student-count">({students.length})</span></h2>
         <div className="tp-section-actions">
+          {/* Filtrowanie po klasach */}
+          <select
+            className="tp-input tp-select"
+            value={selectedClassId || 'all'}
+            onChange={(e) => onFilterByClass(e.target.value === 'all' ? null : e.target.value)}
+          >
+            <option value="all">Wszystkie klasy</option>
+            {classes.map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+          </select>
+
+          {/* Toggle bulk selection */}
+          <button
+            className={`tp-btn ${bulkMode ? 'tp-btn--primary' : 'tp-btn--ghost'}`}
+            onClick={toggleBulkMode}
+          >
+            {bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}
+          </button>
+
           {/* Przełącznik widoku tabela/karty */}
           <button
             className={`tp-view-btn ${viewMode === 'table' ? 'tp-view-btn--active' : ''}`}
@@ -68,22 +125,52 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
         </div>
       </div>
 
+      {/* Bulk actions when in bulk mode */}
+      {bulkMode && (
+        <div className="tp-bulk-actions">
+          <label className="tp-checkbox-label">
+            <input
+              type="checkbox"
+              checked={selectedStudentIds.length === students.length}
+              onChange={handleSelectAll}
+            />
+            Zaznacz wszystkich
+          </label>
+          {selectedStudentIds.length > 0 && (
+            <div className="tp-bulk-actions-menu">
+              <span>Zaznaczono {selectedStudentIds.length} uczniów</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Widok tabeli — na mobile automatycznie zamienia się w karty przez CSS */}
       {viewMode === 'table' ? (
         <div className="tp-table-wrapper">
           <table className="tp-table">
             <thead>
               <tr>
+                {bulkMode && <th></th>}
                 <th>Imię i nazwisko</th>
+                <th>Klasa</th>
                 <th>Poziom</th>
                 <th>Ostatnia aktywność</th>
-                <th>Wykonane zadania</th>
+                <th>Postęp</th>
                 <th>Akcje</th>
               </tr>
             </thead>
             <tbody>
               {students.map(student => (
                 <tr key={student.id} className="tp-table-row">
+                  {bulkMode && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedStudentIds.includes(student.id)}
+                        onChange={() => handleToggleStudent(student.id)}
+                      />
+                    </td>
+                  )}
                   <td>
                     <div className="tp-student-name-cell">
                       {/* Avatar z inicjałami */}
@@ -94,12 +181,33 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
                     </div>
                   </td>
                   <td>
+                    {student.className && (
+                      <span className="tp-badge tp-badge--class">{student.className}</span>
+                    )}
+                  </td>
+                  <td>
                     <span className={`tp-badge tp-badge--level-${student.level}`}>
                       {student.level}
                     </span>
                   </td>
-                  <td className="tp-text-secondary">{student.lastActive}</td>
-                  <td>{student.completedTasks}</td>
+                  <td className="tp-text-secondary">{student.lastActive ?? '—'}</td>
+                  <td>
+                    <div className="tp-progress-cell">
+                      <span className="tp-progress-text">
+                        {student.completedTasks ?? 0}/{student.totalAssigned ?? 0}
+                      </span>
+                      {student.totalAssigned > 0 && (
+                        <div className="tp-progress-bar">
+                          <div
+                            className="tp-progress-bar-fill"
+                            style={{
+                              width: `${Math.round((student.completedTasks || 0) / student.totalAssigned * 100)}%`
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <button
                       className="tp-btn tp-btn--ghost tp-btn--sm"
@@ -120,13 +228,26 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
             <div
               key={student.id}
               className="tp-student-card"
-              onClick={() => setSelectedStudent(student)}
+              onClick={() => !bulkMode && setSelectedStudent(student)}
             >
+              {bulkMode && (
+                <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedStudentIds.includes(student.id)}
+                    onChange={() => handleToggleStudent(student.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
               <div className="tp-avatar tp-avatar--lg">
                 {student.name.charAt(0).toUpperCase()}
               </div>
               <div className="tp-student-card-info">
                 <span className="tp-student-card-name">{student.name}</span>
+                {student.className && (
+                  <span className="tp-badge tp-badge--class">{student.className}</span>
+                )}
                 <span className={`tp-badge tp-badge--level-${student.level}`}>
                   {student.level}
                 </span>
@@ -134,7 +255,7 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
                   Aktywny: {student.lastActive}
                 </span>
                 <span className="tp-text-secondary tp-student-card-meta">
-                  Zadania: {student.completedTasks}
+                  Postęp: {student.completedTasks ?? 0}/{student.totalAssigned ?? 0}
                 </span>
               </div>
             </div>
@@ -143,7 +264,7 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
       )}
 
       {/* Modal ze szczegółami ucznia — renderuje się gdy wybrany jest uczeń */}
-      {selectedStudent && (
+      {selectedStudent && !bulkMode && (
         <StudentDetail
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
@@ -156,11 +277,12 @@ function StudentsSection({ students, studentsLoading, studentsError, onExportRes
 // ─── Sekcja: Testy ────────────────────────────────────────────────────────
 function TestsSection({
   tests, testsLoading, testsError,
-  students, onCreateTest, onGenerateWithAI, onAssignTest,
+  students, classes, onCreateTest, onGenerateWithAI, onAssignTest, onBulkAssignTest,
 }) {
   const [formMode, setFormMode] = useState(null) // null | 'manual' | 'ai'
   const [saving, setSaving] = useState(false)
   const [assignModal, setAssignModal] = useState(null) // id testu do przypisania
+  const [bulkAssignModal, setBulkAssignModal] = useState(null) // id testu do masowego przypisania
   const [assignedIds, setAssignedIds] = useState([])   // uczniowie już przypisani w tej sesji
 
   const [manualForm, setManualForm] = useState({
@@ -191,6 +313,10 @@ function TestsSection({
   const handleAssign = async (studentId) => {
     await onAssignTest(assignModal, studentId)
     setAssignedIds(prev => [...prev, studentId])
+  }
+
+  const handleBulkAssign = (testId) => {
+    setBulkAssignModal(testId)
   }
 
   const formatDate = (iso) => {
@@ -355,18 +481,26 @@ function TestsSection({
                   <span className="tp-text-secondary">{formatDate(test.created_at)}</span>
                 </div>
               </div>
-              <button
-                className="tp-btn tp-btn--ghost tp-btn--sm"
-                onClick={() => { setAssignModal(test.id); setAssignedIds([]) }}
-              >
-                Przypisz uczniowi
-              </button>
+              <div className="tp-exercise-actions">
+                <button
+                  className="tp-btn tp-btn--ghost tp-btn--sm"
+                  onClick={() => { setAssignModal(test.id); setAssignedIds([]) }}
+                >
+                  Przypisz uczniowi
+                </button>
+                <button
+                  className="tp-btn tp-btn--primary tp-btn--sm"
+                  onClick={() => handleBulkAssign(test.id)}
+                >
+                  Przypisz masowo
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modal przypisywania testu do ucznia */}
+      {/* Modal przypisywania testu do pojedynczego ucznia */}
       {assignModal && (
         <div className="tp-modal-overlay" onClick={() => setAssignModal(null)}>
           <div className="tp-modal" onClick={e => e.stopPropagation()}>
@@ -397,6 +531,17 @@ function TestsSection({
             <button className="tp-btn tp-btn--ghost" onClick={() => setAssignModal(null)}>Zamknij</button>
           </div>
         </div>
+      )}
+
+      {/* Modal masowego przypisywania testu */}
+      {bulkAssignModal && (
+        <BulkAssignmentModal
+          test={tests.find(t => t.id === bulkAssignModal)}
+          students={students}
+          classes={classes}
+          onAssign={onBulkAssignTest}
+          onClose={() => setBulkAssignModal(null)}
+        />
       )}
     </div>
   )
@@ -490,14 +635,30 @@ function TeacherPanel({
   testsLoading,
   testsError,
   classStats,
+  classes,
+  classesLoading,
+  classesError,
+  selectedClassId,
+  onFilterByClass,
+  selectedStudentIds,
+  onStudentSelectionChange,
   onCreateTest,
   onGenerateWithAI,
   onAssignTest,
+  onBulkAssignTest,
+  onCreateClass,
+  onUpdateClass,
+  onDeleteClass,
+  onAddStudentsToClass,
+  onRemoveStudentFromClass,
+  allStudents, // dla ClassManagement
+  classStudentsData, // dane z tabeli class_students
   onExportResults,
 }) {
   const TABS = [
     { id: 'students', label: 'Lista uczniów' },
     { id: 'tests',    label: 'Testy' },
+    { id: 'classes',  label: 'Zarządzanie klasami' },
     { id: 'stats',    label: 'Statystyki klasy' },
   ]
 
@@ -526,6 +687,11 @@ function TeacherPanel({
             studentsLoading={studentsLoading}
             studentsError={studentsError}
             onExportResults={onExportResults}
+            classes={classes}
+            selectedClassId={selectedClassId}
+            onFilterByClass={onFilterByClass}
+            selectedStudentIds={selectedStudentIds}
+            onStudentSelectionChange={onStudentSelectionChange}
           />
         )}
         {activeTab === 'tests' && (
@@ -534,9 +700,25 @@ function TeacherPanel({
             testsLoading={testsLoading}
             testsError={testsError}
             students={students}
+            classes={classes}
             onCreateTest={onCreateTest}
             onGenerateWithAI={onGenerateWithAI}
             onAssignTest={onAssignTest}
+            onBulkAssignTest={onBulkAssignTest}
+          />
+        )}
+        {activeTab === 'classes' && (
+          <ClassManagement
+            classes={classes}
+            classesLoading={classesLoading}
+            classesError={classesError}
+            onCreateClass={onCreateClass}
+            onUpdateClass={onUpdateClass}
+            onDeleteClass={onDeleteClass}
+            onManageStudents={onAddStudentsToClass}
+            students={allStudents || students}
+            classStudentsData={classStudentsData}
+            onRemoveStudentFromClass={onRemoveStudentFromClass}
           />
         )}
         {activeTab === 'stats' && (

@@ -7,6 +7,7 @@
 - **Konto Supabase** — projekt z włączoną autoryzacją i tabelą `profiles`
 - **Klucz Mistral AI** — wygenerowany na [console.mistral.ai](https://console.mistral.ai/)
 - Przeglądarka internetowa (Chrome, Firefox, Edge)
+- **Skrypt SQL systemu klas** — musi zostać wykonany w Supabase SQL Editor (patrz poniżej)
 
 ---
 
@@ -77,6 +78,56 @@ Frontend będzie dostępny pod adresem: `http://localhost:5173`
 
 ---
 
+### 4. Konfiguracja Systemu Klas
+
+Aby korzystać z systemu zarządzania klasami i masowego przypisywania testów, należy najpierw skonfigurować bazę danych Supabase:
+
+#### Wykonanie skryptu SQL
+
+1. **Zaloguj się do Supabase Dashboard**
+   - Przejdź do: https://supabase.com/dashboard
+   - Wybierz swój projekt
+
+2. **Przejdź do SQL Editor**
+   - W menu bocznym wybierz: "SQL Editor"
+
+3. **Wykonaj skrypt systemu klas**
+   - Otwórz plik: `dokumentacja/class_system_step_by_step.sql`
+   - Wykonaj każdy krok oddzielnie w Supabase SQL Editor
+   - Alternatywnie: użyj pliku `dokumentacja/class_system_database_fixed.sql`
+
+4. **Weryfikacja**
+   - Sprawdź czy tabele `classes` i `class_students` zostały utworzone
+   - Sprawdź czy kolumna `class_id` została dodana do tabeli `profiles`
+   - W razie problemów zobacz: [class_system_readme.md](class_system_readme.md)
+
+#### Struktura baz danych po konfiguracji
+
+Po wykonaniu skryptu w bazie danych znajdą się:
+
+**Nowe tabele:**
+- `classes` - przechowuje informacje o klasach
+- `class_students` - tabela łącząca klasy z uczniami
+
+**Zmodyfikowana tabela:**
+- `profiles` - dodano kolumnę `class_id`
+
+#### Przykładowe dane testowe (opcjonalne)
+
+Aby przetestować system klas, możesz dodać przykładowe dane:
+
+```sql
+-- Dodaj przykładowe klasy
+INSERT INTO classes (name, description, created_by) VALUES
+('2a', 'Klasa 2a - SQL podstawy', '<TWOJ_USER_ID>'),
+('2d', 'Klasa 2d - SQL średniozaawansowany', '<TWOJ_USER_ID>'),
+('3f', 'Klasa 3f - SQL zaawansowany', '<TWOJ_USER_ID>');
+```
+
+Zamień `<TWOJ_USER_ID>` na ID użytkownika nauczyciela (możesz go znaleźć w tabeli `auth.users`).
+
+---
+
 ## Zmienne środowiskowe
 
 ### `projekt/backend/.env`
@@ -142,16 +193,17 @@ Frontend będzie dostępny pod adresem: `http://localhost:5173`
 
 ## Routing — dostępne strony
 
-| Ścieżka | Strona | Wymaga logowania |
-|---------|--------|-----------------|
-| `/` | Strona główna | Nie |
-| `/logowanie` | Logowanie | Nie (tylko niezalogowani) |
-| `/rejestracja` | Rejestracja | Nie (tylko niezalogowani) |
-| `/reset-hasla` | Resetowanie hasła | Nie |
-| `/onboarding` | Ankieta powitalna | Tak |
-| `/dashboard` | Panel użytkownika | Tak |
-| `/lekcje` | Lista lekcji SQL | Tak |
-| `/lekcja/:id` | Pojedyncza lekcja | Tak |
-| `/ai-chat` | Czat z AI | Tak |
-| `/wiadomosci` | Wiadomości | Tak |
-| `/ustawienia` | Ustawienia konta | Tak |
+| Ścieżka | Strona | Wymaga logowania | Rola |
+|---------|--------|-----------------|------|
+| `/` | Strona główna | Nie | Wszyscy |
+| `/logowanie` | Logowanie | Nie (tylko niezalogowani) | Wszyscy |
+| `/rejestracja` | Rejestracja | Nie (tylko niezalogowani) | Wszyscy |
+| `/reset-hasla` | Resetowanie hasła | Nie | Wszyscy |
+| `/onboarding` | Ankieta powitalna | Tak | Wszyscy |
+| `/dashboard` | Panel użytkownika | Tak | Uczeń |
+| `/lekcje` | Lista lekcji SQL | Tak | Uczeń |
+| `/lekcja/:id` | Pojedyncza lekcja | Tak | Uczeń |
+| `/ai-chat` | Czat z AI | Tak | Uczeń |
+| `/wiadomosci` | Wiadomości | Tak | Wszyscy |
+| `/ustawienia` | Ustawienia konta | Tak | Wszyscy |
+| `/panel-nauczyciela` | Panel nauczyciela | Tak | Nauczyciel |

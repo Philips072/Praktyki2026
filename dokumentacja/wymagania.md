@@ -27,6 +27,18 @@
 - Użytkownik może wysyłać i odbierać wiadomości od innych użytkowników (real-time)
 - Użytkownik może edytować ustawienia swojego konta
 
+### Użytkownik - Nauczyciel
+
+- Nauczyciel ma dostęp do Panel Nauczyciela
+- Nauczyciel widzi listę wszystkich uczniów z ich poziomami SQL
+- Nauczyciel może tworzyć testy (ręcznie lub przez AI)
+- Nauczyciel może przypisywać testy do uczniów (pojedynczo lub masowo)
+- Nauczyciel może zarządzać klasami (tworzyć, edytować, usuwać)
+- Nauczyciel może filtrować uczniów według klas
+- Nauczyciel może przeglądać statystyki klasy
+- Nauczyciel może dodawać/usuwać uczniów z klas
+- Nauczyciel może przypisywać testy do całych klas naraz
+
 ### Ustawienia konta
 
 - Użytkownik może zmienić wyświetlane imię
@@ -40,6 +52,40 @@
 - System dopasowuje przykłady i ćwiczenia SQL do zainteresowań użytkownika
 - Asystent AI dostosowuje styl odpowiedzi do poziomu użytkownika
 - Zainteresowania przetwarzane są przez model AI po stronie serwera (nie w przeglądarce)
+
+### Panel Nauczyciela
+
+- Nauczyciel może przeglądać listę wszystkich uczniów
+- Nauczyciel może tworzyć testy ręcznie lub generować je przez AI
+- Nauczyciel może przypisywać testy do pojedynczych uczniów
+- Nauczyciel może przeglądać statystyki klasy
+- Nauczyciel może eksportować wyniki do CSV/PDF
+
+### System Klas (NOWOŚĆ!)
+
+- Nauczyciel może tworzyć klasy z nazwami w formacie 2a, 2d, 3f, 10b
+- Nauczyciel może edytować nazwy i opisy klas
+- Nauczyciel może usuwać klasy
+- Nauczyciel może dodawać uczniów do klas (wielu naraz)
+- Nauczyciel może usuwać uczniów z klas
+- Nauczyciel może filtrować listę uczniów według klas
+- System waliduje nazwy klas (tylko format: cyfra + 1-2 litery)
+
+### Masowe Przypisywanie Testów (NOWOŚĆ!)
+
+- Nauczyciel może przypisać test do wielu uczniów naraz (checkboxes)
+- Nauczyciel może przypisać test do całej klasy jednym kliknięciem
+- System zapobiega duplikatom w przypisaniach
+- Modal ma zakładki: "Wybierz uczniów" lub "Wybierz klasę"
+- System pokazuje licznik wybranych uczniów
+
+### Zarządzanie Uczniami w Klasach
+
+- Nauczyciel może zarządzać uczniami w każdej klasie osobno
+- Interfejs pokazuje aktualnie przypisanych uczniów
+- Nauczyciel może dodawać nowych uczniów do klasy (wielu naraz)
+- System pokazuje listę dostępnych uczniów do dodania
+- Nauczyciel może usuwać uczniów z klas
 
 ### Wiadomości
 

@@ -99,9 +99,14 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, isCompleted, onComplete }) {
+function Exercise({ exercise, isCompleted, onComplete, onReset }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
+
+  const handleReset = () => {
+    setQuery('')
+    onReset()
+  }
 
   return (
     <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
@@ -140,6 +145,19 @@ function Exercise({ exercise, isCompleted, onComplete }) {
           </svg>
           Podpowiedź
         </button>
+        {isCompleted && (
+          <button
+            className="ls-btn ls-btn--reset"
+            onClick={handleReset}
+            title="Resetuj zadanie"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Reset
+          </button>
+        )}
       </div>
 
       {showHint && (
@@ -194,6 +212,18 @@ function LessonPage() {
       if (prev.has(exerciseId)) return prev
       const next = new Set(prev)
       next.add(exerciseId)
+      const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+      data[lesson.id] = [...next]
+      localStorage.setItem(progressKey, JSON.stringify(data))
+      return next
+    })
+  }
+
+  function resetExercise(exerciseId) {
+    setCompleted(prev => {
+      if (!prev.has(exerciseId)) return prev
+      const next = new Set(prev)
+      next.delete(exerciseId)
       const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
       data[lesson.id] = [...next]
       localStorage.setItem(progressKey, JSON.stringify(data))
@@ -342,6 +372,7 @@ function LessonPage() {
                 exercise={lesson.exercises[activeExercise]}
                 isCompleted={completed.has(lesson.exercises[activeExercise].id)}
                 onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
+                onReset={() => resetExercise(lesson.exercises[activeExercise].id)}
               />
             </>
           )}

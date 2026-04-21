@@ -586,6 +586,17 @@
   background: #1a9e50;
 }
 
+.ls-btn--reset {
+  background: rgba(236, 72, 72, 0.15);
+  color: #ec4844;
+  border: 1px solid rgba(236, 72, 72, 0.3);
+}
+
+.ls-btn--reset:hover {
+  background: rgba(236, 72, 72, 0.25);
+  border-color: rgba(236, 72, 72, 0.5);
+}
+
 /* Podpowiedź rozwijana */
 .ls-hint-box {
   background: rgba(50, 66, 119, 0.2);

@@ -15,31 +15,78 @@ function TeacherPanelPage() {
   const [studentsLoading, setStudentsLoading] = useState(true)
   const [studentsError, setStudentsError] = useState(null)
   const [selectedClassId, setSelectedClassId] = useState(null)
-  const [selectedStudentIds, setSelectedStudentIds] = useState([])
 
   const fetchStudents = async () => {
     setStudentsLoading(true)
     setStudentsError(null)
 
+    // Pobierz uczniów z ich przypisaniami do klas (z tabeli class_students)
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, sql_level, class_id, classes(name)')
+      .select(`
+        id,
+        name,
+        sql_level,
+        class_id,
+        classes(name),
+        class_students!inner(
+          class_id,
+          classes!inner(name)
+        )
+      `)
       .eq('role', 'uczen')
       .order('name', { ascending: true })
 
-    if (error) { setStudentsError(error.message); setStudentsLoading(false); return }
+    if (error) {
+      // Jeśli zapytanie z joinem nie zadziała (brak przypisań), pobierz wszystkich uczniów
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('profiles')
+        .select('id, name, sql_level, class_id, classes(name)')
+        .eq('role', 'uczen')
+        .order('name', { ascending: true })
 
-    const studentsList = (data ?? []).map(p => ({
-      id:             p.id,
-      name:           p.name ?? 'Brak nazwy',
-      level:          p.sql_level ?? 'beginner',
-      lastActive:     '—',
-      completedTasks:  0,
-      totalAssigned:  0,
-      errors:         [],
-      className:      p.classes?.name || null,
-      classId:        p.class_id || null,
-    }))
+      if (fallbackError) { setStudentsError(fallbackError.message); setStudentsLoading(false); return }
+
+      const studentsList = (fallbackData ?? []).map(p => ({
+        id:             p.id,
+        name:           p.name ?? 'Brak nazwy',
+        level:          p.sql_level ?? 'beginner',
+        lastActive:     '—',
+        completedTasks:  0,
+        totalAssigned:  0,
+        errors:         [],
+        className:      p.classes?.name || null,
+        classId:        p.class_id || null,
+      }))
+
+      setAllStudents(studentsList)
+      setStudentsLoading(false)
+      return
+    }
+
+    const studentsList = (data ?? []).map(p => {
+      // Pobierz przypisane klasy z class_students (może być kilka)
+      const assignedClasses = p.class_students?.map(cs => ({
+        id: cs.class_id,
+        name: cs.classes?.name
+      })) || []
+
+      // Użyj pierwszej przypisanej klasy lub class_id z profiles
+      const primaryClass = assignedClasses[0] || null
+
+      return {
+        id:             p.id,
+        name:           p.name ?? 'Brak nazwy',
+        level:          p.sql_level ?? 'beginner',
+        lastActive:     '—',
+        completedTasks:  0,
+        totalAssigned:  0,
+        errors:         [],
+        className:      primaryClass?.name || p.classes?.name || null,
+        classId:        primaryClass?.id || p.class_id || null,
+        assignedClasses // Zachowaj wszystkie przypisane klasy
+      }
+    })
 
     setAllStudents(studentsList)
     setStudentsLoading(false)
@@ -274,7 +321,12 @@ function TeacherPanelPage() {
 
   // Filtrowanie uczniów według klasy
   const filteredStudents = selectedClassId
-    ? allStudents.filter(s => s.classId === selectedClassId)
+    ? allStudents.filter(s => {
+        // Sprawdź czy uczeń ma przypisaną klasę w primary class_id lub w assignedClasses
+        const hasPrimaryClass = String(s.classId) === String(selectedClassId)
+        const hasAssignedClass = s.assignedClasses?.some(ac => String(ac.id) === String(selectedClassId))
+        return hasPrimaryClass || hasAssignedClass
+      })
     : allStudents
 
   const handleCreateClass = async (formData) => {
@@ -459,8 +511,6 @@ function TeacherPanelPage() {
         classesError={classesError}
         selectedClassId={selectedClassId}
         onFilterByClass={setSelectedClassId}
-        selectedStudentIds={selectedStudentIds}
-        onStudentSelectionChange={setSelectedStudentIds}
         onCreateTest={handleCreateTest}
         onGenerateWithAI={handleGenerateWithAI}
         onAssignTest={handleAssignTest}

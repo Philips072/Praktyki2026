@@ -20,6 +20,7 @@ import LessonPage from './Pages/LessonPage'
 import MessagesPage from './Pages/MessagesPage'
 import TeacherPanelPage from './Pages/TeacherPanelPage'
 import AdminPanelPage from './Pages/AdminPanelPage'
+import TestPage from './Pages/TestPage'
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/sandbox"      element={<PrivateRoute><SandboxPage /></PrivateRoute>} />
         <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
+        <Route path="/testy"        element={<PrivateRoute><TestPage /></PrivateRoute>} />
         <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
         <Route path="/panel-nauczyciela"   element={<PrivateRoute><TeacherPanelPage /></PrivateRoute>} />
         <Route path="/panel-admina"        element={<AdminRoute><AdminPanelPage /></AdminRoute>} />

@@ -212,10 +212,17 @@ function ClassStudentsModal({ classId, className, onClose, onManageStudents, all
     allCurrentStudentIds.includes(student.id)
   )
 
-  // Students available to add (not in this class)
-  const availableStudents = allStudents.filter(student =>
-    !allCurrentStudentIds.includes(student.id)
-  )
+  // Students available to add (not in this class AND not in any other class)
+  const availableStudents = allStudents.filter(student => {
+    // Exclude students already in this class
+    if (allCurrentStudentIds.includes(student.id)) return false
+
+    // Exclude students who already have a class assigned (either in profiles or class_students)
+    if (student.classId) return false
+    if (student.assignedClasses && student.assignedClasses.length > 0) return false
+
+    return true
+  })
 
   const handleRemoveStudent = async (studentId) => {
     if (!confirm('Czy na pewno chcesz usunąć tego ucznia z klasy?')) return
@@ -303,7 +310,11 @@ function ClassStudentsModal({ classId, className, onClose, onManageStudents, all
         {activeTab === 'add' && (
           <div className="tp-class-students-section">
             {availableStudents.length === 0 ? (
-              <p className="tp-empty-state">Brak dostępnych uczniów do dodania.</p>
+              <p className="tp-empty-state">
+                {allStudents.length > currentStudents.length
+                  ? 'Brak dostępnych uczniów do dodania. Wszyscy pozostali uczniowie są już przypisani do innych klas.'
+                  : 'Brak dostępnych uczniów do dodania.'}
+              </p>
             ) : (
               <>
                 <ul className="tp-students-list">

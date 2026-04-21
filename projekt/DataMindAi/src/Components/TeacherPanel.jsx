@@ -35,8 +35,6 @@ function StudentsSection({
   classes,
   selectedClassId,
   onFilterByClass,
-  selectedStudentIds,
-  onStudentSelectionChange,
   isAdmin = false,
   onDeleteUser = null,
   onChangeUserRole = null,
@@ -44,7 +42,6 @@ function StudentsSection({
 }) {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [viewMode, setViewMode] = useState('table') // 'table' | 'cards'
-  const [bulkMode, setBulkMode] = useState(false) // true/false for bulk selection
 
   if (studentsLoading) return (
     <div className="tp-section">
@@ -57,29 +54,6 @@ function StudentsSection({
       <p className="tp-status-msg tp-status-msg--error">Błąd: {studentsError}</p>
     </div>
   )
-
-  const toggleBulkMode = () => {
-    setBulkMode(!bulkMode)
-    if (bulkMode) {
-      onStudentSelectionChange([])
-    }
-  }
-
-  const handleToggleStudent = (studentId) => {
-    if (selectedStudentIds.includes(studentId)) {
-      onStudentSelectionChange(selectedStudentIds.filter(id => id !== studentId))
-    } else {
-      onStudentSelectionChange([...selectedStudentIds, studentId])
-    }
-  }
-
-  const handleSelectAll = () => {
-    if (selectedStudentIds.length === students.length) {
-      onStudentSelectionChange([])
-    } else {
-      onStudentSelectionChange(students.map(s => s.id))
-    }
-  }
 
   return (
     <div className="tp-section">
@@ -96,16 +70,6 @@ function StudentsSection({
             onChange={(val) => onFilterByClass(val === 'all' ? null : val)}
             placeholder="Wybierz klasę"
           />
-
-          {/* Toggle bulk selection */}
-          <button
-            className={`tp-btn ${bulkMode ? 'tp-btn--primary' : 'tp-btn--ghost'}`}
-            onClick={toggleBulkMode}
-            aria-label={bulkMode ? 'Wyłącz wybór masowy' : 'Włącz wybór masowy'}
-          >
-            <span className="tp-btn-desktop">{bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}</span>
-            <span className="tp-btn-mobile">☑</span>
-          </button>
 
           {/* Przełącznik widoku tabela/karty */}
           <button
@@ -133,32 +97,12 @@ function StudentsSection({
         </div>
       </div>
 
-      {/* Bulk actions when in bulk mode */}
-      {bulkMode && (
-        <div className="tp-bulk-actions">
-          <label className="tp-checkbox-label">
-            <input
-              type="checkbox"
-              checked={selectedStudentIds.length === students.length}
-              onChange={handleSelectAll}
-            />
-            Zaznacz wszystkich
-          </label>
-          {selectedStudentIds.length > 0 && (
-            <div className="tp-bulk-actions-menu">
-              <span>Zaznaczono {selectedStudentIds.length} uczniów</span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Widok tabeli — na mobile automatycznie zamienia się w karty przez CSS */}
       {viewMode === 'table' ? (
         <div className="tp-table-wrapper">
           <table className="tp-table">
             <thead>
               <tr>
-                {bulkMode && <th></th>}
                 <th>Imię i nazwisko</th>
                 <th>Klasa</th>
                 <th>Poziom</th>
@@ -171,15 +115,6 @@ function StudentsSection({
             <tbody>
               {students.map(student => (
                 <tr key={student.id} className="tp-table-row">
-                  {bulkMode && (
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedStudentIds.includes(student.id)}
-                        onChange={() => handleToggleStudent(student.id)}
-                      />
-                    </td>
-                  )}
                   <td>
                     <div className="tp-student-name-cell">
                       {/* Avatar z inicjałami */}
@@ -261,18 +196,8 @@ function StudentsSection({
             <div
               key={student.id}
               className="tp-student-card"
-              onClick={() => !bulkMode && setSelectedStudent(student)}
+              onClick={() => setSelectedStudent(student)}
             >
-              {bulkMode && (
-                <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedStudentIds.includes(student.id)}
-                    onChange={() => handleToggleStudent(student.id)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              )}
               <div className="tp-avatar tp-avatar--lg">
                 {student.name.charAt(0).toUpperCase()}
               </div>
@@ -297,7 +222,7 @@ function StudentsSection({
       )}
 
       {/* Modal ze szczegółami ucznia — renderuje się gdy wybrany jest uczeń */}
-      {selectedStudent && !bulkMode && (
+      {selectedStudent && (
         <StudentDetail
           student={selectedStudent}
           onClose={() => setSelectedStudent(null)}
@@ -673,8 +598,6 @@ function TeacherPanel({
   classesError,
   selectedClassId,
   onFilterByClass,
-  selectedStudentIds,
-  onStudentSelectionChange,
   onCreateTest,
   onGenerateWithAI,
   onAssignTest,
@@ -726,8 +649,6 @@ function TeacherPanel({
             classes={classes}
             selectedClassId={selectedClassId}
             onFilterByClass={onFilterByClass}
-            selectedStudentIds={selectedStudentIds}
-            onStudentSelectionChange={onStudentSelectionChange}
             isAdmin={isAdmin}
             onDeleteUser={onDeleteUser}
             onChangeUserRole={onChangeUserRole}

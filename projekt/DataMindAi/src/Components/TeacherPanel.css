@@ -76,7 +76,7 @@
 /* ── Główna treść ────────────────────────────────────────────────────────── */
 .tp-main {
   flex: 1;
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   overflow-y: auto;
   min-width: 0;
   min-height: 0; /* konieczne żeby flex-child mógł scrollować wewnętrznie */
@@ -1413,7 +1413,7 @@
   }
 
   .tp-main {
-    padding: 1.25rem;
+    padding: 1rem 1.25rem;
     overflow-y: visible;
     min-height: unset;
   }
@@ -1519,7 +1519,7 @@
 /* ── 640px: tablety pionowe ────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .tp-main {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
   }
 
   /* Tabela uczniów - horizontal scroll zamiast ukrywania */
@@ -1702,7 +1702,7 @@
 /* ── 560px: duże smartfony ───────────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .tp-main {
-    padding: 0.85rem;
+    padding: 0.75rem 0.875rem;
   }
 
   .tp-section-title {
@@ -1792,7 +1792,7 @@
   }
 
   .tp-main {
-    padding: 0.75rem;
+    padding: 0.625rem 0.75rem;
   }
 
   /* Nav - skrócona nazwa na bardzo małych ekranach */
@@ -2013,7 +2013,7 @@
 /* ── 390px: bardzo małe ekrany ───────────────────────────────────────────────── */
 @media (max-width: 390px) {
   .tp-main {
-    padding: 0.6rem;
+    padding: 0.5rem 0.6rem;
   }
 
   .tp-section-header {

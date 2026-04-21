@@ -1,0 +1,208 @@
+/* ── Custom Select ────────────────────────────────────────────── */
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+}
+
+/* W formularzach - pełna szerokość */
+.tp-form-group .custom-select {
+  max-width: 100%;
+}
+
+/* W headerze sekcji - stała szerokość, żeby nie wrapowało */
+.tp-section-actions .custom-select {
+  max-width: 180px;
+  min-width: 180px;
+}
+
+.tp-section-actions .custom-select-button {
+  padding: 0.55rem 1rem;
+  min-height: 40px;
+}
+
+.custom-select-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  text-align: left;
+  min-height: 40px;
+}
+
+.custom-select-button:hover {
+  border-color: var(--accentColor);
+  background-color: var(--btnHoverGray);
+}
+
+.custom-select-button:focus {
+  outline: none;
+  border-color: var(--accentColor);
+  box-shadow: 0 0 0 2px rgba(50, 66, 119, 0.2);
+}
+
+.custom-select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select-arrow {
+  width: 16px;
+  height: 16px;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+  transition: transform 0.2s ease;
+}
+
+.custom-select-arrow-open {
+  transform: rotate(0deg);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: customSelectFadeIn 0.15s ease-out;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+@keyframes customSelectFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-select-option {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  border: none;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.custom-select-option:hover {
+  background-color: var(--btnHoverGray);
+}
+
+.custom-select-option-active {
+  background-color: var(--accentColor) !important;
+  color: var(--primaryText) !important;
+  font-family: VennBold, sans-serif;
+}
+
+.custom-select-option-active:hover {
+  background-color: var(--btnHoverBlue) !important;
+}
+
+/* ── Responsywność ───────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .custom-select {
+    max-width: 100%;
+  }
+
+  .custom-select-button {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+
+  /* Opcje dropdowna - większa wysokość na mobile dla łatwiejszego klikania */
+  .custom-select-option {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+    line-height: 1.3;
+  }
+
+  /* W sekcji akcji - zachowanie min-height */
+  .tp-section-actions .custom-select-button {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .tp-section-actions .custom-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  /* Opcje dropdowna - jeszcze większa wysokość na bardzo małych ekranach */
+  .custom-select-option {
+    padding: 0.85rem 0.9rem;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-select-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+
+  .custom-select-option {
+    padding: 0.85rem 0.9rem;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+
+  /* W sekcji akcji - zachowanie min-height */
+  .tp-section-actions .custom-select-button {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 390px) {
+  .custom-select-button {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+  }
+
+  /* Opcje dropdowna - maksymalna wysokość na najmniejszych ekranach */
+  .custom-select-option {
+    padding: 0.9rem 0.85rem;
+    font-size: 0.85rem;
+    min-height: 52px;
+  }
+
+  /* W sekcji akcji - zachowanie min-height */
+  .tp-section-actions .custom-select-button {
+    min-height: 36px;
+  }
+}

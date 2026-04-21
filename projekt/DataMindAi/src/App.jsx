@@ -1,12 +1,16 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './AuthContext'
+import { ToastContainer } from 'react-toastify'
+import './Toastify.css'
 import PublicRoute from './Components/PublicRoute'
 import PrivateRoute from './Components/PrivateRoute'
+import AdminRoute from './Components/AdminRoute'
 import HomePage from './Pages/HomePage'
 import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
 import DashboardPage from './Pages/DashboardPage'
 import LecturesPage from './Pages/LecturesPage'
+import SandboxPage from './Pages/SandboxPage'
 import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 import AIChatPage from './Pages/AIChatPage'
@@ -15,6 +19,7 @@ import OnboardingPage from './Pages/OnboardingPage'
 import LessonPage from './Pages/LessonPage'
 import MessagesPage from './Pages/MessagesPage'
 import TeacherPanelPage from './Pages/TeacherPanelPage'
+import AdminPanelPage from './Pages/AdminPanelPage'
 
 
 function App() {
@@ -33,13 +38,26 @@ function App() {
         <Route path="/dashboard"    element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/lekcje"       element={<PrivateRoute><LecturesPage /></PrivateRoute>} />
         <Route path="/lekcja/:id"   element={<PrivateRoute><LessonPage /></PrivateRoute>} />
+        <Route path="/sandbox"      element={<PrivateRoute><SandboxPage /></PrivateRoute>} />
         <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
         <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
         <Route path="/panel-nauczyciela"   element={<PrivateRoute><TeacherPanelPage /></PrivateRoute>} />
+        <Route path="/panel-admina"        element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       </BrowserRouter>
     </AuthProvider>
   )

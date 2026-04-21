@@ -1,0 +1,682 @@
+.sandbox-page {
+    padding: 1.5rem 2rem;
+    max-width: 100%;
+    margin: 0;
+    animation: sandboxFadeIn 0.4s ease-out;
+}
+
+@keyframes sandboxFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sandbox-page h1 {
+    font-size: 40px;
+    margin: 0 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--primaryText);
+}
+
+.sandbox-page .subtitle {
+    color: var(--secondaryText);
+    margin: 0 0 32px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.sandbox-stats-grid,
+.sandbox-main-grid {
+    display: grid;
+    gap: 24px;
+}
+
+.sandbox-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 24px;
+}
+
+.sandbox-main-grid {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 24px;
+}
+
+.sandbox-main-grid > .sandbox-card:first-child {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.sandbox-main-grid .sandbox-sidebar-box {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.sandbox-main-grid .sandbox-results-card {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+.sandbox-card {
+    background: var(--containerBoxBg);
+    border: 1px solid var(--borderColor);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.sandbox-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sandbox-stat-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sandbox-stat-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accentColor) 0%, var(--inactiveBlueBtn) 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primaryText);
+    box-shadow: 0 4px 16px rgba(50, 66, 119, 0.3), 0 0 20px rgba(50, 66, 119, 0.15);
+}
+
+.sandbox-stat-icon svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.sandbox-stat-card .sandbox-stat-label {
+    display: block;
+    color: var(--secondaryText);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.sandbox-stat-card strong {
+    font-size: 32px;
+    margin: 0 0 4px 0px;
+    display: block;
+    font-weight: 700;
+    color: var(--primaryText);
+    line-height: 1;
+}
+
+.sandbox-stat-card span:not(.sandbox-stat-label) {
+    display: block;
+    color: var(--secondaryText);
+    font-size: 13px;
+}
+
+.sandbox-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sandbox-card-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.sandbox-page textarea {
+    width: 100%;
+    height: 280px;
+    background: var(--inputBg);
+    color: var(--primaryText);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 20px;
+    resize: none;
+    font-family: 'SF Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sandbox-page textarea:focus {
+    outline: none;
+    border-color: var(--accentColor);
+    box-shadow: 0 0 0 4px rgba(50, 66, 119, 0.15);
+}
+
+.sandbox-page textarea::placeholder {
+    color: var(--secondaryText);
+}
+
+.sandbox-page button,
+.sandbox-page select {
+    background: var(--grayBtnBg);
+    color: var(--primaryText);
+    border: 1px solid var(--borderColor);
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sandbox-page button:hover {
+    background: var(--btnHoverGray);
+}
+
+.sandbox-page select:hover {
+    background-color: var(--btnHoverGray);
+}
+
+
+.sandbox-page select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a6a6a6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 14px) center;
+    padding-right: 40px;
+}
+
+.sandbox-page select:hover {
+    background-position: calc(100% - 14px) center;
+}
+
+.sandbox-primary {
+    background: var(--accentColor) !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(50, 66, 119, 0.25);
+}
+
+.sandbox-primary:hover {
+    background: var(--btnHoverBlue) !important;
+    box-shadow: 0 6px 20px rgba(50, 66, 119, 0.35);
+}
+
+.sandbox-ghost {
+    background: transparent !important;
+    border: 1px solid var(--borderColor) !important;
+}
+
+.sandbox-ghost:hover {
+    background: var(--borderColor) !important;
+}
+
+.sandbox-secondary {
+    background: var(--containerBoxBg) !important;
+    border: 1px solid var(--borderColor) !important;
+}
+
+.sandbox-secondary:hover {
+    background: var(--borderColor) !important;
+}
+
+.sandbox-editor-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.sandbox-editor-actions > div,
+.sandbox-card-header > div {
+    display: flex;
+    gap: 10px;
+}
+
+.sandbox-results-card {
+    margin-top: 24px;
+    min-height: 350px;
+}
+
+.sandbox-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--inputBg);
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.sandbox-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px;
+    color: var(--secondaryText);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sandbox-tab svg {
+    flex-shrink: 0;
+}
+
+.sandbox-tab:hover {
+    background: var(--borderColor) !important;
+    color: var(--primaryText);
+}
+
+.sandbox-tab-active {
+    background: var(--accentColor) !important;
+    color: var(--primaryText);
+    box-shadow: 0 2px 8px rgba(50, 66, 119, 0.25);
+}
+
+.sandbox-tab-active:hover {
+    background: var(--accentColor) !important;
+}
+
+.sandbox-empty-state {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    color: var(--secondaryText);
+}
+
+.sandbox-empty-state h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primaryText);
+}
+
+.sandbox-empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.sandbox-table-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sandbox-table-selector label {
+    color: var(--primaryText);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.sandbox-table-dropdown-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sandbox-custom-select {
+    position: relative;
+}
+
+.sandbox-select-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 250px;
+    padding: 12px 18px;
+    background: var(--grayBtnBg);
+    border: 1px solid var(--borderColor);
+    border-radius: 12px;
+    color: var(--primaryText);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sandbox-select-button:hover {
+    background: var(--borderColor);
+}
+
+.sandbox-select-arrow {
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+    flex-shrink: 0;
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease;
+}
+
+.sandbox-select-arrow-open {
+    transform: rotate(0deg);
+}
+
+.sandbox-select-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--containerBoxBg);
+    border: 1px solid var(--borderColor);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sandbox-select-option {
+    display: block;
+    width: 100%;
+    padding: 12px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--primaryText);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
+}
+.sandbox-select-dropdown button{
+  border-radius: 0;
+}
+
+.sandbox-select-option:hover {
+    background: var(--inputBg);
+}
+
+.sandbox-select-option-active {
+    background: var(--accentColor) !important;
+    color: #fff !important;
+}
+
+.sandbox-select-option-active:hover {
+    background: var(--btnHoverBlue) !important;
+}
+
+.sandbox-table-structure h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primaryText);
+}
+
+.sandbox-structure-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--borderColor);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.sandbox-structure-table thead {
+    background: var(--inputBg);
+}
+
+.sandbox-structure-table thead tr:first-child th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.sandbox-structure-table thead tr:first-child th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.sandbox-structure-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.sandbox-structure-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+.sandbox-structure-table thead {
+    background: var(--inputBg);
+}
+
+.sandbox-structure-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--primaryText);
+    border-bottom: 1px solid var(--borderColor);
+}
+
+.sandbox-structure-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--borderColor);
+    color: var(--secondaryText);
+    font-size: 14px;
+}
+
+.sandbox-structure-table tr:last-child td {
+    border-bottom: none;
+}
+
+.sandbox-structure-table tbody tr:hover {
+    background: var(--inputBg);
+}
+
+.sandbox-pk-row {
+    background: rgba(50, 66, 119, 0.08);
+}
+
+.sandbox-pk-icon {
+    color: var(--accentColor);
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.sandbox-col-name {
+    display: flex;
+    align-items: center;
+}
+
+.sandbox-pk-header {
+    color: var(--accentColor);
+}
+
+.sandbox-pk-cell {
+    color: var(--accentColor);
+    font-weight: 600;
+}
+
+.sandbox-table-data {
+    margin-top: 32px;
+}
+
+.sandbox-table-data h4 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primaryText);
+}
+
+.sandbox-sidebar-box ol {
+    padding-left: 24px;
+    color: var(--secondaryText);
+    margin: 16px 0;
+}
+
+.sandbox-sidebar-box li {
+    margin: 12px 0;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+.sandbox-sidebar-box h2,
+.sandbox-sidebar-box h3 {
+    margin: 0 0 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.sandbox-sidebar-box h3 {
+    margin-top: 24px;
+    font-size: 16px;
+}
+
+.sandbox-header-icon {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.sandbox-example-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-top: 10px;
+    padding: 14px 16px;
+    font-family: 'SF Mono', 'Fira Code', Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    background: var(--inputBg) !important;
+    border: 1px solid var(--borderColor) !important;
+}
+.sandbox-sidebar-box button{
+  cursor: default;
+}
+
+.sandbox-example-btn:hover {
+    background: var(--inputBg) !important;
+}
+
+@media (max-width: 1200px) {
+    .sandbox-page {
+        padding: 1.25rem 1.5rem;
+    }
+    .sandbox-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .sandbox-main-grid {
+        grid-template-columns: 1fr;
+    }
+    .sandbox-main-grid > .sandbox-card:first-child {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .sandbox-main-grid .sandbox-sidebar-box {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    .sandbox-main-grid .sandbox-results-card {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    .sandbox-tabs {
+        gap: 3px;
+    }
+    .sandbox-tab {
+        padding: 7px 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 640px) {
+    .sandbox-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .sandbox-main-grid {
+        gap: 16px;
+    }
+    .sandbox-page {
+        padding: 1rem 1.25rem;
+    }
+    .sandbox-page h1 {
+        font-size: 32px;
+    }
+    .sandbox-page .subtitle {
+        font-size: 15px;
+    }
+    .sandbox-card {
+        padding: 18px;
+    }
+    .sandbox-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .sandbox-card-header .sandbox-tabs {
+        width: 100%;
+    }
+    .sandbox-card-header .sandbox-tabs button {
+        flex: 1;
+        justify-content: center;
+    }
+    .sandbox-editor-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .sandbox-editor-actions > div {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .sandbox-sidebar-box {
+        order: -1;
+    }
+}
+
+@media (max-width: 480px) {
+    .sandbox-page {
+        padding: 0.875rem 1rem;
+    }
+    .sandbox-page h1 {
+        font-size: 28px;
+    }
+    .sandbox-stat-icon {
+        width: 48px;
+        height: 48px;
+    }
+    .sandbox-stat-card strong {
+        font-size: 28px;
+    }
+    .sandbox-tabs {
+        padding: 3px;
+        gap: 2px;
+    }
+    .sandbox-tab {
+        padding: 6px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+    .sandbox-tab svg {
+        width: 14px;
+        height: 14px;
+    }
+}

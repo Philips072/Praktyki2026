@@ -134,6 +134,7 @@ function Messages() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [loadingConvs, setLoadingConvs] = useState(true)
   const [onlineUsers, setOnlineUsers] = useState(new Set())
+  const [replyingTo, setReplyingTo] = useState(null)
   const messagesEndRef = useRef(null)
   const selectedRef = useRef(null)
   selectedRef.current = selected
@@ -283,28 +284,51 @@ function Messages() {
   // ── Wiadomości ──────────────────────────────────────────
 
   const loadMessages = useCallback(async (convId, otherUserId) => {
-    const { data } = await supabase
-      .from('messages')
-      .select('id, sender_id, text, deleted, read_by_recipient, created_at')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true })
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, sender_id, text, deleted, read_by_recipient, created_at, reply_to')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true })
 
-    setMessages(data ?? [])
+      if (error) {
+        console.error('Błąd ładowania wiadomości:', error)
+        // Jeśli błąd jest spowodowany brakiem kolumny reply_to, spróbuj bez niej
+        if (error.message?.includes('column') || error.message?.includes('reply_to')) {
+          const fallbackData = await supabase
+            .from('messages')
+            .select('id, sender_id, text, deleted, read_by_recipient, created_at')
+            .eq('conversation_id', convId)
+            .order('created_at', { ascending: true })
 
-    // Oznacz wiadomości od drugiej osoby jako przeczytane
-    await supabase
-      .from('messages')
-      .update({ read_by_recipient: true })
-      .eq('conversation_id', convId)
-      .eq('sender_id', otherUserId)
-      .eq('read_by_recipient', false)
+          setMessages(fallbackData.data ?? [])
+        } else {
+          setMessages([])
+        }
+      } else {
+        setMessages(data ?? [])
 
-    setConvs(prev => prev.map(c => c.id === convId ? { ...c, unread: 0 } : c))
+        // Oznacz wiadomości od drugiej osoby jako przeczytane
+        if (otherUserId) {
+          await supabase
+            .from('messages')
+            .update({ read_by_recipient: true })
+            .eq('conversation_id', convId)
+            .eq('sender_id', otherUserId)
+            .eq('read_by_recipient', false)
+
+          setConvs(prev => prev.map(c => c.id === convId ? { ...c, unread: 0 } : c))
+        }
+      }
+    } catch (err) {
+      console.error('Błąd ładowania wiadomości:', err)
+      setMessages([])
+    }
   }, [])
 
   useEffect(() => {
     if (selected?.id) loadMessages(selected.id, selected.otherUserId)
-  }, [selected?.id, loadMessages])
+  }, [selected?.id])
 
   // Auto-scroll
   useEffect(() => {
@@ -319,7 +343,7 @@ function Messages() {
     const channel = supabase
       .channel(`msgs-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-        const msg = payload.new
+        const msg = { ...payload.new, reply_to: payload.new.reply_to }
         const cur = selectedRef.current
 
         if (cur && msg.conversation_id === cur.id) {
@@ -379,16 +403,50 @@ function Messages() {
     if (!text || !selected || !user) return
     setInput('')
 
-    await supabase.from('messages').insert({
+    const messageData = {
       conversation_id: selected.id,
       sender_id: user.id,
       text,
-    })
+    }
+
+    // Dodaj reply_to jeśli odpowiadamy na wiadomość
+    if (replyingTo) {
+      messageData.reply_to = replyingTo.id
+    }
+
+    try {
+      await supabase.from('messages').insert(messageData)
+      setReplyingTo(null)
+    } catch (err) {
+      console.error('Błąd wysyłania wiadomości:', err)
+      // Jeśli błąd jest spowodowany brakiem kolumny reply_to, spróbuj bez niej
+      if (err.message?.includes('column') || err.message?.includes('reply_to')) {
+        const fallbackData = {
+          conversation_id: selected.id,
+          sender_id: user.id,
+          text,
+        }
+        await supabase.from('messages').insert(fallbackData)
+        setReplyingTo(null)
+      }
+    }
   }
 
   const handleDeleteMsg = async (msgId) => {
     await supabase.from('messages').update({ deleted: true }).eq('id', msgId)
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, deleted: true } : m))
+  }
+
+  const handleReply = (msg) => {
+    setReplyingTo(msg)
+    // Focus na input po ustawieniu reply
+    setTimeout(() => {
+      document.querySelector('.msg-input')?.focus()
+    }, 100)
+  }
+
+  const cancelReply = () => {
+    setReplyingTo(null)
   }
 
   const handleAddConversation = async (otherProfile) => {
@@ -534,10 +592,23 @@ function Messages() {
               )}
               {messages.map(msg => {
                 const isMe = msg.sender_id === user?.id
+                const repliedMsg = msg.reply_to ? messages.find(m => m.id === msg.reply_to) : null
+
                 return (
                   <div key={msg.id} className={`msg-row ${isMe ? 'msg-row--me' : 'msg-row--them'}`}>
+                    {isMe && <Avatar initials={myInitials} size="sm" />}
                     {!isMe && <Avatar initials={selected.initials} size="sm" />}
                     <div className="msg-bubble-wrap">
+                      {repliedMsg && (
+                        <div className="msg-reply-indicator">
+                          <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span className="msg-reply-preview-text">
+                            {repliedMsg.deleted ? 'Wiadomość usunięta' : repliedMsg.text.substring(0, 40) + (repliedMsg.text.length > 40 ? '...' : '')}
+                          </span>
+                        </div>
+                      )}
                       <div className={`msg-bubble ${isMe ? 'msg-bubble--me' : 'msg-bubble--them'}${msg.deleted ? ' msg-bubble--deleted' : ''}`}>
                         {isMe && !msg.deleted && (
                           <button
@@ -557,9 +628,19 @@ function Messages() {
                           ? <span className="msg-deleted-text">Wiadomość usunięta</span>
                           : msg.text}
                       </div>
-                      <span className={`msg-time ${isMe ? 'msg-time--me' : ''}`}>{fmtTime(msg.created_at)}</span>
+                      <div className="msg-message-actions">
+                        <button
+                          className="msg-reply-btn"
+                          onClick={() => handleReply(msg)}
+                          aria-label="Odpowiedz na wiadomość"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                        <span className="msg-time">{fmtTime(msg.created_at)}</span>
+                      </div>
                     </div>
-                    {isMe && <Avatar initials={myInitials} size="sm" />}
                   </div>
                 )
               })}
@@ -567,18 +648,41 @@ function Messages() {
             </div>
 
             <div className="msg-input-bar">
-              <input
-                className="msg-input"
-                placeholder="Napisz wiadomość..."
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-              <button className="msg-send-btn" onClick={handleSend} disabled={!input.trim()}>
-                <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-                  <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+              {replyingTo && (
+                <div className="msg-reply-preview">
+                  <span className="msg-reply-label">Odpowiadasz na:</span>
+                  <span className="msg-reply-text">
+                    {replyingTo.deleted
+                      ? 'Wiadomość usunięta'
+                      : replyingTo.text.length > 50
+                        ? replyingTo.text.substring(0, 50) + '...'
+                        : replyingTo.text}
+                  </span>
+                  <button
+                    className="msg-reply-cancel"
+                    onClick={cancelReply}
+                    aria-label="Anuluj odpowiedź"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+              <div className="msg-input-container">
+                <input
+                  className="msg-input"
+                  placeholder={replyingTo ? "Napisz odpowiedź..." : "Napisz wiadomość..."}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button className="msg-send-btn" onClick={handleSend} disabled={!input.trim()}>
+                  <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+                    <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </>
         ) : (

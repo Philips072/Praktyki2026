@@ -3,6 +3,7 @@ import StudentDetail from './StudentDetail'
 import ClassManagement from './ClassManagement'
 import BulkAssignmentModal from './BulkAssignmentModal'
 import StudentSelector from './StudentSelector'
+import CustomSelect from './CustomSelect'
 import './TeacherPanel.css'
 
 const IconCSV = () => (
@@ -35,7 +36,11 @@ function StudentsSection({
   selectedClassId,
   onFilterByClass,
   selectedStudentIds,
-  onStudentSelectionChange
+  onStudentSelectionChange,
+  isAdmin = false,
+  onDeleteUser = null,
+  onChangeUserRole = null,
+  allStudents = null
 }) {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [viewMode, setViewMode] = useState('table') // 'table' | 'cards'
@@ -82,23 +87,24 @@ function StudentsSection({
         <h2 className="tp-section-title">Lista uczniów <span className="tp-student-count">({students.length})</span></h2>
         <div className="tp-section-actions">
           {/* Filtrowanie po klasach */}
-          <select
-            className="tp-input tp-select"
+          <CustomSelect
+            options={[
+              { value: 'all', label: 'Wszystkie klasy' },
+              ...classes.map(cls => ({ value: cls.id, label: cls.name }))
+            ]}
             value={selectedClassId || 'all'}
-            onChange={(e) => onFilterByClass(e.target.value === 'all' ? null : e.target.value)}
-          >
-            <option value="all">Wszystkie klasy</option>
-            {classes.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
+            onChange={(val) => onFilterByClass(val === 'all' ? null : val)}
+            placeholder="Wybierz klasę"
+          />
 
           {/* Toggle bulk selection */}
           <button
             className={`tp-btn ${bulkMode ? 'tp-btn--primary' : 'tp-btn--ghost'}`}
             onClick={toggleBulkMode}
+            aria-label={bulkMode ? 'Wyłącz wybór masowy' : 'Włącz wybór masowy'}
           >
-            {bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}
+            <span className="tp-btn-desktop">{bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}</span>
+            <span className="tp-btn-mobile">☑</span>
           </button>
 
           {/* Przełącznik widoku tabela/karty */}
@@ -106,6 +112,7 @@ function StudentsSection({
             className={`tp-view-btn ${viewMode === 'table' ? 'tp-view-btn--active' : ''}`}
             onClick={() => setViewMode('table')}
             title="Widok tabeli"
+            aria-label="Widok tabeli"
           >
             ☰
           </button>
@@ -113,14 +120,15 @@ function StudentsSection({
             className={`tp-view-btn ${viewMode === 'cards' ? 'tp-view-btn--active' : ''}`}
             onClick={() => setViewMode('cards')}
             title="Widok kart"
+            aria-label="Widok kart"
           >
             ⊞
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')}>
-            <IconCSV /> Eksport CSV
+          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')} aria-label="Eksport CSV">
+            <IconCSV /> <span>Eksport CSV</span>
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')}>
-            <IconPDF /> Eksport PDF
+          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')} aria-label="Eksport PDF">
+            <IconPDF /> <span>Eksport PDF</span>
           </button>
         </div>
       </div>
@@ -154,6 +162,7 @@ function StudentsSection({
                 <th>Imię i nazwisko</th>
                 <th>Klasa</th>
                 <th>Poziom</th>
+                {isAdmin && <th>Rola</th>}
                 <th>Ostatnia aktywność</th>
                 <th>Postęp</th>
                 <th>Akcje</th>
@@ -190,6 +199,20 @@ function StudentsSection({
                       {student.level}
                     </span>
                   </td>
+                  {isAdmin && (
+                    <td>
+                      <CustomSelect
+                        options={[
+                          { value: 'uczen', label: 'Uczeń' },
+                          { value: 'nauczyciel', label: 'Nauczyciel' },
+                          { value: 'administrator', label: 'Administrator' }
+                        ]}
+                        value={student.role || 'uczen'}
+                        onChange={(val) => onChangeUserRole && onChangeUserRole(student.id, val, student.name)}
+                        className="tp-role-select"
+                      />
+                    </td>
+                  )}
                   <td className="tp-text-secondary">{student.lastActive ?? '—'}</td>
                   <td>
                     <div className="tp-progress-cell">
@@ -209,12 +232,22 @@ function StudentsSection({
                     </div>
                   </td>
                   <td>
-                    <button
-                      className="tp-btn tp-btn--ghost tp-btn--sm"
-                      onClick={() => setSelectedStudent(student)}
-                    >
-                      Szczegóły
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        className="tp-btn tp-btn--ghost tp-btn--sm"
+                        onClick={() => setSelectedStudent(student)}
+                      >
+                        Szczegóły
+                      </button>
+                      {isAdmin && onDeleteUser && (
+                        <button
+                          className="tp-btn tp-btn--ghost tp-btn--sm tp-btn--danger"
+                          onClick={() => onDeleteUser(student.id, student.name)}
+                        >
+                          Usuń
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -385,15 +418,15 @@ function TestsSection({
           <div className="tp-form-row">
             <div className="tp-form-group">
               <label className="tp-label">Poziom trudności</label>
-              <select
-                className="tp-input tp-select"
+              <CustomSelect
+                options={[
+                  { value: 'easy', label: 'Łatwy' },
+                  { value: 'medium', label: 'Średni' },
+                  { value: 'hard', label: 'Trudny' }
+                ]}
                 value={manualForm.difficulty}
-                onChange={e => setManualForm({ ...manualForm, difficulty: e.target.value })}
-              >
-                <option value="easy">Łatwy</option>
-                <option value="medium">Średni</option>
-                <option value="hard">Trudny</option>
-              </select>
+                onChange={val => setManualForm({ ...manualForm, difficulty: val })}
+              />
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Sprawdzana umiejętność</label>
@@ -433,15 +466,15 @@ function TestsSection({
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Poziom trudności</label>
-              <select
-                className="tp-input tp-select"
+              <CustomSelect
+                options={[
+                  { value: 'easy', label: 'Łatwy' },
+                  { value: 'medium', label: 'Średni' },
+                  { value: 'hard', label: 'Trudny' }
+                ]}
                 value={aiForm.difficulty}
-                onChange={e => setAiForm({ ...aiForm, difficulty: e.target.value })}
-              >
-                <option value="easy">Łatwy</option>
-                <option value="medium">Średni</option>
-                <option value="hard">Trudny</option>
-              </select>
+                onChange={val => setAiForm({ ...aiForm, difficulty: val })}
+              />
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Liczba testów</label>
@@ -554,11 +587,11 @@ function StatsSection({ classStats, onExportResults }) {
       <div className="tp-section-header">
         <h2 className="tp-section-title">Statystyki klasy</h2>
         <div className="tp-section-actions">
-          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')}>
-            <IconCSV /> Eksport CSV
+          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')} aria-label="Eksport CSV">
+            <IconCSV /> <span>Eksport CSV</span>
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')}>
-            <IconPDF /> Eksport PDF
+          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')} aria-label="Eksport PDF">
+            <IconPDF /> <span>Eksport PDF</span>
           </button>
         </div>
       </div>
@@ -654,6 +687,9 @@ function TeacherPanel({
   allStudents, // dla ClassManagement
   classStudentsData, // dane z tabeli class_students
   onExportResults,
+  isAdmin = false, // czy panel admina
+  onDeleteUser = null, // funkcja usuwania użytkownika (tylko admin)
+  onChangeUserRole = null, // funkcja zmiany roli (tylko admin)
 }) {
   const TABS = [
     { id: 'students', label: 'Lista uczniów' },
@@ -692,6 +728,10 @@ function TeacherPanel({
             onFilterByClass={onFilterByClass}
             selectedStudentIds={selectedStudentIds}
             onStudentSelectionChange={onStudentSelectionChange}
+            isAdmin={isAdmin}
+            onDeleteUser={onDeleteUser}
+            onChangeUserRole={onChangeUserRole}
+            allStudents={allStudents}
           />
         )}
         {activeTab === 'tests' && (

@@ -1,0 +1,601 @@
+/* ═════════════════════════════════════════════════════════════════
+   AdminPanelPage.css — Style dla panelu administratora
+   ═════════════════════════════════════════════════════════════════ */
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  min-height: 100%;
+}
+
+/* ── Nagłówek ─────────────────────────────────────────────────────────────── */
+.admin-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.admin-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.8rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px 8px 0 0;
+  color: var(--secondaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-tab:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.admin-tab--active {
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  border-color: var(--accentColor);
+}
+
+/* ── Sekcje ───────────────────────────────────────────────────────────────── */
+.admin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-section-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.3rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+/* ── Filtry i wyszukiwanie ──────────────────────────────────────────────────── */
+.admin-filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-search {
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  min-width: 280px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.admin-search:focus {
+  border-color: var(--accentColor);
+}
+
+.admin-filter {
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+}
+
+/* ── Tabela admina ─────────────────────────────────────────────────────────── */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-table th {
+  background-color: var(--sidebarBg);
+  color: var(--secondaryText);
+  font-family: VennBold, sans-serif;
+  font-weight: normal;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.admin-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--borderColor);
+  color: var(--primaryText);
+}
+
+.admin-table-row:last-child td {
+  border-bottom: none;
+}
+
+.admin-table-row:hover td {
+  background-color: var(--btnHoverGray);
+}
+
+/* ── Przyciski admina ─────────────────────────────────────────────────────── */
+.admin-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--borderColor);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: var(--inputBg);
+  color: var(--primaryText);
+}
+
+.admin-btn:hover:not(:disabled) {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.admin-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-btn--primary {
+  background-color: var(--accentColor);
+  border-color: var(--accentColor);
+  color: var(--primaryText);
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+  background-color: var(--btnHoverBlue);
+}
+
+.admin-btn--delete {
+  background-color: rgba(224, 117, 117, 0.1);
+  border-color: rgba(224, 117, 117, 0.3);
+  color: #e07575;
+}
+
+.admin-btn--delete:hover:not(:disabled) {
+  background-color: rgba(224, 117, 117, 0.2);
+  border-color: rgba(224, 117, 117, 0.6);
+}
+
+.admin-btn--edit {
+  color: var(--secondaryText);
+  margin-right: 0.5rem;
+}
+
+.admin-btn--edit:hover:not(:disabled) {
+  color: var(--primaryText);
+}
+
+/* ── Dropdown roli ───────────────────────────────────────────────────────────── */
+.admin-role-select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--borderColor);
+  background-color: var(--inputBg);
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-role-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-role-select--uczen {
+  border-color: rgba(49, 116, 80, 0.3);
+  color: #9dffb4;
+}
+
+.admin-role-select--nauczyciel {
+  border-color: rgba(50, 66, 119, 0.3);
+  color: #8ca8ff;
+}
+
+.admin-role-select--administrator {
+  border-color: rgba(119, 50, 50, 0.3);
+  color: #ffb4b4;
+}
+
+/* ── Badge poziomów ──────────────────────────────────────────────────────────── */
+.admin-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: VennBold, sans-serif;
+  white-space: nowrap;
+}
+
+.admin-badge--level {
+  text-transform: capitalize;
+}
+
+.admin-badge--level.poczatkujacy {
+  background-color: rgba(49, 116, 80, 0.4);
+  color: #9dffb4;
+}
+
+.admin-badge--level.sredniozaawansowany {
+  background-color: rgba(50, 66, 119, 0.4);
+  color: #8ca8ff;
+}
+
+.admin-badge--level.zaawansowany {
+  background-color: rgba(119, 50, 50, 0.4);
+  color: #ffb4b4;
+}
+
+.admin-badge--easy {
+  background-color: rgba(49, 116, 80, 0.4);
+  color: #9dffb4;
+}
+
+.admin-badge--medium {
+  background-color: rgba(119, 100, 50, 0.4);
+  color: #ffd9a0;
+}
+
+.admin-badge--hard {
+  background-color: rgba(119, 50, 50, 0.4);
+  color: #ffb4b4;
+}
+
+/* ── Formularz edycji lekcji ─────────────────────────────────────────────────── */
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.admin-form-group label {
+  font-size: 0.85rem;
+  color: var(--secondaryText);
+  font-family: VennBold, sans-serif;
+}
+
+.admin-input,
+.admin-textarea {
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-input:focus,
+.admin-textarea:focus {
+  border-color: var(--accentColor);
+}
+
+.admin-input-hint {
+  color: var(--secondaryText);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.admin-form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.admin-form-row .admin-form-group {
+  min-width: 200px;
+}
+
+.admin-form-row .admin-form-group:first-child {
+  flex: 0 0 200px;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-form-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.1rem;
+  color: var(--primaryText);
+  margin: 0 0 1rem 0;
+}
+
+/* ── Formularz klasy ────────────────────────────────────────────────────────── */
+.admin-class-form {
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Edycja wiersza tabeli ─────────────────────────────────────────────────── */
+.admin-table-row--editing {
+  background-color: var(--inputBg);
+}
+
+.admin-table-row--editing .admin-input--inline {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.admin-table-row--editing .admin-select--inline {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.admin-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.admin-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ── Statusy ───────────────────────────────────────────────────────────────────── */
+.admin-status {
+  font-size: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--borderColor);
+  text-align: center;
+}
+
+.admin-status--loading {
+  color: var(--secondaryText);
+  background-color: var(--containerBoxBg);
+}
+
+.admin-status--error {
+  color: #e07575;
+  background-color: rgba(224, 117, 117, 0.08);
+  border-color: rgba(224, 117, 117, 0.3);
+}
+
+.admin-empty {
+  color: var(--secondaryText);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.admin-users-count {
+  color: var(--secondaryText);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Statystyki ─────────────────────────────────────────────────────────────── */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.admin-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 2rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  min-height: 140px;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.admin-stat-value {
+  font-family: VennBold, sans-serif;
+  font-size: 3.5rem;
+  color: var(--primaryText);
+  line-height: 1;
+}
+
+.admin-stat-label {
+  font-size: 0.95rem;
+  color: var(--secondaryText);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Kolory kart statystyk ─────────────────────────────────────────────────── */
+.admin-stat-card--students {
+  border-color: rgba(49, 116, 80, 0.3);
+}
+
+.admin-stat-card--students .admin-stat-value {
+  color: #9dffb4;
+}
+
+.admin-stat-card--teachers {
+  border-color: rgba(50, 66, 119, 0.3);
+}
+
+.admin-stat-card--teachers .admin-stat-value {
+  color: #8ca8ff;
+}
+
+.admin-stat-card--admins {
+  border-color: rgba(119, 50, 50, 0.3);
+}
+
+.admin-stat-card--admins .admin-stat-value {
+  color: #ffb4b4;
+}
+
+.admin-stat-card--classes {
+  border-color: rgba(160, 100, 50, 0.3);
+}
+
+.admin-stat-card--classes .admin-stat-value {
+  color: #ffd9a0;
+}
+
+.admin-stat-card--tests {
+  border-color: rgba(50, 119, 100, 0.3);
+}
+
+.admin-stat-card--tests .admin-stat-value {
+  color: #9dffb4;
+}
+
+.admin-stat-card--assignments {
+  border-color: rgba(100, 50, 119, 0.3);
+}
+
+.admin-stat-card--assignments .admin-stat-value {
+  color: #ffb4b4;
+}
+
+.admin-stat-card--completed {
+  border-color: rgba(49, 119, 50, 0.3);
+}
+
+.admin-stat-card--completed .admin-stat-value {
+  color: #9dffb4;
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   RESPONSYWNOŚĆ
+   ═════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .admin-tab {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .admin-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-filters {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-search,
+  .admin-filter {
+    width: 100%;
+  }
+
+  .admin-table {
+    font-size: 0.8rem;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.6rem 0.5rem;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .admin-stat-card {
+    padding: 1.5rem 1rem;
+    min-height: 120px;
+  }
+
+  .admin-stat-value {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-panel {
+    padding: 0.5rem;
+  }
+
+  .admin-section {
+    padding: 1rem;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-title {
+    font-size: 1.4rem;
+  }
+
+  .admin-section-title {
+    font-size: 1.1rem;
+  }
+}

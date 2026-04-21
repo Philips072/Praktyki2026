@@ -84,6 +84,15 @@
   font-weight: 700;
   color: var(--primaryText);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lecture-title-check {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .lecture-progress-text {
@@ -100,7 +109,7 @@
 }
 
 .lecture-progress-bar {
-  height: 4px;
+  height: 6px;
   background: var(--borderColor);
   border-radius: 99px;
   overflow: hidden;
@@ -151,6 +160,11 @@
 
 .lecture-card--done:hover {
   border-color: #1e6b40;
+}
+
+.lecture-card--done .lecture-progress-text {
+  color: #2fa05e;
+  font-weight: 600;
 }
 
 .lecture-play-icon {

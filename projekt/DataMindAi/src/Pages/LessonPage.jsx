@@ -64,7 +64,10 @@ function TheorySection({ section }) {
           <div className="ls-table-scroll">
             <table className="ls-example-table">
               <thead>
-                <tr>{section.columns.map(c => <th key={c}>{c}</th>)}</tr>
+                <tr>
+                  {section.columns.map(c => <th key={c}>{c}</th>)}
+                  {section.rows[0]?.length > section.columns.length && <th key="extra">Przykład</th>}
+                </tr>
               </thead>
               <tbody>
                 {section.rows.map((row, i) => (
@@ -96,9 +99,14 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, isCompleted, onComplete }) {
+function Exercise({ exercise, isCompleted, onComplete, onReset }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
+
+  const handleReset = () => {
+    setQuery('')
+    onReset()
+  }
 
   return (
     <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
@@ -137,6 +145,19 @@ function Exercise({ exercise, isCompleted, onComplete }) {
           </svg>
           Podpowiedź
         </button>
+        {isCompleted && (
+          <button
+            className="ls-btn ls-btn--reset"
+            onClick={handleReset}
+            title="Resetuj zadanie"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Reset
+          </button>
+        )}
       </div>
 
       {showHint && (
@@ -198,6 +219,18 @@ function LessonPage() {
     })
   }
 
+  function resetExercise(exerciseId) {
+    setCompleted(prev => {
+      if (!prev.has(exerciseId)) return prev
+      const next = new Set(prev)
+      next.delete(exerciseId)
+      const data = JSON.parse(localStorage.getItem(progressKey) || '{}')
+      data[lesson.id] = [...next]
+      localStorage.setItem(progressKey, JSON.stringify(data))
+      return next
+    })
+  }
+
   if (!lesson) {
     return (
       <div className="ls-not-found">
@@ -221,7 +254,17 @@ function LessonPage() {
             </svg>
           </button>
           <div className="ls-header-titles">
-            <h1 className="ls-header-title">Lekcja {lesson.id}: {lesson.title}</h1>
+            <h1 className="ls-header-title">
+              Lekcja {lesson.id}: {lesson.title}
+              {completedCount === lesson.exercises.length && (
+                <span className="ls-title-check">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#2fa05e" strokeWidth="2" fill="rgba(47, 160, 94, 0.15)"/>
+                    <path d="M8 12l3 3 5-6" stroke="#2fa05e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              )}
+            </h1>
             <p className="ls-header-subtitle">{lesson.subtitle}</p>
           </div>
         </div>
@@ -329,6 +372,7 @@ function LessonPage() {
                 exercise={lesson.exercises[activeExercise]}
                 isCompleted={completed.has(lesson.exercises[activeExercise].id)}
                 onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
+                onReset={() => resetExercise(lesson.exercises[activeExercise].id)}
               />
             </>
           )}

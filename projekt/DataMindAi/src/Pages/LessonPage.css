@@ -63,6 +63,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ls-title-check {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .ls-header-subtitle {
@@ -114,7 +123,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 28px 28px 40px;
+  padding: 1.5rem 2rem 2.5rem;
   gap: 20px;
 }
 
@@ -130,7 +139,7 @@
   flex: 0 0 64px;
   min-width: 64px;
   overflow: hidden;
-  padding: 28px 16px;
+  padding: 1.75rem 1rem;
 }
 
 .ls-collapse-btn {
@@ -321,6 +330,9 @@
   border-collapse: collapse;
   font-size: 0.85rem;
 }
+.ls-example-table thead{
+  background: var(--inputBg);
+}
 
 .ls-example-table th {
   background: var(--inputBg);
@@ -374,6 +386,7 @@
   font-family: VennBold;
   font-size: 1rem;
   margin: 0 0 12px;
+  color: var(--primaryText);
 }
 
 .ls-schema-list {
@@ -449,6 +462,9 @@
 
 .ls-tab--done.ls-tab--active {
   background: #1e6b40;
+}
+.ls-tab--done{
+  background-color: #213d2d;
 }
 
 .ls-tab:not(.ls-tab--active):hover {
@@ -570,6 +586,17 @@
   background: #1a9e50;
 }
 
+.ls-btn--reset {
+  background: rgba(236, 72, 72, 0.15);
+  color: #ec4844;
+  border: 1px solid rgba(236, 72, 72, 0.3);
+}
+
+.ls-btn--reset:hover {
+  background: rgba(236, 72, 72, 0.25);
+  border-color: rgba(236, 72, 72, 0.5);
+}
+
 /* Podpowiedź rozwijana */
 .ls-hint-box {
   background: rgba(50, 66, 119, 0.2);
@@ -617,7 +644,7 @@
 
   .ls-col {
     overflow-y: visible;
-    padding: 20px 16px 28px;
+    padding: 1.25rem 1rem 1.75rem;
   }
 
   .ls-col--theory {
@@ -669,6 +696,25 @@
     font-size: 0.7rem;
     padding: 4px 9px;
   }
+
+  /* Better exercise spacing on tablet */
+  .ls-tabs {
+    overflow-x: auto;
+  }
+
+  .ls-tab {
+    flex: 0 0 auto;
+    min-width: 80px;
+    font-size: 0.88rem;
+  }
+
+  .ls-exercise-task {
+    padding: 16px 16px;
+  }
+
+  .ls-sql-editor {
+    min-height: 130px;
+  }
 }
 
 @media screen and (max-width: 600px) {
@@ -676,14 +722,65 @@
     display: none;
   }
 
+  /* Tabs - enable scrolling for many tasks */
+  .ls-tabs {
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+
+  .ls-tab {
+    flex: 0 0 auto;
+    min-width: 90px;
+    padding: 0 14px;
+    font-size: 0.85rem;
+  }
+
+  /* Exercise spacing */
+  .ls-exercise {
+    gap: 18px;
+  }
+
+  .ls-exercise-task {
+    padding: 18px 16px;
+  }
+
+  .ls-exercise-task-label {
+    font-size: 0.95rem;
+  }
+
+  .ls-exercise-task-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .ls-sql-label {
+    font-size: 0.9rem;
+  }
+
+  .ls-sql-editor {
+    min-height: 150px;
+    padding: 16px;
+    font-size: 0.95rem;
+  }
+
+  /* Buttons */
   .ls-exercise-actions {
     flex-direction: column;
+    gap: 10px;
   }
 
   .ls-btn {
     width: 100%;
     justify-content: center;
-    padding: 13px 20px;
+    padding: 14px 20px;
     box-sizing: border-box;
+    font-size: 0.95rem;
+    height: 48px;
+  }
+
+  /* Hint and expected result */
+  .ls-hint-box,
+  .ls-expected {
+    font-size: 0.9rem;
   }
 }

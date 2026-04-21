@@ -104,6 +104,32 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
       ),
     },
     {
+      label: 'Sandbox',
+      path: '/sandbox',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 2L2 7L12 12L22 7L12 2Z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2 17L12 22L22 17"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2 12L12 17L22 12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
       label: 'AI Chat',
       path: '/ai-chat',
       icon: (
@@ -147,6 +173,20 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
           <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
           <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           <path d="M7 8h4M7 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    }] : []),
+    // Widoczne tylko dla administratora
+    ...(profile?.role === 'administrator' ? [{
+      label: 'Panel administratora',
+      path: '/panel-admina',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="3" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <rect x="14" y="14" width="7" height="7" stroke="currentColor" strokeWidth="2" />
+          <path d="M3 14h7M14 14h7M3 14v7M14 14v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="2" />
         </svg>
       ),
     }] : []),

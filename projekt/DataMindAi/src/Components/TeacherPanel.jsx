@@ -101,8 +101,10 @@ function StudentsSection({
           <button
             className={`tp-btn ${bulkMode ? 'tp-btn--primary' : 'tp-btn--ghost'}`}
             onClick={toggleBulkMode}
+            aria-label={bulkMode ? 'Wyłącz wybór masowy' : 'Włącz wybór masowy'}
           >
-            {bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}
+            <span className="tp-btn-desktop">{bulkMode ? '✓ Wybór masowy' : 'Wybór masowy'}</span>
+            <span className="tp-btn-mobile">☑</span>
           </button>
 
           {/* Przełącznik widoku tabela/karty */}
@@ -110,6 +112,7 @@ function StudentsSection({
             className={`tp-view-btn ${viewMode === 'table' ? 'tp-view-btn--active' : ''}`}
             onClick={() => setViewMode('table')}
             title="Widok tabeli"
+            aria-label="Widok tabeli"
           >
             ☰
           </button>
@@ -117,14 +120,15 @@ function StudentsSection({
             className={`tp-view-btn ${viewMode === 'cards' ? 'tp-view-btn--active' : ''}`}
             onClick={() => setViewMode('cards')}
             title="Widok kart"
+            aria-label="Widok kart"
           >
             ⊞
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')}>
-            <IconCSV /> Eksport CSV
+          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')} aria-label="Eksport CSV">
+            <IconCSV /> <span>Eksport CSV</span>
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')}>
-            <IconPDF /> Eksport PDF
+          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')} aria-label="Eksport PDF">
+            <IconPDF /> <span>Eksport PDF</span>
           </button>
         </div>
       </div>
@@ -583,11 +587,11 @@ function StatsSection({ classStats, onExportResults }) {
       <div className="tp-section-header">
         <h2 className="tp-section-title">Statystyki klasy</h2>
         <div className="tp-section-actions">
-          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')}>
-            <IconCSV /> Eksport CSV
+          <button className="tp-btn tp-btn--export tp-btn--export-csv" onClick={() => onExportResults('csv')} aria-label="Eksport CSV">
+            <IconCSV /> <span>Eksport CSV</span>
           </button>
-          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')}>
-            <IconPDF /> Eksport PDF
+          <button className="tp-btn tp-btn--export tp-btn--export-pdf" onClick={() => onExportResults('pdf')} aria-label="Eksport PDF">
+            <IconPDF /> <span>Eksport PDF</span>
           </button>
         </div>
       </div>

@@ -106,7 +106,7 @@
 
 .tp-section-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
@@ -123,6 +123,23 @@
   padding: 1.25rem;
 }
 
+/* Karta z tabelą - pozwól na scroll poziomy */
+.tp-card:has(.tp-table) {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+/* Fallback dla przeglądarek nie obsługujących :has() */
+.tp-card.tp-card--table {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+/* Tabela wewnątrz karty - full width */
+.tp-card .tp-table {
+  min-width: 100%;
+}
+
 .tp-card-title {
   font-family: VennBold, sans-serif;
   font-size: 1rem;
@@ -134,15 +151,18 @@
 .tp-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.55rem 1.1rem;
+  padding: 0.55rem 1rem;
   border-radius: 8px;
   border: none;
   font-family: VennRegular, sans-serif;
   font-size: 0.875rem;
+  line-height: 1.2;
   cursor: pointer;
   transition: background-color 0.2s, opacity 0.2s;
   white-space: nowrap;
+  min-height: 40px;
 }
 
 .tp-btn:disabled {
@@ -187,7 +207,7 @@
   color: var(--primaryText);
 }
 
-/* Przyciski eksportu — wspólna baza */
+/* Przyciski eksportu — jednolite wymiary */
 .tp-btn--export {
   background-color: var(--grayBtnBg);
   border: 1px solid var(--borderColor);
@@ -195,8 +215,9 @@
   font-size: 0.8rem;
   letter-spacing: 0.03em;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1rem;
   border-radius: 8px;
+  min-height: 40px;
   transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
@@ -221,19 +242,23 @@
 }
 
 .tp-btn--sm {
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   font-size: 0.8rem;
+  min-height: 36px;
 }
 
-/* Przełącznik widoku tabela/karty */
+/* Przełącznik widoku tabela/karty — jednolity z innymi przyciskami */
 .tp-view-btn {
-  padding: 0.4rem 0.7rem;
+  padding: 0.55rem 0.85rem;
   background-color: var(--grayBtnBg);
   border: 1px solid var(--borderColor);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--secondaryText);
   cursor: pointer;
   font-size: 1rem;
+  line-height: 1;
+  min-height: 40px;
+  min-width: 40px;
   transition: background-color 0.2s, color 0.2s;
 }
 .tp-view-btn:hover {
@@ -241,9 +266,12 @@
   color: var(--primaryText);
 }
 .tp-view-btn--active {
-  background-color: var(--inactiveBlueBtn);
+  background-color: var(--accentColor);
   color: var(--primaryText);
   border-color: var(--accentColor);
+}
+.tp-view-btn--active:hover{
+  background-color: var(--accentColor);
 }
 
 /* ── Formularze ──────────────────────────────────────────────────────────── */
@@ -1300,6 +1328,28 @@
   display: none;
 }
 
+/* ── Sekcja akcji — jednolite wymiary przycisków ───────────────────────────── */
+.tp-section-actions .tp-btn,
+.tp-section-actions .tp-view-btn {
+  min-height: 40px;
+}
+
+/* ── Custom Select w tabeli (zmiana roli) ─────────────────────────────────── */
+.tp-role-select .custom-select {
+  max-width: 120px;
+}
+
+.tp-role-select .custom-select-button {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  height: 32px;
+}
+
+.tp-role-select .custom-select-option {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSYWNOŚĆ
    1200px: rozszerzony layout
@@ -1379,6 +1429,17 @@
   }
 }
 
+/* ── 880px: trzecia karta statystyk rozciąga się na 100% ───────────────────────── */
+@media (max-width: 880px) {
+  .tp-stats-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tp-stats-cards .tp-stat-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ── 768px: większe tablety ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   /* Header sekcji - przyciski pod tytułem */
@@ -1420,6 +1481,27 @@
   /* Stats grid - jedna kolumna */
   .tp-stats-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tp-stats-grid .tp-card {
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  /* Tabela wewnątrz karty statystyk - min-width dla scrolla */
+  .tp-stats-grid .tp-table {
+    min-width: 300px;
+  }
+
+  /* Stats cards - jedna kolumna */
+  .tp-stats-cards {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .tp-stats-cards .tp-stat-card:last-child {
+    grid-column: auto;
   }
 
   /* Modal - pełna szerokość na tabletach */
@@ -1466,29 +1548,97 @@
     font-size: 1rem;
   }
 
-  /* Stats cards - jedna kolumna */
+  /* Stats cards - mniejsze paddingi */
   .tp-stats-cards {
-    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .tp-stat-card {
+    padding: 1rem 0.75rem;
   }
 
   .tp-stat-card-value {
     font-size: 1.6rem;
   }
 
-  /* Przyciski - mniejsze */
-  .tp-btn {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.8rem;
-  }
-
-  .tp-btn--sm {
-    padding: 0.35rem 0.6rem;
+  .tp-stat-card-label {
     font-size: 0.75rem;
   }
 
-  .tp-view-btn {
-    padding: 0.35rem 0.6rem;
+  /* Stats grid - kompaktowy */
+  .tp-stats-grid {
+    gap: 0.75rem;
+  }
+
+  .tp-stats-grid .tp-card {
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  /* Tabela wewnątrz karty statystyk - min-width dla scrolla */
+  .tp-stats-grid .tp-table {
+    min-width: 300px;
+  }
+
+  .tp-card {
+    padding: 1rem;
+  }
+
+  .tp-card-title {
     font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tp-table--compact {
+    font-size: 0.8rem;
+  }
+
+  .tp-table--compact th,
+  .tp-table--compact td {
+    padding: 0.5rem 0.6rem;
+  }
+
+  .tp-rank-cell {
+    width: 2rem;
+    font-size: 0.9rem;
+  }
+
+  .tp-errors-list {
+    gap: 0.4rem;
+  }
+
+  .tp-error-item {
+    font-size: 0.8rem;
+  }
+
+  .tp-error-badge {
+    min-width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.7rem;
+  }
+
+  /* Przyciski - mniejsze ale jednolite */
+  .tp-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+
+  .tp-btn--sm {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+  }
+
+  .tp-view-btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+
+  .tp-btn--export {
+    padding: 0.5rem 0.85rem;
+    min-height: 40px;
   }
 
   /* Bulk actions - układ pionowy */
@@ -1536,6 +1686,17 @@
     flex-direction: row;
     flex-wrap: wrap;
   }
+
+  /* Section actions - jednolite przyciski na tabletach pionowych */
+  .tp-section-actions {
+    align-items: center;
+  }
+
+  .tp-section-actions .tp-btn,
+  .tp-section-actions .tp-view-btn,
+  .tp-section-actions .tp-btn--export {
+    min-height: 40px;
+  }
 }
 
 /* ── 560px: duże smartfony ───────────────────────────────────────────────────── */
@@ -1579,24 +1740,26 @@
     flex-shrink: 0;
   }
 
-  /* Przyciski eksportu - tekst ukryty, tylko ikony */
+  /* Przyciski eksportu - tekst ukryty, tylko ikony ale ta sama wysokość */
   .tp-btn--export span {
     display: none;
   }
 
   .tp-btn--export {
-    padding: 0.5rem;
+    padding: 0.55rem;
+    min-width: 40px;
   }
 
   .tp-btn--export svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
-  /* Przełącznik widoku - mniejszy */
+  /* Przełącznik widoku - zachowuje wysokość */
   .tp-view-btn {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.85rem;
+    padding: 0.55rem;
+    min-width: 40px;
+    font-size: 0.9rem;
   }
 
   /* Table compact */
@@ -1642,16 +1805,20 @@
     font-size: 1rem;
   }
 
-  /* Section actions - przyciski w 2 kolumnach */
+  /* Section actions - przyciski w 2 kolumnach, jednolite wymiary */
   .tp-section-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
+    align-items: center;
   }
 
-  .tp-section-actions .tp-btn {
+  .tp-section-actions .tp-btn,
+  .tp-section-actions .tp-view-btn,
+  .tp-section-actions .tp-btn--export {
     justify-content: center;
     width: 100%;
+    min-height: 40px;
   }
 
   /* Formularz - przyciski w pełnej szerokości */
@@ -1740,13 +1907,43 @@
     font-size: 1.5rem;
   }
 
+  /* Stats grid - kompaktowy */
+  .tp-stats-grid {
+    gap: 0.6rem;
+  }
+
+  .tp-stats-grid .tp-card {
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  /* Tabela wewnątrz karty statystyk - min-width dla scrolla */
+  .tp-stats-grid .tp-table {
+    min-width: 300px;
+  }
+
+  .tp-card {
+    padding: 0.85rem;
+  }
+
+  .tp-card-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+
   /* Errors list - mniejsze czcionki */
   .tp-errors-list {
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .tp-error-item {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .tp-error-badge {
+    min-width: 1.2rem;
+    height: 1.2rem;
+    font-size: 0.65rem;
   }
 
   /* Exercise list - pełna szerokość przycisków */
@@ -1766,17 +1963,17 @@
 
   /* Ranking table - kompaktowa */
   .tp-table--compact {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .tp-table--compact th,
   .tp-table--compact td {
-    padding: 0.5rem 0.6rem;
+    padding: 0.4rem 0.5rem;
   }
 
   .tp-rank-cell {
-    width: 2rem;
-    font-size: 0.9rem;
+    width: 1.8rem;
+    font-size: 0.85rem;
   }
 
   /* Input - mniejsze padding */
@@ -1800,6 +1997,17 @@
     width: 1rem;
     height: 1rem;
   }
+
+  /* Role select - jeszcze mniejszy na mobile */
+  .tp-role-select .custom-select {
+    max-width: 100px;
+  }
+
+  .tp-role-select .custom-select-button {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    height: 28px;
+  }
 }
 
 /* ── 390px: bardzo małe ekrany ───────────────────────────────────────────────── */
@@ -1816,15 +2024,30 @@
     font-size: 0.95rem;
   }
 
-  /* Przyciski - bardzo kompaktowe */
+  /* Przyciski - bardzo kompaktowe ale jednolite */
   .tp-btn {
-    padding: 0.45rem 0.7rem;
+    padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
+    min-height: 36px;
   }
 
   .tp-btn--sm {
-    padding: 0.3rem 0.5rem;
+    padding: 0.35rem 0.6rem;
     font-size: 0.7rem;
+    min-height: 36px;
+  }
+
+  .tp-view-btn {
+    padding: 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .tp-btn--export {
+    padding: 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   /* Nav - minimalny padding */
@@ -1863,12 +2086,35 @@
 
   /* Stats - bardzo kompaktowe */
   .tp-stats-cards {
-    gap: 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .tp-stats-grid {
+    gap: 0.5rem;
+  }
+
+  .tp-stats-grid .tp-card {
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  /* Tabela wewnątrz karty statystyk - min-width dla scrolla */
+  .tp-stats-grid .tp-table {
+    min-width: 300px;
+  }
+
+  .tp-card {
+    padding: 0.7rem;
+  }
+
+  .tp-card-title {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
   }
 
   .tp-stat-card {
-    padding: 1rem 0.6rem;
-    gap: 0.3rem;
+    padding: 0.85rem 0.5rem;
+    gap: 0.25rem;
   }
 
   .tp-stat-card-value {
@@ -1876,7 +2122,37 @@
   }
 
   .tp-stat-card-label {
+    font-size: 0.7rem;
+  }
+
+  /* Ranking table - bardzo kompaktowa */
+  .tp-table--compact {
+    font-size: 0.7rem;
+  }
+
+  .tp-table--compact th,
+  .tp-table--compact td {
+    padding: 0.35rem 0.4rem;
+  }
+
+  .tp-rank-cell {
+    width: 1.5rem;
     font-size: 0.75rem;
+  }
+
+  /* Errors list - bardzo kompaktowa */
+  .tp-errors-list {
+    gap: 0.3rem;
+  }
+
+  .tp-error-item {
+    font-size: 0.7rem;
+  }
+
+  .tp-error-badge {
+    min-width: 1.1rem;
+    height: 1.1rem;
+    font-size: 0.6rem;
   }
 
   /* Modal - maksymalny rozmiar */

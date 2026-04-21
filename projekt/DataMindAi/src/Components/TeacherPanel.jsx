@@ -3,6 +3,7 @@ import StudentDetail from './StudentDetail'
 import ClassManagement from './ClassManagement'
 import BulkAssignmentModal from './BulkAssignmentModal'
 import StudentSelector from './StudentSelector'
+import CustomSelect from './CustomSelect'
 import './TeacherPanel.css'
 
 const IconCSV = () => (
@@ -86,16 +87,15 @@ function StudentsSection({
         <h2 className="tp-section-title">Lista uczniów <span className="tp-student-count">({students.length})</span></h2>
         <div className="tp-section-actions">
           {/* Filtrowanie po klasach */}
-          <select
-            className="tp-input tp-select"
+          <CustomSelect
+            options={[
+              { value: 'all', label: 'Wszystkie klasy' },
+              ...classes.map(cls => ({ value: cls.id, label: cls.name }))
+            ]}
             value={selectedClassId || 'all'}
-            onChange={(e) => onFilterByClass(e.target.value === 'all' ? null : e.target.value)}
-          >
-            <option value="all">Wszystkie klasy</option>
-            {classes.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
+            onChange={(val) => onFilterByClass(val === 'all' ? null : val)}
+            placeholder="Wybierz klasę"
+          />
 
           {/* Toggle bulk selection */}
           <button
@@ -201,16 +201,16 @@ function StudentsSection({
                   </td>
                   {isAdmin && (
                     <td>
-                      <select
-                        className="tp-input tp-select"
+                      <CustomSelect
+                        options={[
+                          { value: 'uczen', label: 'Uczeń' },
+                          { value: 'nauczyciel', label: 'Nauczyciel' },
+                          { value: 'administrator', label: 'Administrator' }
+                        ]}
                         value={student.role || 'uczen'}
-                        onChange={(e) => onChangeUserRole && onChangeUserRole(student.id, e.target.value, student.name)}
-                        style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                      >
-                        <option value="uczen">Uczeń</option>
-                        <option value="nauczyciel">Nauczyciel</option>
-                        <option value="administrator">Administrator</option>
-                      </select>
+                        onChange={(val) => onChangeUserRole && onChangeUserRole(student.id, val, student.name)}
+                        className="tp-role-select"
+                      />
                     </td>
                   )}
                   <td className="tp-text-secondary">{student.lastActive ?? '—'}</td>
@@ -418,15 +418,15 @@ function TestsSection({
           <div className="tp-form-row">
             <div className="tp-form-group">
               <label className="tp-label">Poziom trudności</label>
-              <select
-                className="tp-input tp-select"
+              <CustomSelect
+                options={[
+                  { value: 'easy', label: 'Łatwy' },
+                  { value: 'medium', label: 'Średni' },
+                  { value: 'hard', label: 'Trudny' }
+                ]}
                 value={manualForm.difficulty}
-                onChange={e => setManualForm({ ...manualForm, difficulty: e.target.value })}
-              >
-                <option value="easy">Łatwy</option>
-                <option value="medium">Średni</option>
-                <option value="hard">Trudny</option>
-              </select>
+                onChange={val => setManualForm({ ...manualForm, difficulty: val })}
+              />
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Sprawdzana umiejętność</label>
@@ -466,15 +466,15 @@ function TestsSection({
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Poziom trudności</label>
-              <select
-                className="tp-input tp-select"
+              <CustomSelect
+                options={[
+                  { value: 'easy', label: 'Łatwy' },
+                  { value: 'medium', label: 'Średni' },
+                  { value: 'hard', label: 'Trudny' }
+                ]}
                 value={aiForm.difficulty}
-                onChange={e => setAiForm({ ...aiForm, difficulty: e.target.value })}
-              >
-                <option value="easy">Łatwy</option>
-                <option value="medium">Średni</option>
-                <option value="hard">Trudny</option>
-              </select>
+                onChange={val => setAiForm({ ...aiForm, difficulty: val })}
+              />
             </div>
             <div className="tp-form-group">
               <label className="tp-label">Liczba testów</label>

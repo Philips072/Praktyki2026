@@ -2,379 +2,129 @@ import './Sandbox.css'
 import { useState } from 'react'
 
 function Sandbox() {
-  const [expandedDatabase, setExpandedDatabase] = useState('')
-  const [selectedTable, setSelectedTable] = useState('')
 
-  const tablesData = {
-    users: {
-      structure: [
-        { column_name: 'id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'email', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'created_at', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'role', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: '123e4567-e89b-12d3-a456-426614174000', email: 'user1@example.com', created_at: '2024-01-15', role: 'admin' },
-        { id: '223e4567-e89b-12d3-a456-426614174001', email: 'user2@example.com', created_at: '2024-02-20', role: 'user' }
-      ]
-    },
-    courses: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'title', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'description', data_type: 'text', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'price', data_type: 'decimal', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, title: 'React od podstaw', description: 'Kurs React dla początkujących', price: 99.99 },
-        { id: 2, title: 'Zaawansowany JavaScript', description: 'Głębia JS', price: 149.99 }
-      ]
-    },
-    enrollments: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'course_id', data_type: 'integer', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'enrolled_at', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', course_id: 1, enrolled_at: '2024-01-16' },
-        { id: 2, user_id: '223e4567-e89b-12d3-a456-426614174001', course_id: 2, enrolled_at: '2024-02-21' }
-      ]
-    },
-    lessons: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'course_id', data_type: 'integer', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'title', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'duration', data_type: 'integer', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, course_id: 1, title: 'Wprowadzenie do React', duration: 1200 },
-        { id: 2, course_id: 1, title: 'Komponenty', duration: 1800 }
-      ]
-    },
-    progress: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'lesson_id', data_type: 'integer', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'completed', data_type: 'boolean', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', lesson_id: 1, completed: true },
-        { id: 2, user_id: '123e4567-e89b-12d3-a456-426614174000', lesson_id: 2, completed: false }
-      ]
-    },
-    profiles: {
-      structure: [
-        { column_name: 'id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'full_name', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'avatar_url', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'bio', data_type: 'text', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: '123e4567-e89b-12d3-a456-426614174000', full_name: 'Jan Kowalski', avatar_url: null, bio: 'Programista' }
-      ]
-    },
-    settings: {
-      structure: [
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'theme', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'notifications', data_type: 'boolean', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'language', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { user_id: '123e4567-e89b-12d3-a456-426614174000', theme: 'dark', notifications: true, language: 'pl' }
-      ]
-    },
-    notifications: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'message', data_type: 'text', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'read', data_type: 'boolean', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', message: 'Nowy kurs dostępny!', read: false }
-      ]
-    },
-    sessions: {
-      structure: [
-        { column_name: 'id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'expires_at', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 'session-123', user_id: '123e4567-e89b-12d3-a456-426614174000', expires_at: '2024-12-31' }
-      ]
-    },
-    page_views: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'page', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'timestamp', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', page: '/dashboard', timestamp: '2024-04-20 10:00' }
-      ]
-    },
-    events: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'event_type', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'properties', data_type: 'jsonb', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'timestamp', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, event_type: 'button_click', properties: { button: 'submit' }, timestamp: '2024-04-20 10:05' }
-      ]
-    },
-    funnels: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'name', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'steps', data_type: 'jsonb', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, name: 'Onboarding', steps: ['signup', 'profile', 'first_course'] }
-      ]
-    },
-    reports: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'title', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'generated_at', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, title: 'Miesięczny raport', generated_at: '2024-04-01' }
-      ]
-    },
-    access_logs: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'action', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'ip_address', data_type: 'varchar', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', action: 'login', ip_address: '192.168.1.1' }
-      ]
-    },
-    error_logs: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'error_message', data_type: 'text', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'stack_trace', data_type: 'text', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'timestamp', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, error_message: 'Connection timeout', stack_trace: 'Error at line 42', timestamp: '2024-04-19 15:30' }
-      ]
-    },
-    audit_trail: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'YES', is_primary_key: false },
-        { column_name: 'action', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'entity_type', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, user_id: '123e4567-e89b-12d3-a456-426614174000', action: 'update', entity_type: 'course' }
-      ]
-    },
-    sessions: {
-      structure: [
-        { column_name: 'id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'user_id', data_type: 'uuid', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'expires_at', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 'cache-session-1', user_id: '123e4567-e89b-12d3-a456-426614174000', expires_at: '2024-12-31' }
-      ]
-    },
-    temp_data: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'key', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'value', data_type: 'text', is_nullable: 'YES', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, key: 'temp_cart', value: '[{"id": 1, "qty": 2}]' }
-      ]
-    },
-    rate_limits: {
-      structure: [
-        { column_name: 'id', data_type: 'integer', is_nullable: 'NO', is_primary_key: true },
-        { column_name: 'identifier', data_type: 'varchar', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'requests', data_type: 'integer', is_nullable: 'NO', is_primary_key: false },
-        { column_name: 'window_start', data_type: 'timestamp', is_nullable: 'NO', is_primary_key: false }
-      ],
-      data: [
-        { id: 1, identifier: '192.168.1.1', requests: 45, window_start: '2024-04-20 10:00' }
-      ]
-    }
-  }
 
-  const databasesData = [
-    {
-      id: 'main_db',
-      name: 'Główna baza danych',
-      tables: ['users', 'courses', 'enrollments', 'lessons', 'progress']
-    },
-    {
-      id: 'users_db',
-      name: 'Baza użytkowników',
-      tables: ['profiles', 'settings', 'notifications', 'sessions']
-    },
-    {
-      id: 'analytics_db',
-      name: 'Baza analityczna',
-      tables: ['page_views', 'events', 'funnels', 'reports']
-    },
-    {
-      id: 'logs_db',
-      name: 'Baza logów',
-      tables: ['access_logs', 'error_logs', 'audit_trail']
-    },
-    {
-      id: 'cache_db',
-      name: 'Baza cache',
-      tables: ['sessions', 'temp_data', 'rate_limits']
-    }
-  ]
+const [query, setQuery] = useState('');
+  const [resultsView, setResultsView] = useState('structure');
 
-  const handleDatabaseClick = (databaseId) => {
-    if (expandedDatabase === databaseId) {
-      setExpandedDatabase('')
-    } else {
-      setExpandedDatabase(databaseId)
-    }
-  }
+  const stats = [
+    { label: 'Tabele', value: '42', description: 'w bazie danych', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>' },
+    { label: 'Wiersze', value: '128.8K', description: 'łączna liczba', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>' },
+    { label: 'Zapytania', value: '1.2K', description: 'wykonane dziś', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>' },
+    { label: 'Ostatnie odświeżenie', value: '2 min temu', description: 'dzisiaj, 14:26', icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+  ];
 
-  const handleTableClick = (tableName) => {
-    setSelectedTable(tableName)
-  }
+  const examples = [
+    'SELECT * FROM users LIMIT 10;',
+    'SELECT COUNT(*) FROM orders;',
+    'SELECT * FROM products WHERE price > 100;'
+  ];
 
   return (
-    <div className="sandbox-container">
-      <div className="sandbox-header">
-        <h1>Sandbox Bazy Danych</h1>
-        <p>Przeglądaj swoje bazy danych, tabele i dane w środowisku Supabase</p>
+    <div className="sandbox-page">
+      <h1>Sandbox Bazy Danych</h1>
+      <p className="subtitle">Przeglądaj swoje bazy danych, tabele i dane w środowisku Supabase</p>
+
+      <div className="sandbox-stats-grid">
+        {stats.map((item, i) => (
+          <div className="sandbox-card sandbox-stat-card" key={i}>
+            <div className="sandbox-stat-icon" dangerouslySetInnerHTML={{ __html: item.icon }} />
+            <div>
+              <span className="sandbox-stat-label">{item.label}</span>
+              <strong>{item.value}</strong>
+              <span>{item.description}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="sandbox-content">
-        <div className="sandbox-sidebar">
-          <div className="sandbox-section">
-            <h3>Bazy danych</h3>
-            {databasesData.map(db => (
-              <div key={db.id} className="sandbox-database">
-                <button
-                  className={`sandbox-item ${expandedDatabase === db.id ? 'active' : ''}`}
-                  onClick={() => handleDatabaseClick(db.id)}
-                >
-                  <span className="sandbox-item-name">{db.name}</span>
-                  <span className={`sandbox-arrow ${expandedDatabase === db.id ? 'expanded' : ''}`}>
-                    ▶
-                  </span>
-                </button>
-                {expandedDatabase === db.id && (
-                  <div className="sandbox-tables-list expanded">
-                    <div>
-                      {db.tables.map(table => (
-                        <button
-                          key={table}
-                          className={`sandbox-table-item ${selectedTable === table ? 'active' : ''}`}
-                          onClick={() => handleTableClick(table)}
-                        >
-                          {table}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+      <div className="sandbox-main-grid">
+        <div className="sandbox-card">
+          <div className="sandbox-card-header">
+            <h2>Zapytanie SQL</h2>
+            <button className="sandbox-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline',marginRight:'6px',verticalAlign:'text-bottom'}}><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Przykłady zapytań
+            </button>
+          </div>
+
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Napisz swoje zapytanie SQL..."
+          />
+
+          <div className="sandbox-editor-actions">
+            <select>
+              <option>Główna baza danych</option>
+            </select>
+            <div>
+              <button className="sandbox-ghost">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline',marginRight:'6px',verticalAlign:'text-bottom'}}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Wyczyść
+              </button>
+              <button className="sandbox-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{display:'inline',marginRight:'6px',verticalAlign:'text-bottom'}}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Wykonaj zapytanie
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="sandbox-main">
-          {selectedTable && tablesData[selectedTable] ? (
-            <>
-              <div className="sandbox-section-header">
-                <h2>{selectedTable}</h2>
-              </div>
+        <div className="sandbox-card sandbox-sidebar-box">
+          <h2>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="sandbox-header-icon"><path d="M2 12h20"/><path d="M2 12l5-5"/><path d="M2 12l5 5"/><path d="M22 12l-5-5"/><path d="M22 12l-5 5"/></svg>
+            Jak to działa?
+          </h2>
+          <ol>
+            <li>Napisz zapytanie SQL</li>
+            <li>Wykonaj zapytanie</li>
+            <li>Zobacz wyniki</li>
+          </ol>
 
-              <div className="sandbox-structure">
-                <h3>Struktura tabeli</h3>
-                <table className="sandbox-table">
-                  <thead>
-                    <tr>
-                      <th>Kolumna</th>
-                      <th>Typ</th>
-                      <th>Nulowalna</th>
-                      <th>Klucz główny</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tablesData[selectedTable].structure.map((col, idx) => (
-                      <tr key={idx}>
-                        <td><strong>{col.column_name}</strong></td>
-                        <td><code>{col.data_type}</code></td>
-                        <td>{col.is_nullable === 'YES' ? 'Tak' : 'Nie'}</td>
-                        <td>{col.is_primary_key ? '✓' : '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="sandbox-header-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Przykładowe zapytania
+          </h3>
+          {examples.map((ex, i) => (
+            <button className="sandbox-example-btn" key={i}>{ex}</button>
+          ))}
+        </div>
 
-              <div className="sandbox-data">
-                <h3>Dane ({tablesData[selectedTable].data.length} wierszy)</h3>
-                {tablesData[selectedTable].data.length > 0 ? (
-                  <div className="sandbox-table-wrapper">
-                    <table className="sandbox-table">
-                      <thead>
-                        <tr>
-                          {Object.keys(tablesData[selectedTable].data[0]).map(key => (
-                            <th key={key}>{key}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tablesData[selectedTable].data.map((row, idx) => (
-                          <tr key={idx}>
-                            {Object.values(row).map((val, valIdx) => (
-                              <td key={valIdx}>
-                                {val === null ? (
-                                  <span className="null-value">NULL</span>
-                                ) : typeof val === 'object' ? (
-                                  <code>{JSON.stringify(val)}</code>
-                                ) : String(val)}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="sandbox-empty">Brak danych w tabeli</p>
-                )}
-              </div>
-            </>
+        <div className="sandbox-card sandbox-results-card">
+          <div className="sandbox-card-header">
+            <div className="sandbox-tabs">
+              <button
+                className={`sandbox-tab ${resultsView === 'structure' ? 'sandbox-tab-active' : ''}`}
+                onClick={() => setResultsView('structure')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                Struktura
+              </button>
+              <button
+                className={`sandbox-tab ${resultsView === 'results' ? 'sandbox-tab-active' : ''}`}
+                onClick={() => setResultsView('results')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h20"/><path d="M2 9h20"/><path d="M2 15h20"/><path d="M2 21h20"/><path d="M6 3v18"/><path d="M12 3v18"/><path d="M18 3v18"/></svg>
+                Wyniki
+              </button>
+            </div>
+          </div>
+          {resultsView === 'structure' ? (
+            <div className="sandbox-empty-state">
+              <h3>Struktura tabeli pojawi się tutaj</h3>
+              <p>Wybierz tabelę aby zobaczyć jej strukturę</p>
+            </div>
           ) : (
-            <div className="sandbox-placeholder">
-              <div className="sandbox-placeholder-icon">📊</div>
-              <h3>Wybierz tabelę</h3>
-              <p>Kliknij na tabelę w panelu bocznym, aby wyświetlić jej strukturę i dane.</p>
+            <div className="sandbox-empty-state">
+              <h3>Wyniki pojawią się tutaj</h3>
+              <p>Wykonaj zapytanie SQL aby zobaczyć dane w tabeli</p>
             </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Sandbox

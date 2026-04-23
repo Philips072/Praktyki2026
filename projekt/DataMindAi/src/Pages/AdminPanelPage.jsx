@@ -470,7 +470,8 @@ function AdminPanelPage() {
                   Wyświetlono: {filteredUsers.length} z {users.length} użytkowników
                 </div>
 
-                <table className="admin-table">
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
                   <thead>
                     <tr>
                       <th>Imię i nazwisko</th>
@@ -515,13 +516,15 @@ function AdminPanelPage() {
                                 </select>
                               </div>
                             </td>
-                            <td style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <td>
+                              <div className="admin-table-actions">
                                 <button className="admin-btn admin-btn--primary" onClick={handleSaveUser}>
-                                  💾 Zapisz
+                                  <span className="admin-btn-icon">💾</span>
+                                  <span className="admin-btn-text">Zapisz</span>
                                 </button>
                                 <button className="admin-btn" onClick={handleCancelEditUser}>
-                                  ❌ Anuluj
+                                  <span className="admin-btn-icon">❌</span>
+                                  <span className="admin-btn-text">Anuluj</span>
                                 </button>
                               </div>
                             </td>
@@ -546,14 +549,15 @@ function AdminPanelPage() {
                             <td>{u.className || '—'}</td>
                             <td>{formatDate(u.createdAt)}</td>
                             <td>
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <div className="admin-table-actions">
                                 <button
                                   className="admin-btn admin-btn--edit"
                                   onClick={() => handleEditUser(u)}
                                   disabled={u.id === user?.id}
                                   title="Edytuj profil"
                                 >
-                                  ✏️ Edytuj
+                                  <span className="admin-btn-icon">✏️</span>
+                                  <span className="admin-btn-text">Edytuj</span>
                                 </button>
                                 <button
                                   className="admin-btn admin-btn--delete"
@@ -561,7 +565,8 @@ function AdminPanelPage() {
                                   disabled={u.id === user?.id}
                                   title="Usuń użytkownika"
                                 >
-                                  🗑️ Usuń
+                                  <span className="admin-btn-icon">🗑️</span>
+                                  <span className="admin-btn-text">Usuń</span>
                                 </button>
                               </div>
                             </td>
@@ -571,6 +576,7 @@ function AdminPanelPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </>
             )}
           </div>
@@ -642,7 +648,8 @@ function AdminPanelPage() {
             ) : classes.length === 0 && !classFormMode ? (
               <p className="admin-empty">Brak klas. Utwórz pierwszą klasę klikając przycisk "Nowa klasa".</p>
             ) : (
-              <table className="admin-table">
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Nazwa</th>
@@ -660,14 +667,15 @@ function AdminPanelPage() {
                       <td>{cls.studentCount}</td>
                       <td>{cls.createdBy || '—'}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div className="admin-table-actions">
                           <button
                             className="admin-btn admin-btn--edit"
                             onClick={() => handleEditClass(cls)}
                             disabled={profile?.role !== 'administrator' && cls.created_by !== user?.id}
                             title={profile?.role !== 'administrator' && cls.created_by !== user?.id ? 'Tylko twórca lub administrator' : 'Edytuj klasę'}
                           >
-                            ✏️ Edytuj
+                            <span className="admin-btn-icon">✏️</span>
+                            <span className="admin-btn-text">Edytuj</span>
                           </button>
                           <button
                             className="admin-btn admin-btn--delete"
@@ -675,7 +683,8 @@ function AdminPanelPage() {
                             disabled={profile?.role !== 'administrator' && cls.created_by !== user?.id}
                             title={profile?.role !== 'administrator' && cls.created_by !== user?.id ? 'Tylko twórca lub administrator' : 'Usuń klasę'}
                           >
-                            🗑️ Usuń
+                            <span className="admin-btn-icon">🗑️</span>
+                            <span className="admin-btn-text">Usuń</span>
                           </button>
                         </div>
                       </td>
@@ -683,6 +692,7 @@ function AdminPanelPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         )}

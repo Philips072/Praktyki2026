@@ -217,9 +217,12 @@ function ClassStudentsModal({ classId, className, onClose, onManageStudents, all
     // Exclude students already in this class
     if (allCurrentStudentIds.includes(student.id)) return false
 
-    // Exclude students who already have a class assigned (either in profiles or class_students)
+    // Exclude students who already have a class assigned in profiles
     if (student.classId) return false
-    if (student.assignedClasses && student.assignedClasses.length > 0) return false
+
+    // Exclude students who have a class in class_students (any class)
+    const hasClassInTable = classStudentsData.some(cs => cs.student_id === student.id)
+    if (hasClassInTable) return false
 
     return true
   })

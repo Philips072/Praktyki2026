@@ -20,73 +20,26 @@ function TeacherPanelPage() {
     setStudentsLoading(true)
     setStudentsError(null)
 
-    // Pobierz uczniów z ich przypisaniami do klas (z tabeli class_students)
+    // Pobierz wszystkich uczniów bez wymagania przypisania do klasy
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        name,
-        sql_level,
-        class_id,
-        classes(name),
-        class_students!inner(
-          class_id,
-          classes!inner(name)
-        )
-      `)
+      .select('id, name, sql_level, class_id, classes(name)')
       .eq('role', 'uczen')
       .order('name', { ascending: true })
 
-    if (error) {
-      // Jeśli zapytanie z joinem nie zadziała (brak przypisań), pobierz wszystkich uczniów
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('profiles')
-        .select('id, name, sql_level, class_id, classes(name)')
-        .eq('role', 'uczen')
-        .order('name', { ascending: true })
+    if (error) { setStudentsError(error.message); setStudentsLoading(false); return }
 
-      if (fallbackError) { setStudentsError(fallbackError.message); setStudentsLoading(false); return }
-
-      const studentsList = (fallbackData ?? []).map(p => ({
-        id:             p.id,
-        name:           p.name ?? 'Brak nazwy',
-        level:          p.sql_level ?? 'beginner',
-        lastActive:     '—',
-        completedTasks:  0,
-        totalAssigned:  0,
-        errors:         [],
-        className:      p.classes?.name || null,
-        classId:        p.class_id || null,
-      }))
-
-      setAllStudents(studentsList)
-      setStudentsLoading(false)
-      return
-    }
-
-    const studentsList = (data ?? []).map(p => {
-      // Pobierz przypisane klasy z class_students (może być kilka)
-      const assignedClasses = p.class_students?.map(cs => ({
-        id: cs.class_id,
-        name: cs.classes?.name
-      })) || []
-
-      // Użyj pierwszej przypisanej klasy lub class_id z profiles
-      const primaryClass = assignedClasses[0] || null
-
-      return {
-        id:             p.id,
-        name:           p.name ?? 'Brak nazwy',
-        level:          p.sql_level ?? 'beginner',
-        lastActive:     '—',
-        completedTasks:  0,
-        totalAssigned:  0,
-        errors:         [],
-        className:      primaryClass?.name || p.classes?.name || null,
-        classId:        primaryClass?.id || p.class_id || null,
-        assignedClasses // Zachowaj wszystkie przypisane klasy
-      }
-    })
+    const studentsList = (data ?? []).map(p => ({
+      id:             p.id,
+      name:           p.name ?? 'Brak nazwy',
+      level:          p.sql_level ?? 'beginner',
+      lastActive:     '—',
+      completedTasks:  0,
+      totalAssigned:  0,
+      errors:         [],
+      className:      p.classes?.name || null,
+      classId:        p.class_id || null,
+    }))
 
     setAllStudents(studentsList)
     setStudentsLoading(false)
@@ -278,19 +231,27 @@ function TeacherPanelPage() {
 
   // Oblicz statystyki klasy na podstawie rzeczywistych danych uczniów
   const calculateClassStats = () => {
-    const studentsWithStats = allStudents.filter(s => s.avgScore !== undefined)
-
     const totalStudents = allStudents.length
-    const avgScore = studentsWithStats.length > 0
-      ? Math.round(studentsWithStats.reduce((sum, s) => sum + (s.avgScore || 0), 0) / studentsWithStats.length)
+
+    // Średnia liczba ukończonych zadań (zamiast nieistniejącego avgScore)
+    const studentsWithTasks = allStudents.filter(s => s.completedTasks > 0)
+    const avgCompletedTasks = studentsWithTasks.length > 0
+      ? Math.round(studentsWithTasks.reduce((sum, s) => sum + s.completedTasks, 0) / studentsWithTasks.length)
       : 0
 
-    // Utwórz ranking uczniów według średniego wyniku
-    const ranking = studentsWithStats
+    // Procent ukończonych zadań względem wszystkich przypisanych
+    const totalAssigned = allStudents.reduce((sum, s) => sum + (s.totalAssigned || 0), 0)
+    const totalCompleted = allStudents.reduce((sum, s) => sum + (s.completedTasks || 0), 0)
+    const completionRate = totalAssigned > 0
+      ? Math.round((totalCompleted / totalAssigned) * 100)
+      : 0
+
+    // Utwórz ranking uczniów według liczby ukończonych zadań
+    const ranking = allStudents
       .filter(s => s.completedTasks > 0)
       .map(s => ({
         name: s.name,
-        points: s.avgScore || 0
+        points: s.completedTasks
       }))
       .sort((a, b) => b.points - a.points)
       .slice(0, 10) // Top 10
@@ -300,9 +261,17 @@ function TeacherPanelPage() {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     const weeklyTasks = allStudents.reduce((sum, s) => {
       if (s.lastActive && s.lastActive !== '—') {
-        const lastActiveDate = new Date(s.lastActive.split('.').reverse().join('-'))
-        if (lastActiveDate >= weekAgo) {
-          return sum + s.completedTasks
+        try {
+          // Parsowanie daty w formacie DD.MM.YYYY
+          const parts = s.lastActive.split('.')
+          if (parts.length === 3) {
+            const lastActiveDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`)
+            if (!isNaN(lastActiveDate.getTime()) && lastActiveDate >= weekAgo) {
+              return sum + s.completedTasks
+            }
+          }
+        } catch (e) {
+          console.error('Błąd parsowania daty:', e)
         }
       }
       return sum
@@ -310,7 +279,8 @@ function TeacherPanelPage() {
 
     return {
       totalStudents,
-      avgScore,
+      avgScore: completionRate, // Zmienione na wskaźnik ukończenia
+      avgCompletedTasks, // Nowa metryka: średnia liczba ukończonych zadań
       weeklyTasks,
       ranking,
       commonErrors: [] // Placeholder - do zaimplementowania po dodaniu tabeli błędów
@@ -322,9 +292,11 @@ function TeacherPanelPage() {
   // Filtrowanie uczniów według klasy
   const filteredStudents = selectedClassId
     ? allStudents.filter(s => {
-        // Sprawdź czy uczeń ma przypisaną klasę w primary class_id lub w assignedClasses
+        // Sprawdź czy uczeń ma przypisaną klasę w primary class_id lub w class_students
         const hasPrimaryClass = String(s.classId) === String(selectedClassId)
-        const hasAssignedClass = s.assignedClasses?.some(ac => String(ac.id) === String(selectedClassId))
+        const hasAssignedClass = classStudentsData.some(
+          cs => String(cs.class_id) === String(selectedClassId) && cs.student_id === s.id
+        )
         return hasPrimaryClass || hasAssignedClass
       })
     : allStudents

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './AiChat.css';
@@ -15,10 +15,40 @@ Pomagam w nauce SQL i analizie danych. Możesz mnie zapytać o podstawy, zaawans
 ];
 
 function AiChat() {
-  const [messages, setMessages] = useState(initialMessages);
+  // Inicjalizuj stan z localStorage od razu
+  const [messages, setMessages] = useState(() => {
+    try {
+      const savedMessages = localStorage.getItem('aichat_messages');
+      if (savedMessages) {
+        const parsed = JSON.parse(savedMessages);
+        if (parsed && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Błąd podczas wczytywania historii:', e);
+    }
+    return initialMessages;
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const isFirstRender = useRef(true);
+
+  // Zapisuj historię do localStorage przy każdej zmianie (ale nie przy pierwszym renderze)
+  useEffect(() => {
+    if (!isFirstRender.current) {
+      localStorage.setItem('aichat_messages', JSON.stringify(messages));
+    } else {
+      isFirstRender.current = false;
+    }
+  }, [messages]);
+
+  const startNewConversation = () => {
+    setMessages(initialMessages);
+    setInput('');
+    setError(null);
+  };
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -82,10 +112,18 @@ function AiChat() {
   return (
     <div className="aichat-page">
 
-      
+
       <div className="aichat-header">
-        <h1 className="aichat-title">AI Chat</h1>
-        <p className="aichat-subtitle">tytul</p>
+        <div>
+          <h1 className="aichat-title">AI Chat</h1>
+          <p className="aichat-subtitle">Zapytaj Twojego asystenta AI o cokolwiek</p>
+        </div>
+        <button className="aichat-new-chat-btn" onClick={startNewConversation}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fcf6f3"/>
+          </svg>
+          Nowa konwersacja
+        </button>
       </div>
 
       <div className="aichat-box">

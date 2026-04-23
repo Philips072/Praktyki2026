@@ -1,0 +1,483 @@
+.test-solve-page {
+  min-height: 100vh;
+  background-color: var(--primaryBg);
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+}
+
+/* ── Loading & Error States ─────────────────────────────────────────────────────── */
+.test-solve-loading,
+.test-solve-error,
+.test-solve-completed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.test-solve-error svg,
+.test-solve-completed svg {
+  width: 80px;
+  height: 80px;
+  color: var(--secondaryText);
+}
+
+.test-solve-completed svg {
+  color: #2fa05e;
+}
+
+.test-solve-completed h1 {
+  font-family: VennBold, sans-serif;
+  color: var(--primaryText);
+}
+
+.test-solve-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.test-solve-score-value {
+  font-family: VennBold, sans-serif;
+  font-size: 3rem;
+  color: #2fa05e;
+}
+
+.test-solve-score-label {
+  font-size: 1rem;
+  color: var(--secondaryText);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--borderColor);
+  border-top-color: var(--accentColor);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--borderColor);
+  border-top-color: var(--primaryText);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.test-solve-error h2 {
+  font-family: VennBold, sans-serif;
+  color: #e07575;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+.test-solve-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--borderColor);
+  background-color: var(--containerBoxBg);
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  color: var(--secondaryText);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: VennRegular, sans-serif;
+}
+
+.btn-back:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.btn-back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.test-solve-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background-color: #ffa500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Content ────────────────────────────────────────────────────────────────── */
+.test-solve-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Test Info Card ────────────────────────────────────────────────────────── */
+.test-info-card {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.test-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.5rem;
+  color: var(--primaryText);
+  margin: 0 0 1rem 0;
+}
+
+.test-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-family: VennBold, sans-serif;
+  font-size: 0.8rem;
+}
+
+.badge-easy {
+  background-color: rgba(49, 116, 80, 0.2);
+  color: #9dffb4;
+}
+
+.badge-medium {
+  background-color: rgba(119, 100, 50, 0.2);
+  color: #ffd9a0;
+}
+
+.badge-hard {
+  background-color: rgba(119, 50, 50, 0.2);
+  color: #ffb4b4;
+}
+
+.tag {
+  background-color: var(--inactiveBlueBtn);
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--secondaryText);
+}
+
+.test-description {
+  background-color: var(--inputBg);
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 3px solid var(--accentColor);
+}
+
+.test-description h3 {
+  font-family: VennBold, sans-serif;
+  font-size: 0.95rem;
+  color: var(--secondaryText);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.test-description p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--primaryText);
+}
+
+/* ── SQL Editor Card ───────────────────────────────────────────────────────── */
+.sql-editor-card {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sql-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background-color: var(--sidebarBg);
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.sql-editor-header h3 {
+  font-family: VennBold, sans-serif;
+  font-size: 0.9rem;
+  color: var(--secondaryText);
+  margin: 0;
+}
+
+.btn-run {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background-color: var(--accentColor);
+  border: none;
+  border-radius: 8px;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-run:hover:not(:disabled) {
+  background-color: var(--btnHoverBlue);
+}
+
+.btn-run:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-run svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sql-editor {
+  width: 100%;
+  min-height: 300px;
+  padding: 1.25rem;
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  border: none;
+  resize: vertical;
+  outline: none;
+}
+
+.sql-editor:focus {
+  box-shadow: inset 0 0 0 2px var(--accentColor);
+}
+
+.sql-editor::placeholder {
+  color: #666;
+}
+
+.sql-editor:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #252540;
+}
+
+.sql-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem;
+  background-color: var(--sidebarBg);
+  border-top: 1px solid var(--borderColor);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--secondaryText);
+}
+
+/* ── Result Panel ─────────────────────────────────────────────────────────── */
+.result-panel {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.result-success {
+  border-left: 3px solid #2fa05e;
+}
+
+.result-error {
+  border-left: 3px solid #e07575;
+}
+
+.result-panel h4 {
+  font-family: VennBold, sans-serif;
+  font-size: 0.9rem;
+  color: var(--primaryText);
+  margin: 0 0 1rem 0;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+}
+
+.result-table thead {
+  background-color: var(--sidebarBg);
+}
+
+.result-table th {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  font-family: VennBold, sans-serif;
+  color: var(--secondaryText);
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.result-table td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--borderColor);
+  color: var(--primaryText);
+}
+
+.result-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.error-message {
+  color: #e07575;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── Submit Section ─────────────────────────────────────────────────────────── */
+.submit-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+}
+
+.btn-submit {
+  padding: 0.75rem 2rem;
+  background-color: #2fa05e;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: VennBold, sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #258b4a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(47, 160, 94, 0.3);
+}
+
+.submit-hint {
+  font-size: 0.8rem;
+  color: var(--secondaryText);
+  text-align: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: VennRegular, sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--accentColor);
+  border: none;
+  color: var(--primaryText);
+}
+
+.btn-primary:hover {
+  background-color: var(--btnHoverBlue);
+}
+
+.btn-secondary {
+  background: none;
+  border: 1px solid var(--borderColor);
+  color: var(--secondaryText);
+}
+
+.btn-secondary:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .test-solve-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .test-solve-content {
+    padding: 1rem;
+  }
+
+  .test-info-card,
+  .sql-editor-card,
+  .result-panel,
+  .submit-section {
+    padding: 1rem;
+  }
+
+  .test-title {
+    font-size: 1.2rem;
+  }
+
+  .sql-editor {
+    min-height: 200px;
+    font-size: 0.85rem;
+  }
+
+  .result-table {
+    font-size: 0.75rem;
+  }
+
+  .sql-editor-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .btn-run {
+    justify-content: center;
+  }
+}

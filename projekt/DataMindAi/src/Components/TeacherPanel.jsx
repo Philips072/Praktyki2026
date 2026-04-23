@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import StudentDetail from './StudentDetail'
 import ClassManagement from './ClassManagement'
 import BulkAssignmentModal from './BulkAssignmentModal'
 import StudentSelector from './StudentSelector'
 import CustomSelect from './CustomSelect'
+import GradingSection from './GradingSection'
 import './TeacherPanel.css'
 
 const IconCSV = () => (
@@ -235,38 +237,13 @@ function StudentsSection({
 // ─── Sekcja: Testy ────────────────────────────────────────────────────────
 function TestsSection({
   tests, testsLoading, testsError,
-  students, classes, onCreateTest, onGenerateWithAI, onAssignTest, onBulkAssignTest,
+  students, classes, onAssignTest, onBulkAssignTest, onDeleteTest,
+  isAdmin = false,
 }) {
-  const [formMode, setFormMode] = useState(null) // null | 'manual' | 'ai'
-  const [saving, setSaving] = useState(false)
+  const navigate = useNavigate()
   const [assignModal, setAssignModal] = useState(null) // id testu do przypisania
   const [bulkAssignModal, setBulkAssignModal] = useState(null) // id testu do masowego przypisania
   const [assignedIds, setAssignedIds] = useState([])   // uczniowie już przypisani w tej sesji
-
-  const [manualForm, setManualForm] = useState({
-    title: '', description: '', expectedSql: '', difficulty: 'easy', skill: '',
-  })
-  const [aiForm, setAiForm] = useState({ skill: '', difficulty: 'easy', count: 1 })
-
-  const difficultyLabel = { easy: 'Łatwy', medium: 'Średni', hard: 'Trudny' }
-
-  const resetManual = () => setManualForm({ title: '', description: '', expectedSql: '', difficulty: 'easy', skill: '' })
-
-  const handleManualSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    await onCreateTest(manualForm)
-    resetManual()
-    setFormMode(null)
-    setSaving(false)
-  }
-
-  const handleAiSubmit = (e) => {
-    e.preventDefault()
-    onGenerateWithAI(aiForm.skill, aiForm.difficulty, Number(aiForm.count))
-    setAiForm({ skill: '', difficulty: 'easy', count: 1 })
-    setFormMode(null)
-  }
 
   const handleAssign = async (studentId) => {
     await onAssignTest(assignModal, studentId)
@@ -290,132 +267,13 @@ function TestsSection({
         </h2>
         <div className="tp-section-actions">
           <button
-            className={`tp-btn tp-btn--primary ${formMode === 'manual' ? 'tp-btn--active' : ''}`}
-            onClick={() => setFormMode(formMode === 'manual' ? null : 'manual')}
+            className="tp-btn tp-btn--primary"
+            onClick={() => navigate('/kreator-testow')}
           >
-            + Utwórz ręcznie
-          </button>
-          <button
-            className={`tp-btn tp-btn--ai ${formMode === 'ai' ? 'tp-btn--active' : ''}`}
-            onClick={() => setFormMode(formMode === 'ai' ? null : 'ai')}
-          >
-            ✦ Wygeneruj przez AI
+            + Utwórz test
           </button>
         </div>
       </div>
-
-      {/* Formularz ręcznego tworzenia testu */}
-      {formMode === 'manual' && (
-        <form className="tp-form tp-card" onSubmit={handleManualSubmit}>
-          <h3 className="tp-form-title">Nowy test</h3>
-          <div className="tp-form-group">
-            <label className="tp-label">Nazwa testu</label>
-            <input
-              className="tp-input"
-              value={manualForm.title}
-              onChange={e => setManualForm({ ...manualForm, title: e.target.value })}
-              placeholder="np. Test umiejętności JOIN"
-              required
-            />
-          </div>
-          <div className="tp-form-group">
-            <label className="tp-label">Opis / instrukcja dla ucznia</label>
-            <textarea
-              className="tp-input tp-textarea"
-              value={manualForm.description}
-              onChange={e => setManualForm({ ...manualForm, description: e.target.value })}
-              placeholder="Opisz jaką umiejętność SQL sprawdza ten test i co uczeń ma wykonać…"
-              rows={4}
-              required
-            />
-          </div>
-          <div className="tp-form-group">
-            <label className="tp-label">Oczekiwane zapytanie SQL</label>
-            <textarea
-              className="tp-input tp-textarea tp-textarea--code"
-              value={manualForm.expectedSql}
-              onChange={e => setManualForm({ ...manualForm, expectedSql: e.target.value })}
-              placeholder="SELECT * FROM tabela WHERE ..."
-              rows={3}
-              spellCheck={false}
-            />
-          </div>
-          <div className="tp-form-row">
-            <div className="tp-form-group">
-              <label className="tp-label">Poziom trudności</label>
-              <CustomSelect
-                options={[
-                  { value: 'easy', label: 'Łatwy' },
-                  { value: 'medium', label: 'Średni' },
-                  { value: 'hard', label: 'Trudny' }
-                ]}
-                value={manualForm.difficulty}
-                onChange={val => setManualForm({ ...manualForm, difficulty: val })}
-              />
-            </div>
-            <div className="tp-form-group">
-              <label className="tp-label">Sprawdzana umiejętność</label>
-              <input
-                className="tp-input"
-                value={manualForm.skill}
-                onChange={e => setManualForm({ ...manualForm, skill: e.target.value })}
-                placeholder="np. JOIN, GROUP BY, podzapytania…"
-              />
-            </div>
-          </div>
-          <div className="tp-form-actions">
-            <button type="submit" className="tp-btn tp-btn--primary" disabled={saving}>
-              {saving ? 'Zapisywanie…' : 'Zapisz test'}
-            </button>
-            <button type="button" className="tp-btn tp-btn--ghost" onClick={() => { resetManual(); setFormMode(null) }}>
-              Anuluj
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* Formularz generowania testów przez AI */}
-      {formMode === 'ai' && (
-        <form className="tp-form tp-card tp-form--ai" onSubmit={handleAiSubmit}>
-          <h3 className="tp-form-title">✦ Generuj testy przez AI</h3>
-          <div className="tp-form-row">
-            <div className="tp-form-group">
-              <label className="tp-label">Umiejętność do sprawdzenia</label>
-              <input
-                className="tp-input"
-                value={aiForm.skill}
-                onChange={e => setAiForm({ ...aiForm, skill: e.target.value })}
-                placeholder="np. GROUP BY, podzapytania…"
-                required
-              />
-            </div>
-            <div className="tp-form-group">
-              <label className="tp-label">Poziom trudności</label>
-              <CustomSelect
-                options={[
-                  { value: 'easy', label: 'Łatwy' },
-                  { value: 'medium', label: 'Średni' },
-                  { value: 'hard', label: 'Trudny' }
-                ]}
-                value={aiForm.difficulty}
-                onChange={val => setAiForm({ ...aiForm, difficulty: val })}
-              />
-            </div>
-            <div className="tp-form-group">
-              <label className="tp-label">Liczba testów</label>
-              <input
-                className="tp-input" type="number" min={1} max={10}
-                value={aiForm.count}
-                onChange={e => setAiForm({ ...aiForm, count: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="tp-form-actions">
-            <button type="submit" className="tp-btn tp-btn--ai">Generuj</button>
-            <button type="button" className="tp-btn tp-btn--ghost" onClick={() => setFormMode(null)}>Anuluj</button>
-          </div>
-        </form>
-      )}
 
       {/* Stany ładowania / błędu */}
       {testsLoading && <p className="tp-status-msg tp-status-msg--loading">Ładowanie testów…</p>}
@@ -432,9 +290,6 @@ function TestsSection({
               <div className="tp-exercise-info">
                 <span className="tp-exercise-title">{test.title}</span>
                 <div className="tp-exercise-meta">
-                  <span className={`tp-badge tp-badge--difficulty-${test.difficulty}`}>
-                    {difficultyLabel[test.difficulty] || test.difficulty}
-                  </span>
                   {test.skill && <span className="tp-text-secondary">{test.skill}</span>}
                   <span className="tp-text-secondary">{formatDate(test.created_at)}</span>
                 </div>
@@ -451,6 +306,12 @@ function TestsSection({
                   onClick={() => handleBulkAssign(test.id)}
                 >
                   Przypisz masowo
+                </button>
+                <button
+                  className="tp-btn tp-btn--ghost tp-btn--sm tp-btn--danger"
+                  onClick={() => onDeleteTest(test.id)}
+                >
+                  Usuń
                 </button>
               </div>
             </div>
@@ -598,10 +459,9 @@ function TeacherPanel({
   classesError,
   selectedClassId,
   onFilterByClass,
-  onCreateTest,
-  onGenerateWithAI,
   onAssignTest,
   onBulkAssignTest,
+  onDeleteTest,
   onCreateClass,
   onUpdateClass,
   onDeleteClass,
@@ -617,6 +477,7 @@ function TeacherPanel({
   const TABS = [
     { id: 'students', label: 'Lista uczniów' },
     { id: 'tests',    label: 'Testy' },
+    { id: 'grading',  label: 'Ocena' },
     { id: 'classes',  label: 'Zarządzanie klasami' },
     { id: 'stats',    label: 'Statystyki klasy' },
   ]
@@ -662,12 +523,13 @@ function TeacherPanel({
             testsError={testsError}
             students={students}
             classes={classes}
-            onCreateTest={onCreateTest}
-            onGenerateWithAI={onGenerateWithAI}
             onAssignTest={onAssignTest}
             onBulkAssignTest={onBulkAssignTest}
+            onDeleteTest={onDeleteTest}
+            isAdmin={isAdmin}
           />
         )}
+        {activeTab === 'grading' && <GradingSection />}
         {activeTab === 'classes' && (
           <ClassManagement
             classes={classes}

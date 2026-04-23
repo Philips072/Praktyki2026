@@ -1,11 +1,13 @@
 import './Test.css'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { toast } from 'react-toastify'
 
 function Test() {
   const { user, profile } = useAuth()
+  const navigate = useNavigate()
   const [assignments, setAssignments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -29,7 +31,6 @@ function Test() {
             id,
             title,
             description,
-            difficulty,
             skill,
             expected_sql
           )
@@ -55,13 +56,12 @@ function Test() {
     try {
       const { error } = await supabase
         .from('assignments')
-        .update({ status: 'in_progress', started_at: new Date().toISOString() })
+        .update({ status: 'in_progress' })
         .eq('id', assignmentId)
 
       if (error) throw error
 
-      toast.success('Test rozpoczęty!')
-      fetchAssignments()
+      navigate(`/testy/${assignmentId}`)
     } catch (err) {
       toast.error('Błąd rozpoczynania testu: ' + err.message)
     }
@@ -104,15 +104,6 @@ function Test() {
         {config.label}
       </span>
     )
-  }
-
-  const getDifficultyColor = (difficulty) => {
-    const colors = {
-      latwy: 'test-difficulty-easy',
-      sredni: 'test-difficulty-medium',
-      trudny: 'test-difficulty-hard'
-    }
-    return colors[difficulty] || 'test-difficulty-unknown'
   }
 
   if (loading) {
@@ -223,11 +214,6 @@ function Test() {
                   <h3>{assignment.tests?.title || 'Bez tytułu'}</h3>
                   {getStatusBadge(assignment.status)}
                 </div>
-                {assignment.tests?.difficulty && (
-                  <span className={`test-difficulty-badge ${getDifficultyColor(assignment.tests.difficulty)}`}>
-                    {assignment.tests.difficulty.charAt(0).toUpperCase() + assignment.tests.difficulty.slice(1)}
-                  </span>
-                )}
               </div>
 
               {assignment.tests?.description && (
@@ -316,16 +302,19 @@ function Test() {
 
                 {assignment.status === 'in_progress' && (
                   <button
-                    onClick={() => handleCompleteTest(assignment.id)}
+                    onClick={() => navigate(`/testy/${assignment.id}`)}
                     className="test-btn test-btn-success"
                   >
-                    Zakończ test
+                    Kontynuuj test
                   </button>
                 )}
 
                 {assignment.status === 'completed' && (
-                  <button className="test-btn test-btn-secondary" disabled>
-                    Ukończono
+                  <button
+                    onClick={() => navigate(`/testy/${assignment.id}`)}
+                    className="test-btn test-btn-secondary"
+                  >
+                    Zobacz wynik
                   </button>
                 )}
               </div>

@@ -3,8 +3,6 @@ import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import './AssignedTests.css'
 
-const DIFFICULTY_LABEL = { easy: 'Łatwy', medium: 'Średni', hard: 'Trudny' }
-
 function AssignedTests() {
   const { user } = useAuth()
   const [assignments, setAssignments] = useState([])
@@ -21,7 +19,7 @@ function AssignedTests() {
       // Pobierz przypisania bieżącego ucznia wraz z danymi testu (JOIN przez klucz obcy)
       const { data, error } = await supabase
         .from('assignments')
-        .select('id, status, assigned_at, tests(id, title, description, difficulty, skill)')
+        .select('id, status, assigned_at, tests(id, title, description, skill)')
         .eq('student_id', user.id)
         .order('assigned_at', { ascending: false })
 
@@ -86,11 +84,6 @@ function AssignedTests() {
                 <div className="at-item-meta">
                   {test?.skill && (
                     <span className="at-meta-tag">{test.skill}</span>
-                  )}
-                  {test?.difficulty && (
-                    <span className={`at-meta-tag at-meta-tag--${test.difficulty}`}>
-                      {DIFFICULTY_LABEL[test.difficulty] ?? test.difficulty}
-                    </span>
                   )}
                   <span className="at-meta-date">Przypisano: {formatDate(assigned_at)}</span>
                 </div>

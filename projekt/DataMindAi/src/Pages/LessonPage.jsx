@@ -99,7 +99,7 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavigateToFirst, firstUncompletedExerciseId, completed }) {
+function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavigateToFirst, firstUncompletedExerciseId, completed, isLessonOne }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
 
@@ -111,19 +111,23 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
   const isDisabled = isLocked || isCompleted
   const isFinalTask = exercise.id === 9
 
-  // Określ komunikat w zależności od zadania
+  // Określ komunikat w zależności od zadania (tylko dla lekcji 1)
   let warningText = ''
-  if (isFinalTask) {
-    warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz poprzednich zadań (1, 3-8).'
-  } else if (exercise.id === 2) {
-    warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadania nr 1.'
-  } else {
-    warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadań nr 1 i 2.'
+  if (isLessonOne) {
+    if (isFinalTask) {
+      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz poprzednich zadań (1, 3-8).'
+    } else if (exercise.id === 2) {
+      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadania nr 1.'
+    } else if (exercise.id === 6) {
+      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadań nr 1, 2 i 3.'
+    } else {
+      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadań nr 1 i 2.'
+    }
   }
 
   return (
     <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
-      {isLocked && (
+      {isLocked && isLessonOne && (
         <div className="ls-locked-warning">
           <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="2" fill="rgba(249, 115, 22, 0.15)"/>
@@ -275,12 +279,22 @@ function LessonPage() {
 
   const completedCount = completed.size
 
+  const isLessonOne = lesson.id === 1
+
   const isExerciseLocked = (exerciseIndex) => {
+    // Zabezpieczenia tylko dla lekcji 1
+    if (!isLessonOne) return false
+
     const exId = lesson.exercises[exerciseIndex].id
 
     if (exId === 1) return false
     if (exId === 2) return !completed.has(1)
-    if (exId >= 3 && exId <= 8) return !completed.has(1) || !completed.has(2)
+    if (exId === 3) return !completed.has(1) || !completed.has(2)
+    if (exId === 4) return !completed.has(1) || !completed.has(2) || !completed.has(3)
+    if (exId === 5) return !completed.has(1) || !completed.has(2)
+    if (exId === 6) return !completed.has(1) || !completed.has(2) || !completed.has(3)
+    if (exId === 7) return !completed.has(1) || !completed.has(2)
+    if (exId === 8) return !completed.has(1) || !completed.has(2)
     if (exId === 9) {
       // Zadanie 9 wymaga ukończenia: 1, 3, 4, 5, 6, 7, 8
       const requiredExercises = [1, 3, 4, 5, 6, 7, 8]
@@ -294,6 +308,14 @@ function LessonPage() {
 
   const findFirstUncompletedExercise = () => {
     const index = lesson.exercises.findIndex(ex => !completed.has(ex.id))
+
+    // Jeśli na zadaniu 6 i jest zablokowane, zwróć pierwsze nieukończone z 1, 2, 3
+    if (activeExercise === 5 && index === 5) {
+      if (!completed.has(1)) return 0 // Zadanie 1
+      if (!completed.has(2)) return 1 // Zadanie 2
+      if (!completed.has(3)) return 2 // Zadanie 3
+    }
+
     return index >= 0 ? index : 0
   }
 
@@ -423,18 +445,28 @@ function LessonPage() {
                   const isLocked = isExerciseLocked(i)
                   const exId = ex.id
 
-                  // Pokaż wykrzyknik na nieukończonych zadaniach zależnie od tego gdzie jest użytkownik
+                  // Pokaż wykrzyknik na nieukończonych zadaniach zależnie od tego gdzie jest użytkownik (tylko dla lekcji 1)
                   let showWarning = false
 
-                  if (activeExercise === 1 && exId === 1 && !completed.has(1)) {
+                  if (isLessonOne && activeExercise === 1 && exId === 1 && !completed.has(1)) {
                     // Na zadaniu 2 - pokaż wykrzyknik na 1 jeśli nieukończone
                     showWarning = true
-                  } else if (activeExercise >= 2 && activeExercise <= 7) {
-                    // Na zadaniach 3-8 - pokaż wykrzykniki na nieukończonych 1 i 2
+                  } else if (isLessonOne && activeExercise >= 2 && activeExercise <= 4) {
+                    // Na zadaniach 3-5 - pokaż wykrzykniki na nieukończonych 1 i 2
                     if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2))) {
                       showWarning = true
                     }
-                  } else if (activeExercise === 8) {
+                  } else if (isLessonOne && activeExercise === 5) {
+                    // Na zadaniu 6 - pokaż wykrzykniki na nieukończonych 1, 2, 3 (każdy osobno)
+                    if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2)) || (exId === 3 && !completed.has(3))) {
+                      showWarning = true
+                    }
+                  } else if (isLessonOne && activeExercise >= 6 && activeExercise <= 7) {
+                    // Na zadaniach 7-8 - pokaż wykrzykniki na nieukończonych 1 i 2
+                    if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2))) {
+                      showWarning = true
+                    }
+                  } else if (isLessonOne && activeExercise === 8) {
                     // Na zadaniu 9 - pokaż wykrzykniki na nieukończonych 1, 3-8
                     if (((exId === 1 && !completed.has(1)) || (exId >= 3 && exId <= 8 && !completed.has(exId)))) {
                       showWarning = true
@@ -471,6 +503,7 @@ function LessonPage() {
                 onNavigateToFirst={handleNavigateToFirstUncompleted}
                 firstUncompletedExerciseId={firstUncompletedExerciseId}
                 completed={completed}
+                isLessonOne={isLessonOne}
               />
             </>
           )}

@@ -99,7 +99,7 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavigateToFirst, firstUncompletedExerciseId, completed, isLessonOne }) {
+function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavigateToFirst, firstUncompletedExerciseId, completed, isLessonOne, isLastExercise, onNextExercise }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
 
@@ -161,14 +161,25 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
 
       <div className="ls-exercise-actions">
         <button
-          className={`ls-btn${isCompleted ? ' ls-btn--done' : ' ls-btn--check'}${isLocked ? ' ls-btn--disabled' : ''}`}
-          onClick={onComplete}
+          className={`ls-btn${isCompleted && !isLastExercise ? ' ls-btn--next' : isCompleted ? ' ls-btn--done' : ' ls-btn--check'}${isLocked ? ' ls-btn--disabled' : ''}`}
+          onClick={isCompleted && !isLastExercise ? onNextExercise : onComplete}
           disabled={isLocked}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          {isCompleted ? 'Ukończone' : 'Sprawdź odpowiedź'}
+          {isCompleted && !isLastExercise ? (
+            <>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Następne zadanie
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {isCompleted ? 'Ukończone' : 'Sprawdź odpowiedź'}
+            </>
+          )}
         </button>
         <button
           className={`ls-btn ls-btn--hint${isLocked ? ' ls-btn--disabled' : ''}`}
@@ -326,6 +337,12 @@ function LessonPage() {
 
   const handleNavigateToFirstUncompleted = () => {
     setActiveExercise(firstUncompletedIndex)
+  }
+
+  const handleNextExercise = () => {
+    if (activeExercise < lesson.exercises.length - 1) {
+      setActiveExercise(activeExercise + 1)
+    }
   }
 
   return (
@@ -498,12 +515,14 @@ function LessonPage() {
                 exercise={lesson.exercises[activeExercise]}
                 isCompleted={completed.has(lesson.exercises[activeExercise].id)}
                 isLocked={isCurrentExerciseLocked}
+                isLastExercise={activeExercise === lesson.exercises.length - 1}
                 onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
                 onReset={() => resetExercise(lesson.exercises[activeExercise].id)}
                 onNavigateToFirst={handleNavigateToFirstUncompleted}
                 firstUncompletedExerciseId={firstUncompletedExerciseId}
                 completed={completed}
                 isLessonOne={isLessonOne}
+                onNextExercise={handleNextExercise}
               />
             </>
           )}

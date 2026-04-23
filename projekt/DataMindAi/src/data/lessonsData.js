@@ -35,6 +35,12 @@ const LESSONS = [
         { type: 'code', label: 'Usuwanie obiektów:', content: '-- Usuwa tabelę:\nDROP TABLE gracze;\n\n-- Usuwa bazę danych:\nDROP DATABASE liga_pilkarska;' },
         { type: 'hint', content: 'DROP jest nieodwracalne! Zawsze sprawdź dwa razy, czy na pewno chcesz usunąć obiekt. Jeśli chcesz tylko usunąć dane, użyj DELETE FROM.' },
 
+        { type: 'heading', content: 'Przeglądanie struktury bazy danych' },
+        { type: 'text', content: 'Po utworzeniu tabel i baz możesz wyświetlić ich strukturę, aby sprawdzić czy wszystko wygląda poprawnie. SQL udostępnia kilka poleceń do tego celu.' },
+        { type: 'code', label: 'Wyświetlanie struktury tabeli:', content: '-- Wyświetla strukturę tabeli (kolumny, typy, ograniczenia):\nDESCRIBE gracze;\n\n-- Skrótowo:\nDESC gracze;' },
+        { type: 'code', label: 'Wyświetlanie listy tabel:', content: '-- Wyświetla wszystkie tabele w aktywnej bazie:\nSHOW TABLES;\n\n-- Wyświetla wszystkie bazy danych:\nSHOW DATABASES;' },
+        { type: 'hint', content: 'DESCRIBE/DESC pokazuje: nazwę kolumny, typ danych, czy pozwala na NULL, klucz, wartość domyślną i dodatkowe informacje.' },
+
         { type: 'heading', content: 'Podstawowe ograniczenia kolumn' },
         { type: 'table', label: 'Ograniczenia (constraints):', columns: ['Ograniczenie', 'Znaczenie'], rows: [['PRIMARY KEY', 'Unikalny identyfikator wiersza — zazwyczaj kolumna id'], ['NOT NULL', 'Kolumna musi mieć wartość — nie może być pusta'], ['AUTO_INCREMENT', 'Automatyczna numeracja — baza nadaje kolejne id'], ['DEFAULT wartość', 'Wartość domyślna, gdy nie podano innej'], ['UNIQUE', 'Wartość musi być unikalna w tej kolumnie']] },
       ],

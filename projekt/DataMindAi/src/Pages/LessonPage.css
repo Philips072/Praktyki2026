@@ -605,6 +605,18 @@
   background: #1a9e50;
 }
 
+.ls-btn--next {
+  flex: 1;
+  background: #1a9e50;
+  color: #fff;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ls-btn--next:hover {
+  background: #158742;
+}
+
 .ls-btn--disabled {
   cursor: not-allowed;
   opacity: 0.5;

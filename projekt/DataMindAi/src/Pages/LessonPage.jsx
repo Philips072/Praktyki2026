@@ -1,9 +1,9 @@
 import './LessonPage.css'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
-import { executeSQL, validateExercise } from '../api.js'
+import { executeSQL, validateExercise, getHint } from '../api.js'
 
 const getUserId = () => {
   const userStr = localStorage.getItem('user')
@@ -111,12 +111,19 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExercise, onNextExercise }) {
-  const [query, setQuery] = useState('')
+function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onReset, isLastExercise, onNextExercise, schema }) {
   const [showHint, setShowHint] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [hint, setHint] = useState('')
+  const [hintLoading, setHintLoading] = useState(false)
+  const [displayedHint, setDisplayedHint] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const typingIntervalRef = useRef(null)
+  const debounceTimerRef = useRef(null)
+  const previousQueryRef = useRef('')
+  const displayedHintRef = useRef('')
 
   const handleReset = () => {
     setQuery('')
@@ -124,6 +131,105 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
     setError('')
     onReset()
   }
+
+  const handleChange = (e) => {
+    const newValue = e.target.value
+    setQuery(newValue)
+
+    // Automatyczna podpowiedź z debounce (500ms)
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    if (newValue && newValue !== previousQueryRef.current) {
+      debounceTimerRef.current = setTimeout(async () => {
+        if (newValue.trim() && newValue !== previousQueryRef.current) {
+          try {
+            setHintLoading(true)
+            setShowHint(true)
+            // Resetuj ref przy nowej podpowiedzi
+            displayedHintRef.current = ''
+            setDisplayedHint('')
+            const response = await getHint(exercise.task, newValue, schema)
+            setHint(response.hint)
+            previousQueryRef.current = newValue
+          } catch (e) {
+            console.error('Błąd pobierania podpowiedzi:', e)
+          } finally {
+            setHintLoading(false)
+          }
+        }
+      }, 800)
+    } else if (!newValue) {
+      setShowHint(false)
+      setHint('')
+      displayedHintRef.current = ''
+      setDisplayedHint('')
+    }
+  }
+
+  const handleHintClick = async () => {
+    if (showHint && hint) {
+      setShowHint(false)
+      return
+    }
+
+    if (!showHint) {
+      setShowHint(true)
+    }
+
+    if (!hint) {
+      setHintLoading(true)
+      try {
+        displayedHintRef.current = ''
+        setDisplayedHint('')
+        const response = await getHint(exercise.task, query, schema)
+        setHint(response.hint)
+        previousQueryRef.current = query
+      } catch (e) {
+        setError(`Błąd pobierania podpowiedzi: ${e.message}`)
+      } finally {
+        setHintLoading(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (hint && showHint) {
+      // Resetuj ref i stan
+      displayedHintRef.current = ''
+      setDisplayedHint('')
+      setIsTyping(true)
+      let index = 0
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current)
+      }
+      typingIntervalRef.current = setInterval(() => {
+        if (index < hint.length) {
+          displayedHintRef.current = displayedHintRef.current + hint[index]
+          setDisplayedHint(displayedHintRef.current)
+          index++
+        } else {
+          clearInterval(typingIntervalRef.current)
+          setIsTyping(false)
+        }
+      }, 12)
+    }
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current)
+      }
+    }
+  }, [hint, showHint])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
 
   const handleSubmit = async () => {
     if (!query.trim()) return
@@ -145,9 +251,10 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
       console.log('SQL result:', sqlResult)
 
       if (!sqlResult.success) {
-        setError(sqlResult.message)
+        console.error('SQL Error:', sqlResult.message)
         setResult(null)
         setLoading(false)
+        setError('To jeszcze nie to')
         return
       }
 
@@ -161,11 +268,12 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
       if (validation.valid) {
         onComplete()
       } else {
-        setError(`Zadanie wykonane błędnie: ${validation.reason}`)
+        console.error('Validation failed:', validation.reason)
+        setError('To jeszcze nie to')
       }
     } catch (e) {
       console.error('Error:', e)
-      setError(`Błąd: ${e.message}`)
+      setError('To jeszcze nie to')
     } finally {
       setLoading(false)
     }
@@ -183,9 +291,9 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
         className="ls-sql-editor"
         placeholder=""
         value={query}
-        onChange={e => setQuery(e.target.value)}
+        onChange={handleChange}
         spellCheck={false}
-        disabled={loading}
+        disabled={loading || isCompleted}
       />
 
       {error && (
@@ -225,14 +333,15 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
         </button>
         <button
           className="ls-btn ls-btn--hint"
-          onClick={() => setShowHint(p => !p)}
+          onClick={handleHintClick}
+          disabled={hintLoading}
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
             <path d="M12 8v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
             <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
           </svg>
-          Podpowiedź
+          {hintLoading ? 'AI pisze...' : showHint ? 'Ukryj' : 'Podpowiedź'}
         </button>
         {isCompleted && (
           <button
@@ -251,7 +360,18 @@ function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExerci
 
       {showHint && (
         <div className="ls-hint-box">
-          {exercise.hint}
+          {hintLoading ? (
+            <div className="ls-hint-loading">
+              <span className="ls-hint-loading-dot"></span>
+              <span className="ls-hint-loading-dot"></span>
+              <span className="ls-hint-loading-dot"></span>
+            </div>
+          ) : (
+            <span className={isTyping ? 'ls-hint-text ls-hint-text--typing' : 'ls-hint-text'}>
+              {displayedHint || 'AI pisze podpowiedź...'}
+              {isTyping && <span className="ls-hint-cursor"></span>}
+            </span>
+          )}
         </div>
       )}
 
@@ -310,9 +430,33 @@ function LessonPage() {
   const [exercisesOpen, setExercisesOpen] = useState(true)
   const [db, setDb] = useState(null)
   const [dbLoading, setDbLoading] = useState(true)
+  const [userQueries, setUserQueries] = useState({})
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
+  const queriesKey = `lesson_queries_${user?.id}`
+
+  useEffect(() => {
+    if (lesson && user) {
+      const saved = localStorage.getItem(queriesKey)
+      const lessonQueries = saved ? JSON.parse(saved)[lesson.id] || {} : {}
+      setUserQueries(lessonQueries)
+    }
+  }, [lesson, user, queriesKey])
+
+  const currentQuery = lesson?.exercises?.[activeExercise]?.id
+    ? userQueries[lesson.exercises[activeExercise].id] || ''
+    : ''
+
+  const setQuery = (exerciseId, value) => {
+    setUserQueries(prev => {
+      const next = { ...prev, [exerciseId]: value }
+      const saved = JSON.parse(localStorage.getItem(queriesKey) || '{}')
+      saved[lesson.id] = next
+      localStorage.setItem(queriesKey, JSON.stringify(saved))
+      return next
+    })
+  }
 
   useEffect(() => {
     const loadDb = async () => {
@@ -540,6 +684,9 @@ function LessonPage() {
                 key={activeExercise}
                 exercise={lesson.exercises[activeExercise]}
                 db={db}
+                query={currentQuery}
+                setQuery={(value) => setQuery(lesson.exercises[activeExercise].id, value)}
+                schema={lesson.theory.schema}
                 isCompleted={completed.has(lesson.exercises[activeExercise].id)}
                 isLastExercise={activeExercise === lesson.exercises.length - 1}
                 onComplete={() => markComplete(lesson.exercises[activeExercise].id)}

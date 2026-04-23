@@ -61,3 +61,7 @@ export const databaseExists = (userId, lessonId) => post('/api/sqlite/exists', {
 // POST /api/ai/validate-exercise
 // Zwraca { valid: boolean, reason: string }
 export const validateExercise = (task, sql, result) => post('/api/ai/validate-exercise', { task, sql, result });
+
+// POST /api/ai/hint
+// Zwraca { hint: string }
+export const getHint = (task, currentSql, schema) => post('/api/ai/hint', { task, currentSql, schema });

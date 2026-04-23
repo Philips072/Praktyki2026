@@ -219,4 +219,77 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
   }
 });
 
+// POST /api/ai/hint
+// Przyjmuje: { task: string, currentSql: string, schema: { name: string, type: string, desc: string }[] }
+// Zwraca: { hint: string }
+router.post('/hint', async (req, res, next) => {
+  try {
+    const { task, currentSql, schema = [] } = req.body;
+
+    if (!task) {
+      return res.status(400).json({ error: 'Brak wymaganych pól (task).' });
+    }
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
+    }
+
+    const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
+
+    const prompt = `Jesteś asystentem AI pomagającym w rozwiązywaniu ćwiczeń SQL. Daj jedną stopniową podpowiedź.
+
+Treść zadania: "${task}"
+
+Co użytkownik już wpisał: "${currentSql}"
+
+Schemat tabeli:
+${schemaText || 'Brak informacji o schemacie'}
+
+ZASADY:
+1. Daj JEDNĄ konkretną podpowiedź - następną rzecz którą użytkownik powinien zrobić
+2. Może to być słowo kluczowe, kolumna lub krótkie wyjaśnienie co dalej
+3. Jeśli użytkownik nic nie wpisał: zacznij od pierwszego słowa polecenia (np. "Użyj CREATE DATABASE")
+4. Jeśli użytkownik wpisał część: podaj co powinno być następnym krokiem
+5. MAXIMUM 1-2 krótkie zdania, ok. 10-15 słów
+6. Nie dawaj gotowej odpowiedzi ani pełnego kodu
+7. Nie używaj formatowania markdown, tylko zwykły tekst
+
+PRZYKŁADY DOBRYCH ODPOWIEDZI:
+- "Zacznij od CREATE DATABASE"
+- "Teraz podaj nazwę tabeli po FROM"
+- "Dodaj WHERE z warunkiem filtrowania"`
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-4-26b-a4b-it',
+        max_tokens: 150,
+        temperature: 0.5,
+        messages: [
+          { role: 'system', content: prompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.message || 'Błąd OpenRouter API.' });
+    }
+
+    const data = await response.json();
+    const hint = data.choices?.[0]?.message?.content?.trim() || '';
+
+    return res.json({ hint });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

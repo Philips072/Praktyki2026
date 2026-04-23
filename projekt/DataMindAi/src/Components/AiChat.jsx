@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './AiChat.css';
 import { sendChat } from '../api';
 
@@ -101,12 +102,69 @@ function AiChat() {
               <div className={`aichat-bubble ${msg.role === 'ai' ? 'aichat-bubble--ai' : 'aichat-bubble--user'}`}>
                 {msg.role === 'ai' ? (
                   <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       code: ({ node, inline, className, children, ...props }) => {
+                        if (inline) {
+                          return (
+                            <code className="aichat-inline-code" {...props}>
+                              {children}
+                            </code>
+                          );
+                        }
+                        const codeText = String(children).replace(/\n$/, '');
+
+                        // Sprawdź czy kod zawiera tabelę w formacie markdown
+                        if (codeText.includes('|') && codeText.includes('---')) {
+                          const lines = codeText.trim().split('\n').filter(line => line.trim());
+
+                          if (lines.length >= 2) {
+                            const hasSeparator = lines.some(line => line.includes('---'));
+
+                            if (hasSeparator) {
+                              const dataLines = lines.filter(line => !line.includes('---'));
+                              const tableData = dataLines
+                                .map(line => line.split('|').map(cell => cell.trim()).filter(cell => cell !== ''));
+
+                              if (tableData.length >= 1) {
+                                const headers = tableData[0];
+                                const rows = tableData.slice(1);
+
+                                return (
+                                  <div className="aichat-table-wrapper">
+                                    <div className="aichat-table-container">
+                                      <table className="aichat-table">
+                                        <thead className="aichat-table-head">
+                                          <tr className="aichat-table-row">
+                                            {headers.map((header, i) => (
+                                              <th key={i} className="aichat-table-header">{header}</th>
+                                            ))}
+                                          </tr>
+                                        </thead>
+                                        <tbody className="aichat-table-body">
+                                          {rows.map((row, rowIndex) => (
+                                            <tr key={rowIndex} className="aichat-table-row">
+                                              {row.map((cell, cellIndex) => (
+                                                <td key={cellIndex} className="aichat-table-cell">{cell}</td>
+                                              ))}
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            }
+                          }
+                        }
+
                         return (
-                          <code className="aichat-inline-code" {...props}>
-                            {children}
-                          </code>
+                          <pre className="aichat-code-block">
+                            <code className="aichat-inline-code" {...props}>
+                              {children}
+                            </code>
+                          </pre>
                         );
                       },
                       p: ({ children }) => <p className="aichat-line">{children}</p>,

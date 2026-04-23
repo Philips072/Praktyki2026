@@ -131,6 +131,9 @@
   line-height: 1.6;
   color: var(--primaryText);
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .aichat-line:last-child {
@@ -252,6 +255,21 @@
   margin: 0 2px;
   line-height: 1.4;
   letter-spacing: 0.01em;
+}
+
+.aichat-code-block {
+  background-color: rgba(0, 0, 0, 0.35);
+  padding: 1px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  width: fit-content;
+}
+
+.aichat-code-block code {
+  background-color: transparent;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 

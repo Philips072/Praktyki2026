@@ -169,7 +169,7 @@ function TeacherPanelPage() {
 
     const { data, error } = await supabase
       .from('tests')
-      .select('id, title, difficulty, skill, created_at')
+      .select('id, title, skill, created_at')
       .order('created_at', { ascending: false })
 
     if (error) { setTestsError(error.message); setTestsLoading(false); return }
@@ -181,25 +181,9 @@ function TeacherPanelPage() {
 
   // ── Callbacki ─────────────────────────────────────────────────────────────
 
-  const handleCreateTest = async (formData) => {
-    const { error } = await supabase
-      .from('tests')
-      .insert({
-        title:        formData.title,
-        description:  formData.description,
-        expected_sql: formData.expectedSql,
-        difficulty:   formData.difficulty,
-        skill:        formData.skill,
-        created_by:   user.id,
-      })
-
-    if (error) { toast.error('Błąd zapisu testu: ' + error.message); return }
-    fetchTests()
-  }
-
-  const handleGenerateWithAI = (skill, difficulty, count) => {
+  const handleGenerateWithAI = (skill, count) => {
     // TODO: podpiąć pod /api/ai/generate-tests gdy endpoint będzie gotowy
-    console.log('generateWithAI', { skill, difficulty, count })
+    console.log('generateWithAI', { skill, count })
   }
 
   const handleAssignTest = async (testId, studentId) => {
@@ -227,6 +211,55 @@ function TeacherPanelPage() {
   const handleExportResults = (format) => {
     // TODO: GET /api/export?format=csv|pdf
     console.log('exportResults', format)
+  }
+
+  const handleDeleteTest = async (testId) => {
+    try {
+      // Najpierw sprawdź czy test ma aktywne przypisania
+      const { data: assignments } = await supabase
+        .from('assignments')
+        .select('id')
+        .eq('test_id', testId)
+
+      if (assignments && assignments.length > 0) {
+        if (!confirm(`Test ma ${assignments.length} przypisania. Czy na pewno chcesz usunąć test wraz z przypisaniami? Ta operacja jest nieodwracalna.`)) {
+          return
+        }
+      } else {
+        if (!confirm('Czy na pewno chcesz usunąć ten test? Ta operacja jest nieodwracalna.')) {
+          return
+        }
+      }
+
+      // Najpierw usuń przypisania (jeśli istnieją)
+      if (assignments && assignments.length > 0) {
+        const { error: deleteAssignmentsError } = await supabase
+          .from('assignments')
+          .delete()
+          .eq('test_id', testId)
+
+        if (deleteAssignmentsError) {
+          toast.error('Błąd usuwania przypisań: ' + deleteAssignmentsError.message)
+          return
+        }
+      }
+
+      // Usuń test
+      const { error } = await supabase
+        .from('tests')
+        .delete()
+        .eq('id', testId)
+
+      if (error) {
+        toast.error('Błąd usuwania testu: ' + error.message)
+        return
+      }
+
+      toast.success('Test został usunięty.')
+      fetchTests()
+    } catch (error) {
+      toast.error('Błąd usuwania testu: ' + error.message)
+    }
   }
 
   // Oblicz statystyki klasy na podstawie rzeczywistych danych uczniów
@@ -483,10 +516,10 @@ function TeacherPanelPage() {
         classesError={classesError}
         selectedClassId={selectedClassId}
         onFilterByClass={setSelectedClassId}
-        onCreateTest={handleCreateTest}
         onGenerateWithAI={handleGenerateWithAI}
         onAssignTest={handleAssignTest}
         onBulkAssignTest={handleBulkAssignTest}
+        onDeleteTest={handleDeleteTest}
         onCreateClass={handleCreateClass}
         onUpdateClass={handleUpdateClass}
         onDeleteClass={handleDeleteClass}

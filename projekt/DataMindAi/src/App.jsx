@@ -21,6 +21,8 @@ import MessagesPage from './Pages/MessagesPage'
 import TeacherPanelPage from './Pages/TeacherPanelPage'
 import AdminPanelPage from './Pages/AdminPanelPage'
 import TestPage from './Pages/TestPage'
+import TestSolvePage from './Pages/TestSolvePage'
+import TestCreatorPage from './Pages/TestCreatorPage'
 
 
 function App() {
@@ -43,7 +45,9 @@ function App() {
         <Route path="/ai-chat"      element={<PrivateRoute><AIChatPage /></PrivateRoute>} />
         <Route path="/wiadomosci"   element={<PrivateRoute><MessagesPage /></PrivateRoute>} />
         <Route path="/testy"        element={<PrivateRoute><TestPage /></PrivateRoute>} />
-        <Route path="/ustawienia"          element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
+        <Route path="/testy/:assignmentId" element={<PrivateRoute><TestSolvePage /></PrivateRoute>} />
+        <Route path="/kreator-testow" element={<PrivateRoute><TestCreatorPage /></PrivateRoute>} />
+        <Route path="/ustawienia"  element={<PrivateRoute><UserSettingsPage /></PrivateRoute>} />
         <Route path="/panel-nauczyciela"   element={<PrivateRoute><TeacherPanelPage /></PrivateRoute>} />
         <Route path="/panel-admina"        element={<AdminRoute><AdminPanelPage /></AdminRoute>} />
 

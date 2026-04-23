@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { createLessonDatabase, saveDatabaseToLocalStorage, loadDatabaseFromLocalStorage, loadDatabaseFromBuffer } from './sqliteManager'
 
 const AuthContext = createContext(null)
 
@@ -51,8 +52,27 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = (userId) => fetchProfile(userId ?? user?.id)
 
+  const getUserDatabase = async (lessonId) => {
+    if (!user) return null
+    let buffer = loadDatabaseFromLocalStorage(user.id, lessonId)
+
+    if (!buffer) {
+      buffer = await createLessonDatabase(lessonId)
+      saveDatabaseToLocalStorage(user.id, lessonId, buffer)
+    }
+
+    return loadDatabaseFromBuffer(buffer)
+  }
+
+  const resetUserDatabase = async (lessonId) => {
+    if (!user) return null
+    const buffer = await createLessonDatabase(lessonId)
+    saveDatabaseToLocalStorage(user.id, lessonId, buffer)
+    return loadDatabaseFromBuffer(buffer)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, refreshProfile, getUserDatabase, resetUserDatabase }}>
       {children}
     </AuthContext.Provider>
   )

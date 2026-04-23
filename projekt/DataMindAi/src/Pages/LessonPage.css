@@ -449,6 +449,10 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   border-right: 1px solid var(--borderColor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
 .ls-tab:last-child {
@@ -470,6 +474,16 @@
 .ls-tab:not(.ls-tab--active):hover {
   background: var(--inputBg);
   color: var(--primaryText);
+}
+
+.ls-tab-warning {
+  margin-left: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
 }
 
 /* ── Ćwiczenie ─────────────────────────────────────────── */
@@ -532,6 +546,11 @@
   border-color: var(--accentColor);
 }
 
+.ls-sql-editor:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* Przyciski akcji */
 .ls-exercise-actions {
   display: flex;
@@ -586,6 +605,15 @@
   background: #1a9e50;
 }
 
+.ls-btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ls-btn--disabled:hover {
+  background: inherit;
+}
+
 .ls-btn--reset {
   background: rgba(236, 72, 72, 0.15);
   color: #ec4844;
@@ -606,6 +634,47 @@
   font-size: 0.88rem;
   color: #c5d0f0;
   line-height: 1.5;
+}
+
+/* Ostrzeżenie o zablokowanym zadaniu */
+.ls-locked-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.ls-locked-warning strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #fdba74;
+  margin-bottom: 4px;
+}
+
+.ls-locked-warning p {
+  font-size: 0.88rem;
+  color: #fdba74;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.ls-go-to-first-btn {
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ls-go-to-first-btn:hover {
+  background: #ea580c;
 }
 
 /* Oczekiwany wynik */

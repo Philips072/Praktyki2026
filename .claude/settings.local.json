@@ -6,7 +6,8 @@
       "Bash(find *)",
       "Bash(npm run *)",
       "Bash(node -c \"console.log\\('Test basic JS'\\)\")",
-      "Bash(node -e \"const fs = require\\('fs'\\); const path = require\\('path'\\); const localStoragePath = path.join\\(process.env.LOCALAPPDATA || process.env.HOME, 'AppData', 'Local', 'Microsoft', 'Edge', 'User Data', 'Default', 'Local Storage', 'leveldb'\\); console.log\\('Checking localStorage path...'\\); if \\(fs.existsSync\\(localStoragePath\\)\\) { console.log\\('Path exists'\\); } else { console.log\\('Path not found'\\); }\")"
+      "Bash(node -e \"const fs = require\\('fs'\\); const path = require\\('path'\\); const localStoragePath = path.join\\(process.env.LOCALAPPDATA || process.env.HOME, 'AppData', 'Local', 'Microsoft', 'Edge', 'User Data', 'Default', 'Local Storage', 'leveldb'\\); console.log\\('Checking localStorage path...'\\); if \\(fs.existsSync\\(localStoragePath\\)\\) { console.log\\('Path exists'\\); } else { console.log\\('Path not found'\\); }\")",
+      "Bash(npx vite *)"
     ]
   }
 }

@@ -46,13 +46,38 @@
 
 .aichat-header {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.aichat-new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--accentColor);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: var(--primaryText);
+  font-family: VennRegular, 'Segoe UI', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.aichat-new-chat-btn:hover {
+  background-color: var(--btnHoverBlue);
 }
 
 .aichat-title {
-  font-size: 26px;
+  font-size: 50px;
   font-weight: 600;
   color: var(--primaryText);
   margin: 0 0 4px 0;
+  font-family: VennBold;
 }
 
 .aichat-subtitle {
@@ -131,6 +156,9 @@
   line-height: 1.6;
   color: var(--primaryText);
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .aichat-line:last-child {
@@ -252,6 +280,21 @@
   margin: 0 2px;
   line-height: 1.4;
   letter-spacing: 0.01em;
+}
+
+.aichat-code-block {
+  background-color: rgba(0, 0, 0, 0.35);
+  padding: 1px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  width: fit-content;
+}
+
+.aichat-code-block code {
+  background-color: transparent;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 

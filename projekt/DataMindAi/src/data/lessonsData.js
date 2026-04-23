@@ -52,8 +52,8 @@ const LESSONS = [
       ],
     },
     exercises: [
-      { id: 1, task: 'Utwórz bazę danych o nazwie liga_pilkarska.', placeholder: '', hint: 'Użyj: CREATE DATABASE nazwa_bazy;', expectedColumns: [], expectedRows: [] },
-      { id: 2, task: 'Przełącz się na bazę danych liga_pilkarska.', placeholder: '', hint: 'Użyj polecenia USE.', expectedColumns: [], expectedRows: [] },
+      { id: 1, task: 'Utwórz bazę danych o nazwie liga_pilkarska.', placeholder: '', hint: 'Użyj: CREATE DATABASE nazwa_bazy;', expectedColumns: [], expectedRows: [], validateOnly: true },
+      { id: 2, task: 'Przełącz się na bazę danych liga_pilkarska.', placeholder: '', hint: 'Użyj polecenia USE.', expectedColumns: [], expectedRows: [], validateOnly: true },
       { id: 3, task: 'Utwórz tabelę gracze z kolumnami: id (INTEGER, PRIMARY KEY, AUTO_INCREMENT), imie (VARCHAR(100), NOT NULL), nazwisko (VARCHAR(100), NOT NULL).', placeholder: '', hint: 'Użyj składni: id INTEGER PRIMARY KEY AUTO_INCREMENT, imie VARCHAR(100) NOT NULL...', expectedColumns: [], expectedRows: [] },
       { id: 4, task: 'Utwórz tabelę mecze z kolumnami: id (INTEGER, PRIMARY KEY, AUTO_INCREMENT), data (DATE), wynik (VARCHAR(50)).', placeholder: '', hint: 'Pamiętaj o typie DATE dla kolumny data.', expectedColumns: [], expectedRows: [] },
       { id: 5, task: 'Utwórz tabelę statystyki z kolumnami: id (INTEGER, PRIMARY KEY), gracz_id (INTEGER), bramki (INTEGER, DEFAULT 0), asysty (INTEGER, DEFAULT 0).', placeholder: '', hint: 'Użyj DEFAULT 0 po typie kolumny, np. bramki INTEGER DEFAULT 0', expectedColumns: [], expectedRows: [] },

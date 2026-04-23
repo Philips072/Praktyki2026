@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 
 import aiRouter from './src/routes/ai.js';
+import sqliteRouter from './src/routes/sqlite.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/ai', aiRouter);
+app.use('/api/sqlite', sqliteRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

@@ -1,8 +1,20 @@
 import './LessonPage.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
+import { executeSQL, validateExercise } from '../api.js'
+
+const getUserId = () => {
+  const userStr = localStorage.getItem('user')
+  if (!userStr) return 'guest'
+  try {
+    const user = JSON.parse(userStr)
+    return user.id || 'guest'
+  } catch {
+    return 'guest'
+  }
+}
 
 function highlightSQL(code) {
   const parts = []
@@ -99,51 +111,68 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
-function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavigateToFirst, firstUncompletedExerciseId, completed, isLessonOne, isLastExercise, onNextExercise }) {
+function Exercise({ exercise, db, isCompleted, onComplete, onReset, isLastExercise, onNextExercise }) {
   const [query, setQuery] = useState('')
   const [showHint, setShowHint] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleReset = () => {
     setQuery('')
+    setResult(null)
+    setError('')
     onReset()
   }
 
-  const isDisabled = isLocked || isCompleted
-  const isFinalTask = exercise.id === 9
+  const handleSubmit = async () => {
+    if (!query.trim()) return
 
-  // Określ komunikat w zależności od zadania (tylko dla lekcji 1)
-  let warningText = ''
-  if (isLessonOne) {
-    if (isFinalTask) {
-      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz poprzednich zadań (1, 3-8).'
-    } else if (exercise.id === 2) {
-      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadania nr 1.'
-    } else if (exercise.id === 6) {
-      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadań nr 1, 2 i 3.'
-    } else {
-      warningText = 'Nie możesz przejść do tego zadania, dopóki nie ukończysz zadań nr 1 i 2.'
+    setLoading(true)
+    setError('')
+
+    try {
+      const userId = getUserId()
+      console.log('=== handleSubmit ===')
+      console.log('db:', db)
+      console.log('lessonId:', db?.lessonId)
+      console.log('userId:', userId)
+      console.log('query:', query)
+      console.log('Sending to API:', { userId, lessonId: db?.lessonId, sql: query })
+
+      const sqlResult = await executeSQL(userId, db.lessonId, query)
+
+      console.log('SQL result:', sqlResult)
+
+      if (!sqlResult.success) {
+        setError(sqlResult.message)
+        setResult(null)
+        setLoading(false)
+        return
+      }
+
+      setResult(sqlResult)
+
+      const validateOnly = exercise.validateOnly || false
+      const validation = await validateExercise(exercise.task, query, sqlResult.data, validateOnly)
+
+      console.log('AI validation:', validation)
+
+      if (validation.valid) {
+        onComplete()
+      } else {
+        setError(`Zadanie wykonane błędnie: ${validation.reason}`)
+      }
+    } catch (e) {
+      console.error('Error:', e)
+      setError(`Błąd: ${e.message}`)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className={`ls-exercise${isCompleted ? ' ls-exercise--done' : ''}`}>
-      {isLocked && isLessonOne && (
-        <div className="ls-locked-warning">
-          <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ flexShrink: 0 }}>
-            <circle cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="2" fill="rgba(249, 115, 22, 0.15)"/>
-            <path d="M12 8v4" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="12" cy="16" r="1" fill="#f97316"/>
-          </svg>
-          <div>
-            <strong>Zadanie zablokowane</strong>
-            <p>{warningText}</p>
-            <button className="ls-go-to-first-btn" onClick={onNavigateToFirst}>
-              Przejdź do zadania {firstUncompletedExerciseId}
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="ls-exercise-task">
         <p className="ls-exercise-task-label">Zadanie:</p>
         <p className="ls-exercise-task-text">{exercise.task}</p>
@@ -156,16 +185,29 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
         value={query}
         onChange={e => setQuery(e.target.value)}
         spellCheck={false}
-        disabled={isLocked}
+        disabled={loading}
       />
+
+      {error && (
+        <div className="ls-error-message">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" fill="rgba(239, 68, 68, 0.15)"/>
+            <path d="M12 8v4" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="16" r="1" fill="#ef4444"/>
+          </svg>
+          {error}
+        </div>
+      )}
 
       <div className="ls-exercise-actions">
         <button
-          className={`ls-btn${isCompleted && !isLastExercise ? ' ls-btn--next' : isCompleted ? ' ls-btn--done' : ' ls-btn--check'}${isLocked ? ' ls-btn--disabled' : ''}`}
-          onClick={isCompleted && !isLastExercise ? onNextExercise : onComplete}
-          disabled={isLocked}
+          className={`ls-btn${isCompleted && !isLastExercise ? ' ls-btn--next' : isCompleted ? ' ls-btn--done' : ' ls-btn--check'}`}
+          onClick={isCompleted && !isLastExercise ? onNextExercise : handleSubmit}
+          disabled={loading}
         >
-          {isCompleted && !isLastExercise ? (
+          {loading ? (
+            <>Sprawdzanie...</>
+          ) : isCompleted && !isLastExercise ? (
             <>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -182,9 +224,8 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
           )}
         </button>
         <button
-          className={`ls-btn ls-btn--hint${isLocked ? ' ls-btn--disabled' : ''}`}
+          className="ls-btn ls-btn--hint"
           onClick={() => setShowHint(p => !p)}
-          disabled={isLocked}
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
@@ -193,7 +234,7 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
           </svg>
           Podpowiedź
         </button>
-        {isCompleted && !isLocked && (
+        {isCompleted && (
           <button
             className="ls-btn ls-btn--reset"
             onClick={handleReset}
@@ -208,9 +249,33 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
         )}
       </div>
 
-      {showHint && !isLocked && (
+      {showHint && (
         <div className="ls-hint-box">
           {exercise.hint}
+        </div>
+      )}
+
+      {result && result.data && result.data.length > 0 && (
+        <div className="ls-result">
+          <p className="ls-result-label">Wynik zapytania:</p>
+          <div className="ls-table-scroll">
+            <table className="ls-example-table">
+              <thead>
+                <tr>{result.data[0].columns.map(c => <th key={c}>{c}</th>)}</tr>
+              </thead>
+              <tbody>
+                {result.data[0].rows.map((row, i) => (
+                  <tr key={i}>{row.map((cell, j) => <td key={j}>{cell}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {result && (!result.data || result.data.length === 0) && (
+        <div className="ls-result ls-result--empty">
+          <p>Zapytanie wykonane pomyślnie. Zmodyfikowano {result.affectedRows} wierszy.</p>
         </div>
       )}
 
@@ -239,13 +304,35 @@ function Exercise({ exercise, isCompleted, isLocked, onComplete, onReset, onNavi
 
 function LessonPage() {
   const { id } = useParams()
-  const { user } = useAuth()
+  const { user, getUserDatabase } = useAuth()
   const navigate = useNavigate()
   const [activeExercise, setActiveExercise] = useState(0)
   const [exercisesOpen, setExercisesOpen] = useState(true)
+  const [db, setDb] = useState(null)
+  const [dbLoading, setDbLoading] = useState(true)
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
+
+  useEffect(() => {
+    const loadDb = async () => {
+      if (user && lesson) {
+        setDbLoading(true)
+        try {
+          const database = await getUserDatabase(lesson.id)
+          console.log('=== Database loaded ===')
+          console.log('Database:', database)
+          console.log('Lesson ID:', lesson.id)
+          setDb(database)
+        } catch (e) {
+          console.error('Błąd ładowania bazy danych:', e)
+        } finally {
+          setDbLoading(false)
+        }
+      }
+    }
+    loadDb()
+  }, [user, lesson, getUserDatabase])
 
   const progressKey = `lesson_progress_${user?.id}`
 
@@ -288,56 +375,35 @@ function LessonPage() {
     )
   }
 
+  if (!user) {
+    return (
+      <div className="ls-not-found">
+        <p>Musisz być zalogowany, aby rozwiązywać zadania.</p>
+        <button onClick={() => navigate('/logowanie')}>Zaloguj się</button>
+      </div>
+    )
+  }
+
+  if (dbLoading) {
+    return (
+      <div className="ls-loading">
+        <p>Ładowanie bazy danych...</p>
+      </div>
+    )
+  }
+
+  if (!db) {
+    return (
+      <div className="ls-not-found">
+        <p>Nie udało się załadować bazy danych.</p>
+        <button onClick={() => navigate('/lekcje')}>Wróć do lekcji</button>
+      </div>
+    )
+  }
+
   const completedCount = completed.size
 
-  const isLessonOne = lesson.id === 1
-
-  const isExerciseLocked = (exerciseIndex) => {
-    // Zabezpieczenia tylko dla lekcji 1
-    if (!isLessonOne) return false
-
-    const exId = lesson.exercises[exerciseIndex].id
-
-    if (exId === 1) return false
-    if (exId === 2) return !completed.has(1)
-    if (exId === 3) return !completed.has(1) || !completed.has(2)
-    if (exId === 4) return !completed.has(1) || !completed.has(2) || !completed.has(3)
-    if (exId === 5) return !completed.has(1) || !completed.has(2)
-    if (exId === 6) return !completed.has(1) || !completed.has(2) || !completed.has(3)
-    if (exId === 7) return !completed.has(1) || !completed.has(2)
-    if (exId === 8) return !completed.has(1) || !completed.has(2)
-    if (exId === 9) {
-      // Zadanie 9 wymaga ukończenia: 1, 3, 4, 5, 6, 7, 8
-      const requiredExercises = [1, 3, 4, 5, 6, 7, 8]
-      for (const id of requiredExercises) {
-        if (!completed.has(id)) return true
-      }
-      return false
-    }
-    return false
-  }
-
-  const findFirstUncompletedExercise = () => {
-    const index = lesson.exercises.findIndex(ex => !completed.has(ex.id))
-
-    // Jeśli na zadaniu 6 i jest zablokowane, zwróć pierwsze nieukończone z 1, 2, 3
-    if (activeExercise === 5 && index === 5) {
-      if (!completed.has(1)) return 0 // Zadanie 1
-      if (!completed.has(2)) return 1 // Zadanie 2
-      if (!completed.has(3)) return 2 // Zadanie 3
-    }
-
-    return index >= 0 ? index : 0
-  }
-
   const currentExerciseId = lesson?.exercises?.[activeExercise]?.id
-  const isCurrentExerciseLocked = isExerciseLocked(activeExercise)
-  const firstUncompletedIndex = findFirstUncompletedExercise()
-  const firstUncompletedExerciseId = firstUncompletedIndex >= 0 ? lesson.exercises[firstUncompletedIndex].id : 1
-
-  const handleNavigateToFirstUncompleted = () => {
-    setActiveExercise(firstUncompletedIndex)
-  }
 
   const handleNextExercise = () => {
     if (activeExercise < lesson.exercises.length - 1) {
@@ -458,70 +524,26 @@ function LessonPage() {
             <>
               {/* Tabs */}
               <div className="ls-tabs">
-                {lesson.exercises.map((ex, i) => {
-                  const isLocked = isExerciseLocked(i)
-                  const exId = ex.id
-
-                  // Pokaż wykrzyknik na nieukończonych zadaniach zależnie od tego gdzie jest użytkownik (tylko dla lekcji 1)
-                  let showWarning = false
-
-                  if (isLessonOne && activeExercise === 1 && exId === 1 && !completed.has(1)) {
-                    // Na zadaniu 2 - pokaż wykrzyknik na 1 jeśli nieukończone
-                    showWarning = true
-                  } else if (isLessonOne && activeExercise >= 2 && activeExercise <= 4) {
-                    // Na zadaniach 3-5 - pokaż wykrzykniki na nieukończonych 1 i 2
-                    if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2))) {
-                      showWarning = true
-                    }
-                  } else if (isLessonOne && activeExercise === 5) {
-                    // Na zadaniu 6 - pokaż wykrzykniki na nieukończonych 1, 2, 3 (każdy osobno)
-                    if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2)) || (exId === 3 && !completed.has(3))) {
-                      showWarning = true
-                    }
-                  } else if (isLessonOne && activeExercise >= 6 && activeExercise <= 7) {
-                    // Na zadaniach 7-8 - pokaż wykrzykniki na nieukończonych 1 i 2
-                    if ((exId === 1 && !completed.has(1)) || (exId === 2 && !completed.has(2))) {
-                      showWarning = true
-                    }
-                  } else if (isLessonOne && activeExercise === 8) {
-                    // Na zadaniu 9 - pokaż wykrzykniki na nieukończonych 1, 3-8
-                    if (((exId === 1 && !completed.has(1)) || (exId >= 3 && exId <= 8 && !completed.has(exId)))) {
-                      showWarning = true
-                    }
-                  }
-
-                  return (
-                    <button
-                      key={ex.id}
-                      className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
-                      onClick={() => setActiveExercise(i)}
-                    >
-                      Zadanie {ex.id}
-                      {showWarning && (
-                        <svg className="ls-tab-warning" viewBox="0 0 24 24" fill="none" width="14" height="14">
-                          <circle cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="2" fill="rgba(249, 115, 22, 0.15)"/>
-                          <path d="M12 8v4" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                          <circle cx="12" cy="16" r="1" fill="#f97316"/>
-                        </svg>
-                      )}
-                    </button>
-                  )
-                })}
+                {lesson.exercises.map((ex, i) => (
+                  <button
+                    key={ex.id}
+                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
+                    onClick={() => setActiveExercise(i)}
+                  >
+                    Zadanie {ex.id}
+                  </button>
+                ))}
               </div>
 
               {/* Aktywne ćwiczenie */}
               <Exercise
                 key={activeExercise}
                 exercise={lesson.exercises[activeExercise]}
+                db={db}
                 isCompleted={completed.has(lesson.exercises[activeExercise].id)}
-                isLocked={isCurrentExerciseLocked}
                 isLastExercise={activeExercise === lesson.exercises.length - 1}
                 onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
                 onReset={() => resetExercise(lesson.exercises[activeExercise].id)}
-                onNavigateToFirst={handleNavigateToFirstUncompleted}
-                firstUncompletedExerciseId={firstUncompletedExerciseId}
-                completed={completed}
-                isLessonOne={isLessonOne}
                 onNextExercise={handleNextExercise}
               />
             </>

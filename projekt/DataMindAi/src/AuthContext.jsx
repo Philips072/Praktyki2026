@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
-import { createLessonDatabase, saveDatabaseToLocalStorage, loadDatabaseFromLocalStorage, loadDatabaseFromBuffer } from './sqliteManager'
+import { databaseExists, resetDatabase } from './sqliteManager'
 
 const AuthContext = createContext(null)
 
@@ -17,7 +17,6 @@ export function AuthProvider({ children }) {
       .single()
 
     if (error) {
-      // Fallback — kolumny sql_level/interests mogą jeszcze nie istnieć w bazie
       const { data: fallback } = await supabase
         .from('profiles')
         .select('name, role')
@@ -32,16 +31,25 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setLoading(false)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        localStorage.setItem('user', JSON.stringify(currentUser))
+        fetchProfile(currentUser.id)
+      } else {
+        localStorage.removeItem('user')
+        setLoading(false)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        localStorage.setItem('user', JSON.stringify(currentUser))
+        fetchProfile(currentUser.id)
       } else {
+        localStorage.removeItem('user')
         setProfile(null)
         setLoading(false)
       }
@@ -54,21 +62,24 @@ export function AuthProvider({ children }) {
 
   const getUserDatabase = async (lessonId) => {
     if (!user) return null
-    let buffer = loadDatabaseFromLocalStorage(user.id, lessonId)
 
-    if (!buffer) {
-      buffer = await createLessonDatabase(lessonId)
-      saveDatabaseToLocalStorage(user.id, lessonId, buffer)
+    console.log('getUserDatabase called with:', { userId: user.id, lessonId })
+
+    const exists = await databaseExists(lessonId)
+
+    console.log('Database exists:', exists)
+
+    if (!exists) {
+      await resetDatabase(user.id, lessonId)
     }
 
-    return loadDatabaseFromBuffer(buffer)
+    return { lessonId }
   }
 
   const resetUserDatabase = async (lessonId) => {
     if (!user) return null
-    const buffer = await createLessonDatabase(lessonId)
-    saveDatabaseToLocalStorage(user.id, lessonId, buffer)
-    return loadDatabaseFromBuffer(buffer)
+    await resetDatabase(user.id, lessonId)
+    return { lessonId }
   }
 
   return (

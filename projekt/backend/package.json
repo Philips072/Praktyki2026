@@ -11,6 +11,9 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^16.5.0",
-    "express": "^4.22.1"
+    "express": "^4.22.1",
+    "knex": "^3.2.9",
+    "sql.js": "^1.14.1",
+    "sqlite3": "^6.0.1"
   }
 }

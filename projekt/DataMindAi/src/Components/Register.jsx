@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import logo from '../assets/nazwa.PNG'
 import { supabase } from '../supabaseClient'
-import { createLessonDatabase, saveDatabaseToLocalStorage } from '../sqliteManager'
+import { initializeDatabase } from '../api.js'
 
 const EyeOpen = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,8 +77,7 @@ function Register() {
     }
 
     try {
-      const lesson1Buffer = await createLessonDatabase(1)
-      saveDatabaseToLocalStorage(authData.user.id, 1, lesson1Buffer)
+      await initializeDatabase(authData.user.id, 1)
     } catch (dbError) {
       console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
     }

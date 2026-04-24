@@ -58,9 +58,13 @@ export const uploadDatabase = (userId, lessonId, base64Data) => post('/api/sqlit
 // Zwraca { success, exists }
 export const databaseExists = (userId, lessonId) => post('/api/sqlite/exists', { userId, lessonId });
 
+// GET /api/sqlite/full-schema/:userId/:lessonId
+// Zwraca { success, schema: { tableName: { columns: [], foreignKeys: [] } } }
+export const getDatabaseSchema = (userId, lessonId) => fetch(`${BASE}/api/sqlite/full-schema/${userId}/${lessonId}`).then(r => r.json());
+
 // POST /api/ai/validate-exercise
 // Zwraca { valid: boolean, reason: string }
-export const validateExercise = (task, sql, result) => post('/api/ai/validate-exercise', { task, sql, result });
+export const validateExercise = (task, sql, result, validateOnly = false, schema = null) => post('/api/ai/validate-exercise', { task, sql, result, validateOnly, schema });
 
 // POST /api/ai/hint
 // Zwraca { hint: string }

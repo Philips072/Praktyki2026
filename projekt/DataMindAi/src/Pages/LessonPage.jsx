@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
-import { executeSQL, validateExercise, getHint } from '../api.js'
+import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables } from '../api.js'
 
 const getUserId = () => {
   const userStr = localStorage.getItem('user')
@@ -111,6 +111,69 @@ function TheorySection({ section }) {
 
 // ── Ćwiczenie ───────────────────────────────────────────
 
+// Helper function to extract table names from SQL
+const extractTableNames = (sql) => {
+  const tables = new Set()
+  const normalizedSql = sql.toUpperCase()
+
+  // CREATE TABLE
+  const createMatch = normalizedSql.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Z_][A-Z0-9_]*)/g)
+  if (createMatch) {
+    createMatch.forEach(m => tables.add(m[1]))
+  }
+
+  // DROP TABLE
+  const dropMatch = normalizedSql.match(/DROP\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Z_][A-Z0-9_]*)/g)
+  if (dropMatch) {
+    dropMatch.forEach(m => tables.add(m[1]))
+  }
+
+  // INSERT INTO
+  const insertMatch = normalizedSql.match(/INSERT\s+INTO\s+([A-Z_][A-Z0-9_]*)/g)
+  if (insertMatch) {
+    insertMatch.forEach(m => tables.add(m[1]))
+  }
+
+  // SELECT FROM
+  const selectMatch = normalizedSql.match(/FROM\s+([A-Z_][A-Z0-9_]*)/g)
+  if (selectMatch) {
+    selectMatch.forEach(m => tables.add(m[1]))
+  }
+
+  // UPDATE
+  const updateMatch = normalizedSql.match(/UPDATE\s+([A-Z_][A-Z0-9_]*)/g)
+  if (updateMatch) {
+    updateMatch.forEach(m => tables.add(m[1]))
+  }
+
+  // DELETE FROM
+  const deleteMatch = normalizedSql.match(/DELETE\s+FROM\s+([A-Z_][A-Z0-9_]*)/g)
+  if (deleteMatch) {
+    deleteMatch.forEach(m => tables.add(m[1]))
+  }
+
+  return Array.from(tables)
+}
+
+// Helper function to drop tables before executing SQL
+const dropExistingTablesIfNeeded = async (userId, lessonId, sql, tableNames) => {
+  try {
+    const tablesResponse = await getDatabaseTables(userId, lessonId)
+    if (tablesResponse.success && tablesResponse.tables) {
+      const existingTables = tablesResponse.tables
+
+      for (const tableName of tableNames) {
+        if (existingTables.includes(tableName)) {
+          console.log(`Dropping existing table: ${tableName}`)
+          await executeSQL(userId, lessonId, `DROP TABLE IF EXISTS [${tableName}]`)
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error checking existing tables:', e.message)
+  }
+}
+
 function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onReset, isLastExercise, onNextExercise, schema }) {
   const [showHint, setShowHint] = useState(false)
   const [result, setResult] = useState(null)
@@ -120,15 +183,19 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
   const [hintLoading, setHintLoading] = useState(false)
   const [displayedHint, setDisplayedHint] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [hintUsedForQuery, setHintUsedForQuery] = useState('')
   const typingIntervalRef = useRef(null)
-  const debounceTimerRef = useRef(null)
-  const previousQueryRef = useRef('')
   const displayedHintRef = useRef('')
+  const previousQueryRef = useRef('')
 
   const handleReset = () => {
     setQuery('')
     setResult(null)
     setError('')
+    setHint('')
+    setDisplayedHint('')
+    setShowHint(false)
+    setHintUsedForQuery('')
     onReset()
   }
 
@@ -136,61 +203,38 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
     const newValue = e.target.value
     setQuery(newValue)
 
-    // Automatyczna podpowiedź z debounce (500ms)
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    if (newValue && newValue !== previousQueryRef.current) {
-      debounceTimerRef.current = setTimeout(async () => {
-        if (newValue.trim() && newValue !== previousQueryRef.current) {
-          try {
-            setHintLoading(true)
-            setShowHint(true)
-            // Resetuj ref przy nowej podpowiedzi
-            displayedHintRef.current = ''
-            setDisplayedHint('')
-            const response = await getHint(exercise.task, newValue, schema)
-            setHint(response.hint)
-            previousQueryRef.current = newValue
-          } catch (e) {
-            console.error('Błąd pobierania podpowiedzi:', e)
-          } finally {
-            setHintLoading(false)
-          }
-        }
-      }, 800)
-    } else if (!newValue) {
+    // Jeśli wartość w inpucie się zmieniła względem tej przy której była generowana podpowiedź
+    if (newValue !== hintUsedForQuery && previousQueryRef.current !== newValue) {
+      // Resetuj wszystko - włącz przycisk podpowiedzi i ukryj starą
+      setHintUsedForQuery('')
       setShowHint(false)
       setHint('')
-      displayedHintRef.current = ''
       setDisplayedHint('')
+      displayedHintRef.current = ''
     }
+    previousQueryRef.current = newValue
   }
 
   const handleHintClick = async () => {
-    if (showHint && hint) {
+    // Jeśli podpowiedź jest widoczna - ukryj
+    if (showHint) {
       setShowHint(false)
       return
     }
 
-    if (!showHint) {
-      setShowHint(true)
-    }
-
-    if (!hint) {
-      setHintLoading(true)
-      try {
-        displayedHintRef.current = ''
-        setDisplayedHint('')
-        const response = await getHint(exercise.task, query, schema)
-        setHint(response.hint)
-        previousQueryRef.current = query
-      } catch (e) {
-        setError(`Błąd pobierania podpowiedzi: ${e.message}`)
-      } finally {
-        setHintLoading(false)
-      }
+    // Jeśli ukryta - pokaż i wygeneruj nową
+    setShowHint(true)
+    setHintLoading(true)
+    try {
+      displayedHintRef.current = ''
+      setDisplayedHint('')
+      const response = await getHint(exercise.task, query, schema)
+      setHint(response.hint)
+      setHintUsedForQuery(query)
+    } catch (e) {
+      setError(`Błąd pobierania podpowiedzi: ${e.message}`)
+    } finally {
+      setHintLoading(false)
     }
   }
 
@@ -222,15 +266,6 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
     }
   }, [hint, showHint])
 
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-    }
-  }, [])
-
   const handleSubmit = async () => {
     if (!query.trim()) return
 
@@ -244,6 +279,13 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
       console.log('lessonId:', db?.lessonId)
       console.log('userId:', userId)
       console.log('query:', query)
+
+      // Extract table names from SQL and drop if they exist (for CREATE TABLE)
+      const tableNames = extractTableNames(query)
+      if (tableNames.length > 0) {
+        await dropExistingTablesIfNeeded(userId, db.lessonId, query, tableNames)
+      }
+
       console.log('Sending to API:', { userId, lessonId: db?.lessonId, sql: query })
 
       const sqlResult = await executeSQL(userId, db.lessonId, query)
@@ -260,8 +302,19 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
 
       setResult(sqlResult)
 
+      // Fetch database schema to send to AI validation
+      let dbSchema = null
+      try {
+        const schemaResponse = await getDatabaseSchema(userId, db.lessonId)
+        if (schemaResponse.success) {
+          dbSchema = schemaResponse.schema
+        }
+      } catch (e) {
+        console.warn('Failed to fetch database schema:', e.message)
+      }
+
       const validateOnly = exercise.validateOnly || false
-      const validation = await validateExercise(exercise.task, query, sqlResult.data, validateOnly)
+      const validation = await validateExercise(exercise.task, query, sqlResult.data, validateOnly, dbSchema)
 
       console.log('AI validation:', validation)
 
@@ -334,14 +387,14 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
         <button
           className="ls-btn ls-btn--hint"
           onClick={handleHintClick}
-          disabled={hintLoading}
+          disabled={hintLoading || isCompleted || (query === hintUsedForQuery && hint !== '')}
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
             <path d="M12 8v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
             <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
           </svg>
-          {hintLoading ? 'AI pisze...' : showHint ? 'Ukryj' : 'Podpowiedź'}
+          {hintLoading ? 'AI pisze...' : 'Podpowiedź'}
         </button>
         {isCompleted && (
           <button

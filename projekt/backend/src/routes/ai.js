@@ -118,11 +118,11 @@ router.post('/interests', async (req, res, next) => {
 });
 
 // POST /api/ai/validate-exercise
-// Przyjmuje: { task: string, sql: string, result: { columns: string[], rows: any[] }, validateOnly: boolean }
+// Przyjmuje: { task: string, sql: string, result: { columns: string[], rows: any[] }, validateOnly: boolean, schema: object }
 // Zwraca: { valid: boolean, reason: string }
 router.post('/validate-exercise', async (req, res, next) => {
   try {
-    const { task, sql, result, validateOnly = false } = req.body;
+    const { task, sql, result, validateOnly = false, schema = null } = req.body;
 
     if (!task || !sql) {
       return res.status(400).json({ error: 'Brak wymaganych pól (task, sql).' });
@@ -133,7 +133,27 @@ router.post('/validate-exercise', async (req, res, next) => {
       return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
-    let prompt = ''
+    let prompt = '';
+
+    // Format schema information if available
+    let schemaInfo = '';
+    if (schema && typeof schema === 'object') {
+      if (Array.isArray(schema)) {
+        // Schema is array of column info: { name: string, type: string, desc: string }[]
+        schemaInfo = '\n\nSchemat tabeli:\n' + schema.map(col => `- ${col.name} (${col.type}): ${col.desc || ''}`).join('\n');
+      } else {
+        // Schema is object with table names as keys
+        schemaInfo = '\n\nStruktura tabel:\n';
+        for (const [tableName, columns] of Object.entries(schema)) {
+          schemaInfo += `Tabela ${tableName}:\n`;
+          if (Array.isArray(columns)) {
+            columns.forEach(col => {
+              schemaInfo += `  - ${col.name} (${col.type})${col.desc ? ': ' + col.desc : ''}\n`;
+            });
+          }
+        }
+      }
+    }
 
     if (validateOnly) {
       prompt = `Jesteś asystentem AI sprawdzającym czy użytkownik poprawnie wykonał zadanie SQL.
@@ -141,19 +161,26 @@ router.post('/validate-exercise', async (req, res, next) => {
 Twoim zadaniem jest:
 1. Przeczytać treść zadania użytkownika
 2. Przeanalizować zapytanie SQL użytkownika
-3. Sprawdzić czy zapytanie jest poprawne składniowo (nie sprawdzaj wyniku)
+3. Sprawdzić czy zapytanie jest poprawne składniowo
 4. Sprawdzić czy zapytanie pasuje do treści zadania
+${schema ? '5. Sprawdzić czy użyte kolumny i tabele pasują do schematu' : ''}
+
+Ważne: Niektóre polecenia (jak CREATE DATABASE, DROP DATABASE, USE) nie są obsługiwane w SQLite, ale są poprawne składniowo dla MySQL. Zadanie ma symulować te polecenia, więc uważaj na ich poprawność składni, a nie na wykonanie w bazie.
+
+Przykłady:
+- DROP DATABASE nazwa_bazy; (nie jest w SQLite, ale poprawne składniowo dla MySQL)
+- USE nazwa_bazy; (nie jest w SQLite, ale poprawne składniowo dla MySQL)
 
 Przykład błędnego rozwiązania:
-- Zadanie: "Utwórz bazę danych o nazwie liga_pilkarska"
-- SQL: CREATE DATABASE liga_pilkarsk (literówka)
-- Wynik: Odpowiedź NIEPRAWIDŁOWA, bo literówka w nazwie
+- Zadanie: "Usuń bazę danych liga_pilkarska"
+- SQL: DROP DATABASE (brak nazwy bazy)
+- Wynik: Odpowiedź NIEPRAWIDŁOWA, bo brak nazwy
 
 Odpowiedz TYLKO w formacie JSON (bez markdown):
 {
   "valid": true/false,
   "reason": "krótkie wyjaśnienie po polsku dlaczego zadanie jest poprawne lub błędne"
-}`
+}`;
     } else {
       prompt = `Jesteś asystentem AI sprawdzającym czy użytkownik poprawnie wykonał zadanie SQL. Zadanie sprawdzać czy wynik zapytania jest zgodny z treścią zadania, nie tylko czy zapytanie jest poprawne składniowo.
 
@@ -162,6 +189,7 @@ Twoim zadaniem jest:
 2. Przeanalizować zapytanie SQL użytkownika
 3. Zobaczyć zwrócony wynik (kolumny i dane)
 4. Sprawdzić czy wynik jest ZGODNY z treścią zadania
+${schema ? '5. Sprawdzić czy użyte tabele i kolumny są zgodne ze schematem' : ''}${schemaInfo}
 
 Przykład błędnego rozwiązania:
 - Zadanie: "Wybierz wszystkich klientów z tabeli customers"
@@ -172,7 +200,7 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
 {
   "valid": true/false,
   "reason": "krótkie wyjaśnienie po polsku dlaczego zadanie jest poprawne lub błędne"
-}`
+}`;
     }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -258,7 +286,7 @@ ZASADY:
 PRZYKŁADY DOBRYCH ODPOWIEDZI:
 - "Zacznij od CREATE DATABASE"
 - "Teraz podaj nazwę tabeli po FROM"
-- "Dodaj WHERE z warunkiem filtrowania"`
+- "Dodaj WHERE z warunkiem filtrowania"`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',

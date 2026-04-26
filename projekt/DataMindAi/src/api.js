@@ -71,5 +71,18 @@ export const validateExercise = (task, sql, result, validateOnly = false, schema
 export const getHint = (task, currentSql, schema) => post('/api/ai/hint', { task, currentSql, schema });
 
 // POST /api/ai/personalized-content
-// Zwraca { content: string }
-export const getPersonalizedContent = (lessonTitle, lessonSubtitle, theoryContent, keywords) => post('/api/ai/personalized-content', { lessonTitle, lessonSubtitle, theoryContent, keywords });
+// Zwraca { sections: array }
+export const getPersonalizedContent = async (lessonTitle, lessonSubtitle, sections, interests, schema) => {
+  console.log('=== getPersonalizedContent ===');
+  console.log('Lesson Title:', lessonTitle);
+  console.log('Interests:', interests);
+  console.log('Sections count:', sections?.length);
+  console.log('Schema count:', schema?.length);
+
+  const result = await post('/api/ai/personalized-content', { lessonTitle, lessonSubtitle, sections, interests, schema });
+
+  console.log('Result sections count:', result.sections?.length);
+  console.log('First section:', result.sections?.[0]);
+
+  return result;
+};

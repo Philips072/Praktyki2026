@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
 import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent } from '../api.js'
+import { supabase } from '../supabaseClient'
 
 const getUserId = () => {
   const userStr = localStorage.getItem('user')
@@ -53,23 +54,55 @@ const LEVEL_LABELS = {
 
 // ── Sekcje teorii ───────────────────────────────────────
 
+// Funkcja do formatowania markdown: **bold**, *italic*, `code`
+const formatText = (text) => {
+  if (!text) return '';
+  let formatted = text;
+
+  // Usuń znaki backticków które nie są częścią inline code
+  // Najpierw zamień inline code (słowa między ` `)
+  formatted = formatted.replace(/`([^`]+)`/g, '<code style="background: rgba(127, 159, 245, 0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
+
+  // Pogrubienie **tekst**
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+  // Kursywa *tekst* (ale nie wewnątrz już przetworzonych tagów)
+  formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Usuń pozostałe pojedyncze * (te które nie zostały przetworzone)
+  formatted = formatted.replace(/\*/g, '');
+
+  return formatted;
+}
+
 function TheorySection({ section }) {
+  // Logowanie diagnostyczne dla błędnych sekcji
+  if (!section || !section.type) {
+    console.warn('Nieprawidłowa sekcja:', section)
+    return null
+  }
+
   switch (section.type) {
     case 'heading':
       return <h3 className="ls-theory-heading">{section.content}</h3>
 
     case 'text':
-      return <p className="ls-theory-text">{section.content}</p>
+      return <p className="ls-theory-text" dangerouslySetInnerHTML={{ __html: formatText(section.content) }}></p>
 
     case 'code':
       return (
         <div className="ls-code-block">
           {section.label && <p className="ls-code-label">{section.label}</p>}
-          <pre><code>{highlightSQL(section.content)}</code></pre>
+          <pre><code>{highlightSQL(section.content || '')}</code></pre>
         </div>
       )
 
     case 'table':
+      if (!section.columns || !section.rows) {
+        console.warn('Nieprawidłowa tabela:', section)
+        return null
+      }
+      const columnCount = section.columns.length;
       return (
         <div className="ls-example-table-wrap">
           {section.label && <p className="ls-table-label">{section.label}</p>}
@@ -77,13 +110,18 @@ function TheorySection({ section }) {
             <table className="ls-example-table">
               <thead>
                 <tr>
-                  {section.columns.map(c => <th key={c}>{c}</th>)}
-                  {section.rows[0]?.length > section.columns.length && <th key="extra">Przykład</th>}
+                  {section.columns.map((c, idx) => <th key={idx}>{c}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {section.rows.map((row, i) => (
-                  <tr key={i}>{row.map((cell, j) => <td key={j}>{cell}</td>)}</tr>
+                  <tr key={i}>
+                    {row.slice(0, columnCount).map((cell, j) => <td key={j}>{cell}</td>)}
+                    {/* Uzupełnij brakujące komórki pustymi, jeśli wiersz jest za krótki */}
+                    {row.length < columnCount && Array.from({ length: columnCount - row.length }).map((_, j) => (
+                      <td key={`empty-${i}-${j}`}>&nbsp;</td>
+                    ))}
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -98,14 +136,13 @@ function TheorySection({ section }) {
             <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
             <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
-          <div>
-            <strong>Wskazówka:</strong> {section.content}
-          </div>
+          <div dangerouslySetInnerHTML={{ __html: `<strong>Wskazówka:</strong> ${formatText(section.content)}` }}></div>
         </div>
       )
 
     default:
-      return null
+      console.warn('Nieznany typ sekcji:', section.type, section)
+      return <p className="ls-theory-text" style={{color: '#f97316'}}>Nieznany typ sekcji: {section.type}</p>
   }
 }
 
@@ -477,16 +514,18 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
 
 function LessonPage() {
   const { id } = useParams()
-  const { user, getUserDatabase } = useAuth()
+  const { user, getUserDatabase, profile } = useAuth()
   const navigate = useNavigate()
   const [activeExercise, setActiveExercise] = useState(0)
   const [exercisesOpen, setExercisesOpen] = useState(true)
   const [db, setDb] = useState(null)
   const [dbLoading, setDbLoading] = useState(true)
   const [userQueries, setUserQueries] = useState({})
-  const [personalizedContent, setPersonalizedContent] = useState('')
+  const [personalizedSections, setPersonalizedSections] = useState(null)
+  const [personalizedSchema, setPersonalizedSchema] = useState(null)
   const [personalizedLoading, setPersonalizedLoading] = useState(false)
-  const [showPersonalized, setShowPersonalized] = useState(false)
+  const [isPersonalized, setIsPersonalized] = useState(false)
+  const [loadingPersonalized, setLoadingPersonalized] = useState(false)
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
@@ -534,6 +573,35 @@ function LessonPage() {
     loadDb()
   }, [user, lesson, getUserDatabase])
 
+  // Ładowanie spersonalizowanej lekcji przy starcie
+  useEffect(() => {
+    const loadPersonalizedLesson = async () => {
+      if (user && lesson) {
+        setLoadingPersonalized(true)
+        try {
+          const { data, error } = await supabase
+            .from('personalized_lessons')
+            .select('sections, schema')
+            .eq('user_id', user.id)
+            .eq('lesson_id', lesson.id)
+            .maybeSingle()
+
+          if (data && !error) {
+            console.log('=== Załadowano spersonalizowaną lekcję ===')
+            setPersonalizedSections(data.sections)
+            setPersonalizedSchema(data.schema)
+            setIsPersonalized(true)
+          }
+        } catch (e) {
+          console.error('Błąd ładowania spersonalizowanej lekcji:', e)
+        } finally {
+          setLoadingPersonalized(false)
+        }
+      }
+    }
+    loadPersonalizedLesson()
+  }, [user, lesson])
+
   const progressKey = `lesson_progress_${user?.id}`
 
   const [completed, setCompleted] = useState(() => {
@@ -570,28 +638,109 @@ function LessonPage() {
     if (!lesson) return
 
     setPersonalizedLoading(true)
-    setShowPersonalized(true)
-    setPersonalizedContent('')
 
     try {
-      const theoryText = lesson.theory.sections
-        .map(s => s.type === 'text' ? s.content : '')
-        .filter(Boolean)
-        .join('\n\n')
+      const interests = profile?.interests || ''
+
+      console.log('=== Personalizacja ===')
+      console.log('Zainteresowania:', interests)
+      console.log('Lekcja:', lesson.title)
+      console.log('Sekcje wejściowe:', lesson.theory.sections?.length)
 
       const response = await getPersonalizedContent(
         lesson.title,
         lesson.subtitle,
-        theoryText,
-        lesson.theory.keywords
+        lesson.theory.sections,
+        interests,
+        lesson.theory.schema
       )
-      setPersonalizedContent(response.content)
+
+      console.log('Odpowiedź z API:', response)
+
+      // Walidacja odpowiedzi
+      if (response.sections && Array.isArray(response.sections) && response.sections.length > 0) {
+        // Sprawdź czy każda sekcja ma wymagane pola
+        const validSections = response.sections.filter(s => s.type && (s.content || s.label || (s.columns && s.rows)))
+        console.log('Poprawne sekcje:', validSections.length, 'z', response.sections.length)
+
+        if (validSections.length > 0) {
+          setPersonalizedSections(validSections)
+          setPersonalizedSchema(response.schema || lesson.theory.schema)
+          setIsPersonalized(true)
+          console.log('Ustawiono spersonalizowane sekcje:', validSections.length)
+          console.log('Schemat:', response.schema ? 'spersonalizowany' : 'oryginalny')
+
+          // Zapisz spersonalizowaną lekcję do bazy
+          try {
+            await supabase
+              .from('personalized_lessons')
+              .upsert({
+                user_id: user.id,
+                lesson_id: lesson.id,
+                sections: validSections,
+                schema: response.schema || lesson.theory.schema
+              }, {
+                onConflict: 'user_id,lesson_id'
+              })
+            console.log('Zapisano spersonalizowaną lekcję do bazy')
+          } catch (saveError) {
+            console.error('Błąd zapisywania spersonalizowanej lekcji:', saveError)
+          }
+        } else {
+          throw new Error('Żadna sekcja nie ma wymaganych pól (type, content)')
+        }
+      } else {
+        console.error('Brak lub nieprawidłowe sekcje w odpowiedzi:', response)
+        throw new Error('Brak sekcji w odpowiedzi lub nieprawidłowy format')
+      }
     } catch (e) {
-      setPersonalizedContent('Nie udało się wygenerować spersonalizowanej treści. Spróbuj ponownie.')
+      console.error('Błąd personalizacji:', e)
+      alert('Nie udało się wygenerować spersonalizowanej treści. Spróbuj ponownie.\nBłąd: ' + e.message)
     } finally {
       setPersonalizedLoading(false)
     }
   }
+
+  const handleResetToOriginal = async () => {
+    console.log('=== Reset do wersji oryginalnej ===')
+    console.log('User ID:', user?.id)
+    console.log('Lesson ID:', lesson?.id)
+
+    // Najpierw reset stanu lokalnego
+    setPersonalizedSections(null)
+    setPersonalizedSchema(null)
+    setIsPersonalized(false)
+
+    // Usuń spersonalizowaną lekcję z Supabase
+    try {
+      if (user && lesson) {
+        console.log('Próba usunięcia z Supabase...')
+
+        const { data, error, count } = await supabase
+          .from('personalized_lessons')
+          .delete({ count: 'exact' })
+          .eq('user_id', user.id)
+          .eq('lesson_id', lesson.id)
+
+        console.log('Wynik usuwania:', { data, error, count })
+
+        if (error) {
+          console.error('Błąd usuwania spersonalizowanej lekcji:', error)
+          alert('Nie udało się usunąć spersonalizowanej wersji: ' + error.message)
+        } else {
+          console.log('Usunięto spersonalizowaną lekcję z bazy, usunięte rekordy:', count)
+          if (count === 0) {
+            console.warn('Nie znaleziono rekordu do usunięcia')
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Błąd podczas usuwania:', e)
+    }
+  }
+
+  const currentSections = isPersonalized && personalizedSections ? personalizedSections : lesson?.theory?.sections || []
+  const currentSchema = isPersonalized && personalizedSchema ? personalizedSchema : lesson?.theory?.schema || []
 
   if (!lesson) {
     return (
@@ -687,18 +836,32 @@ function LessonPage() {
               </svg>
             </div>
             <h2 className="ls-section-title">Teoria</h2>
-            <button
-              className="ls-personalize-btn"
-              onClick={handlePersonalizeContent}
-              disabled={personalizedLoading}
-              title="Wygeneruj spersonalizowaną treść"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-                <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
-              {personalizedLoading ? 'Generuję...' : 'Spersonalizuj'}
-            </button>
+            {isPersonalized ? (
+              <button
+                className="ls-personalize-btn ls-personalize-btn--active"
+                onClick={handleResetToOriginal}
+                title="Wróć do wersji oryginalnej"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 3v5h5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Wersja oryginalna
+              </button>
+            ) : (
+              <button
+                className="ls-personalize-btn"
+                onClick={handlePersonalizeContent}
+                disabled={personalizedLoading}
+                title="Dostosuj treść do Twoich zainteresowań"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                  <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                {personalizedLoading ? 'Generuję...' : 'Spersonalizuj'}
+              </button>
+            )}
           </div>
 
           {/* Słowa kluczowe */}
@@ -711,63 +874,38 @@ function LessonPage() {
             </div>
           </div>
 
-          {/* Spersonalizowana treść */}
-          {showPersonalized && (
-            <div className="ls-personalized-content">
-              <div className="ls-personalized-header">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <h3 className="ls-personalized-title">Dla Ciebie</h3>
-                <button
-                  className="ls-personalized-close"
-                  onClick={() => setShowPersonalized(false)}
-                  aria-label="Zamknij"
-                >
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-              {personalizedLoading ? (
-                <div className="ls-personalized-loading">
-                  <span className="ls-hint-loading-dot"></span>
-                  <span className="ls-hint-loading-dot"></span>
-                  <span className="ls-hint-loading-dot"></span>
-                </div>
-              ) : (
-                <div className="ls-personalized-text">
-                  {personalizedContent.split('\n').map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
-                </div>
-              )}
+          {/* Sekcje treści */}
+          {personalizedLoading ? (
+            <div className="ls-personalized-loading">
+              <span className="ls-hint-loading-dot"></span>
+              <span className="ls-hint-loading-dot"></span>
+              <span className="ls-hint-loading-dot"></span>
+            </div>
+          ) : (
+            <div className="ls-theory-content">
+              {currentSections.map((section, i) => (
+                <TheorySection key={i} section={section} />
+              ))}
             </div>
           )}
 
-          {/* Sekcje treści */}
-          <div className="ls-theory-content">
-            {lesson.theory.sections.map((section, i) => (
-              <TheorySection key={i} section={section} />
-            ))}
-          </div>
-
           {/* Schemat tabeli */}
-          <div className="ls-schema">
-            <h3 className="ls-schema-title">Schemat tabeli gracze:</h3>
-            <div className="ls-schema-list">
-              {lesson.theory.schema.map(col => (
-                <div key={col.name} className="ls-schema-item">
-                  <p className="ls-schema-col">
-                    <span className="ls-schema-name">{col.name}</span>
-                    <span className="ls-schema-type">({col.type})</span>
-                  </p>
-                  <p className="ls-schema-desc">{col.desc}</p>
-                </div>
-              ))}
+          {currentSchema.length > 0 && (
+            <div className="ls-schema">
+              <h3 className="ls-schema-title">Schemat tabeli{currentSchema[0]?.name ? ` ${currentSchema[0].name}` : ''}:</h3>
+              <div className="ls-schema-list">
+                {currentSchema.map(col => (
+                  <div key={col.name} className="ls-schema-item">
+                    <p className="ls-schema-col">
+                      <span className="ls-schema-name">{col.name}</span>
+                      <span className="ls-schema-type">({col.type})</span>
+                    </p>
+                    <p className="ls-schema-desc">{col.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Prawa kolumna — Ćwiczenia */}

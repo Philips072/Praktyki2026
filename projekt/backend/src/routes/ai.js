@@ -376,14 +376,20 @@ PRZYKŁADY DOBRYCH ODPOWIEDZI:
 });
 
 // POST /api/ai/personalized-content
-// Przyjmuje: { lessonTitle: string, lessonSubtitle: string, theoryContent: string, keywords: string[] }
-// Zwraca: { content: string }
+// Przyjmuje: { lessonTitle: string, lessonSubtitle: string, sections: array, interests: string, schema: array }
+// Zwraca: { sections: array, schema: array }
 router.post('/personalized-content', async (req, res, next) => {
   try {
-    const { lessonTitle, lessonSubtitle, theoryContent, keywords = [] } = req.body;
+    const { lessonTitle, lessonSubtitle, sections = [], interests = '', schema = [] } = req.body;
 
-    if (!lessonTitle || !theoryContent) {
-      return res.status(400).json({ error: 'Brak wymaganych pól (lessonTitle, theoryContent).' });
+    console.log('=== Personalized Content Request ===');
+    console.log('Lesson Title:', lessonTitle);
+    console.log('Interests:', interests);
+    console.log('Sections count:', sections.length);
+    console.log('Schema count:', schema.length);
+
+    if (!lessonTitle || !sections || sections.length === 0) {
+      return res.status(400).json({ error: 'Brak wymaganych pól (lessonTitle, sections).' });
     }
 
     const openRouterKey = process.env.OPENROUTER_API_KEY;
@@ -391,31 +397,78 @@ router.post('/personalized-content', async (req, res, next) => {
       return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
-    const keywordsText = keywords.length > 0 ? keywords.join(', ') : 'ogólne podstawy SQL';
+    const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
 
-    const prompt = `Jesteś przyjaznym asystentem AI platformy DataMindAI. Twoim zadaniem jest wygenerowanie spersonalizowanej, angażującej i łatwej do zrozumienia wersji materiałów edukacyjnych o SQL.
+    // Przygotuj uproszczoną reprezentację sekcji dla AI
+    const sectionsSummary = sections.map(s => {
+      if (s.type === 'text') return `[${s.type}] ${s.content}`;
+      if (s.type === 'heading') return `[${s.type}] ${s.content}`;
+      if (s.type === 'code') return `[${s.type}] ${s.label || 'Kod'}: ${s.content.substring(0, 100)}...`;
+      if (s.type === 'hint') return `[${s.type}] ${s.content}`;
+      if (s.type === 'table') return `[${s.type}] ${s.label || 'Tabela'}`;
+      return `[${s.type}]`;
+    }).join('\n');
 
-Lekcja: ${lessonTitle}
+    const prompt = `Jesteś przyjaznym asystentem AI platformy DataMindAI. Twoim zadaniem jest wygenerowanie SPERSONALIZOWANEJ wersji materiałów edukacyjnych o SQL.
+
+INFORMACJE O UŻYTKOWNIKU:
+Zainteresowania: ${interests || 'ogólne zainteresowania'}
+
+LEKCJA:
+Tytuł: ${lessonTitle}
 Podtytuł: ${lessonSubtitle || ''}
-Słowa kluczowe: ${keywordsText}
 
-Oryginalna treść teorii:
-${theoryContent}
+Schemat tabeli:
+${schemaText || 'Brak informacji o schemacie'}
+
+ORYGINALNE SEKCJE TEORII (uproszczone):
+${sectionsSummary}
 
 ZASADY:
-1. Przepisz treść w bardziej przystępny i osobisty sposób
-2. Używaj języka potocznego, ale profesjonalnego
-3. Dodaj praktyczne przykłady z życia codziennego, które pomogą zrozumieć koncepcje SQL
-4. Używaj formatowania: pogrubienia (**tekst**) dla kluczowych terminów, kursywy (*tekst*) dla akcentów
-5. Dziel tekst na krótkie akapity (max 3-4 zdania)
-6. Nie używaj bloków kodu ani znaków markdown dla kodu - tylko zwykły tekst
-7. Skup się na tym, żeby uczuć się jak czyta go przyjaciel, który tłumaczy mu coś w prosty sposób
-8. Jeśli treść jest za długa, skróć ją do najważniejszych informacji
+1. Przepisz treść w bardziej przystępny i osobisty sposób, dopasowując przykłady do zainteresowań użytkownika
+2. Zainteresowania użytkownika: "${interests}". Wszystkie przykłady SQL i nazwy tabel/kolumn DOSTOSUJ do tych zainteresowań
+3. Używaj języka potocznego, ale profesjonalnego
+4. Dla sekcji "text" — używaj pogrubień (**tekst**) dla kluczowych terminów, kursyw (*tekst*) dla akcentów
+5. Dla sekcji "code" — dostosuj przykłady SQL do zainteresowań użytkownika (zmień nazwy tabel, kolumn, danych)
+6. Dla sekcji "hint" — zachowaj naturę porady
+7. Dziel teksty na krótkie akapity (max 3-4 zdania)
 
-Odpowiedź w formacie JSON (tylko JSON, bez markdown):
+DOSTOSOWANIE PRZYKŁADÓW DO ZAINTERESOWAŃ:
+- Jeśli "sport" — używaj tabel: "druzyny", "pilkarze", "mecze", kolumn: "imie", "nazwisko", "pozycja", "bramki"
+- Jeśli "gry" — używaj tabel: "postacie", "przedmioty", "questy", kolumn: "imie", "poziom", "klasa", "hp"
+- Jeśli "muzyka" — używaj tabel: "artysci", "albumy", "piosenki", kolumn: "tytul", "gatunek", "rok"
+- Jeśli "programowanie" — używaj tabel: "projekty", "programisci", "zadania", kolumn: "nazwa", "jezyk", "status"
+- Jeśli "kino" — używaj tabel: "filmy", "aktorzy", "rezyserzy", kolumn: "tytul", "gatunek", "rok"
+
+BARDZO WAŻNE - GENEROWANIE TABEL:
+Jeśli oryginalna sekcja ma type "table", ZAWSZE zachowaj tę strukturę:
 {
-  "content": "<spersonalizowana treść>"
-}`;
+  "type": "table",
+  "label": "opcjonalny opis tabeli",
+  "columns": ["kolumna1", "kolumna2", "kolumna3"],
+  "rows": [
+    ["wartość1", "wartość2", "wartość3"],
+    ["wartość4", "wartość5", "wartość6"]
+  ]
+}
+ZAWSZE musisz podać "columns" (tablica nazw kolumn) i "rows" (tablica wierszy, gdzie każdy wiersz to tablica wartości).
+
+WYMAGANY FORMAT ODPOWIEDZI:
+Zwróć TYLKO JSON w tym formacie (bez żadnego tekstu przed ani po):
+{
+  "sections": [
+    {"type": "heading", "content": "tytuł sekcji"},
+    {"type": "text", "content": "treść sekcji"},
+    {"type": "code", "label": "etykieta", "content": "kod SQL"},
+    {"type": "hint", "content": "wskazówka"}
+  ],
+  "schema": [
+    {"name": "nazwa_kolumny", "type": "TYP", "desc": "opis"}
+  ]
+}
+
+ZACHOWAJ LICZBĘ I RODZAJE SEKCJI jak w oryginale!
+SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań użytkownika!`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -427,8 +480,8 @@ Odpowiedź w formacie JSON (tylko JSON, bez markdown):
       },
       body: JSON.stringify({
         model: 'google/gemma-4-26b-a4b-it',
-        max_tokens: 500,
-        temperature: 0.8,
+        max_tokens: 3000,
+        temperature: 0.7,
         messages: [
           { role: 'system', content: prompt },
         ],
@@ -443,16 +496,97 @@ Odpowiedź w formacie JSON (tylko JSON, bez markdown):
     const data = await response.json();
     const raw = data.choices?.[0]?.message?.content?.trim() ?? '';
 
+    console.log('=== AI Personalized Content Raw Response ===');
+    console.log('Length:', raw.length);
+    console.log('First 500 chars:', raw.substring(0, 500));
+    console.log('Last 200 chars:', raw.substring(Math.max(0, raw.length - 200)));
+
     try {
       let cleanRaw = raw;
       const markdownMatch = raw.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
       if (markdownMatch) {
         cleanRaw = markdownMatch[1];
+        console.log('Usunięto markdown code blocks');
       }
       const parsed = JSON.parse(cleanRaw);
-      return res.json(parsed);
-    } catch {
-      return res.json({ content: raw });
+      console.log('=== AI Parsed Sections ===');
+      console.log('Liczba sekcji:', parsed.sections?.length || 0);
+      console.log('Pierwsza sekcja:', parsed.sections?.[0]);
+      console.log('Ostatnia sekcja:', parsed.sections?.[parsed.sections?.length - 1]);
+
+      if (!parsed.sections || !Array.isArray(parsed.sections) || parsed.sections.length === 0) {
+        console.error('AI nie zwrócił sekcji! Używam oryginalnych.');
+        // Fallback: zwróć oryginalne sekcje z dodanym wstępem o zainteresowaniach
+        const introSection = {
+          type: 'text',
+          content: interests
+            ? `Zauważyłem, że Twoje zainteresowania to: **${interests}**. W tej lekcji postaram się użyć przykładów związanych z tymi tematami!`
+            : 'Witaj! W tej lekcji poznasz podstawy SQL w przystępny sposób.'
+        };
+        return res.json({
+          sections: [introSection, ...sections],
+          schema: schema
+        });
+      }
+
+      // Walidacja sekcji - każda musi mieć type i odpowiednie pola
+      const validSections = parsed.sections.filter(s => {
+        if (!s.type) return false;
+
+        switch (s.type) {
+          case 'heading':
+          case 'text':
+          case 'hint':
+            return !!s.content;
+          case 'code':
+            return !!s.content;
+          case 'table':
+            return !!(s.columns && Array.isArray(s.columns) && s.rows && Array.isArray(s.rows));
+          default:
+            console.warn('Nieznany typ sekcji:', s.type);
+            return false;
+        }
+      });
+
+      console.log('Po walidacji:', validSections.length, 'poprawnych sekcji z', parsed.sections.length);
+
+      if (validSections.length === 0) {
+        console.error('Żadna sekcja nie przeszła walidacji! Używam oryginalnych.');
+        const introSection = {
+          type: 'text',
+          content: interests
+            ? `Zauważyłem, że Twoje zainteresowania to: **${interests}**. W tej lekcji postaram się użyć przykładów związanych z tymi tematami!`
+            : 'Witaj! W tej lekcji poznasz podstawy SQL w przystępny sposób.'
+        };
+        return res.json({
+          sections: [introSection, ...sections],
+          schema: schema
+        });
+      }
+
+      // Zwróć zarówno sekcje jak i spersonalizowany schemat (lub oryginalny jeśli AI nie zwrócił)
+      const result = {
+        sections: validSections,
+        schema: parsed.schema || schema
+      };
+
+      console.log('Zwracam:', result.sections.length, 'sekcji i', result.schema.length, 'kolumn schematu');
+      return res.json(result);
+    } catch (e) {
+      console.error('Parse error:', e.message);
+      console.error('Raw that failed to parse:', raw);
+      // Fallback: zwróć oryginalne sekcje w przypadku błędu parsowania
+      const introSection = {
+        type: 'text',
+        content: interests
+          ? `Zauważyłem, że Twoje zainteresowania to: **${interests}**. W tej lekcji postaram się użyć przykładów związanych z tymi tematami!`
+          : 'Witaj! W tej lekcji poznasz podstawy SQL w przystępny sposób.'
+      };
+      return res.json({
+        sections: [introSection, ...sections],
+        schema: schema,
+        error: 'Parse error: ' + e.message
+      });
     }
   } catch (err) {
     next(err);

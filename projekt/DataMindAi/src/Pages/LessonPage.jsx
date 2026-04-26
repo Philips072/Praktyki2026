@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
-import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables } from '../api.js'
+import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent } from '../api.js'
 
 const getUserId = () => {
   const userStr = localStorage.getItem('user')
@@ -484,6 +484,9 @@ function LessonPage() {
   const [db, setDb] = useState(null)
   const [dbLoading, setDbLoading] = useState(true)
   const [userQueries, setUserQueries] = useState({})
+  const [personalizedContent, setPersonalizedContent] = useState('')
+  const [personalizedLoading, setPersonalizedLoading] = useState(false)
+  const [showPersonalized, setShowPersonalized] = useState(false)
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
 
   const lesson = LESSONS.find(l => l.id === Number(id))
@@ -561,6 +564,33 @@ function LessonPage() {
       localStorage.setItem(progressKey, JSON.stringify(data))
       return next
     })
+  }
+
+  const handlePersonalizeContent = async () => {
+    if (!lesson) return
+
+    setPersonalizedLoading(true)
+    setShowPersonalized(true)
+    setPersonalizedContent('')
+
+    try {
+      const theoryText = lesson.theory.sections
+        .map(s => s.type === 'text' ? s.content : '')
+        .filter(Boolean)
+        .join('\n\n')
+
+      const response = await getPersonalizedContent(
+        lesson.title,
+        lesson.subtitle,
+        theoryText,
+        lesson.theory.keywords
+      )
+      setPersonalizedContent(response.content)
+    } catch (e) {
+      setPersonalizedContent('Nie udało się wygenerować spersonalizowanej treści. Spróbuj ponownie.')
+    } finally {
+      setPersonalizedLoading(false)
+    }
   }
 
   if (!lesson) {
@@ -657,6 +687,18 @@ function LessonPage() {
               </svg>
             </div>
             <h2 className="ls-section-title">Teoria</h2>
+            <button
+              className="ls-personalize-btn"
+              onClick={handlePersonalizeContent}
+              disabled={personalizedLoading}
+              title="Wygeneruj spersonalizowaną treść"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                <path d="M9 21h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              {personalizedLoading ? 'Generuję...' : 'Spersonalizuj'}
+            </button>
           </div>
 
           {/* Słowa kluczowe */}
@@ -668,6 +710,41 @@ function LessonPage() {
               ))}
             </div>
           </div>
+
+          {/* Spersonalizowana treść */}
+          {showPersonalized && (
+            <div className="ls-personalized-content">
+              <div className="ls-personalized-header">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h3 className="ls-personalized-title">Dla Ciebie</h3>
+                <button
+                  className="ls-personalized-close"
+                  onClick={() => setShowPersonalized(false)}
+                  aria-label="Zamknij"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              {personalizedLoading ? (
+                <div className="ls-personalized-loading">
+                  <span className="ls-hint-loading-dot"></span>
+                  <span className="ls-hint-loading-dot"></span>
+                  <span className="ls-hint-loading-dot"></span>
+                </div>
+              ) : (
+                <div className="ls-personalized-text">
+                  {personalizedContent.split('\n').map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Sekcje treści */}
           <div className="ls-theory-content">

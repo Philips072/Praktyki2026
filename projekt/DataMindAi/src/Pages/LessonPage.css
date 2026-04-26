@@ -217,6 +217,34 @@
   font-family: VennBold;
   font-size: 1.3rem;
   margin: 0;
+  flex: 1;
+}
+
+.ls-personalize-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 8px;
+  color: #a78bfa;
+  font-family: VennRegular;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.ls-personalize-btn:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: #a78bfa;
+  color: #c4b5fd;
+}
+
+.ls-personalize-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ── Słowa kluczowe ────────────────────────────────────── */
@@ -248,6 +276,85 @@
   font-size: 0.8rem;
   font-family: 'Courier New', monospace;
   color: var(--primaryText);
+}
+
+/* Spersonalizowana treść */
+.ls-personalized-content {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.08) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ls-personalized-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.ls-personalized-header svg {
+  color: #a78bfa;
+  flex-shrink: 0;
+}
+
+.ls-personalized-title {
+  font-family: VennBold;
+  font-size: 0.95rem;
+  margin: 0;
+  color: #c4b5fd;
+  flex: 1;
+}
+
+.ls-personalized-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: transparent;
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.ls-personalized-close:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #a78bfa;
+  color: #c4b5fd;
+}
+
+.ls-personalized-loading {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 20px;
+  justify-content: center;
+}
+
+.ls-personalized-text {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ls-personalized-text p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--secondaryText);
+  line-height: 1.7;
+}
+
+.ls-personalized-text strong {
+  color: #c4b5fd;
+  font-family: VennBold;
 }
 
 /* ── Teoria — treść ────────────────────────────────────── */

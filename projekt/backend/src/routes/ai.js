@@ -375,4 +375,88 @@ PRZYKŁADY DOBRYCH ODPOWIEDZI:
   }
 });
 
+// POST /api/ai/personalized-content
+// Przyjmuje: { lessonTitle: string, lessonSubtitle: string, theoryContent: string, keywords: string[] }
+// Zwraca: { content: string }
+router.post('/personalized-content', async (req, res, next) => {
+  try {
+    const { lessonTitle, lessonSubtitle, theoryContent, keywords = [] } = req.body;
+
+    if (!lessonTitle || !theoryContent) {
+      return res.status(400).json({ error: 'Brak wymaganych pól (lessonTitle, theoryContent).' });
+    }
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
+    }
+
+    const keywordsText = keywords.length > 0 ? keywords.join(', ') : 'ogólne podstawy SQL';
+
+    const prompt = `Jesteś przyjaznym asystentem AI platformy DataMindAI. Twoim zadaniem jest wygenerowanie spersonalizowanej, angażującej i łatwej do zrozumienia wersji materiałów edukacyjnych o SQL.
+
+Lekcja: ${lessonTitle}
+Podtytuł: ${lessonSubtitle || ''}
+Słowa kluczowe: ${keywordsText}
+
+Oryginalna treść teorii:
+${theoryContent}
+
+ZASADY:
+1. Przepisz treść w bardziej przystępny i osobisty sposób
+2. Używaj języka potocznego, ale profesjonalnego
+3. Dodaj praktyczne przykłady z życia codziennego, które pomogą zrozumieć koncepcje SQL
+4. Używaj formatowania: pogrubienia (**tekst**) dla kluczowych terminów, kursywy (*tekst*) dla akcentów
+5. Dziel tekst na krótkie akapity (max 3-4 zdania)
+6. Nie używaj bloków kodu ani znaków markdown dla kodu - tylko zwykły tekst
+7. Skup się na tym, żeby uczuć się jak czyta go przyjaciel, który tłumaczy mu coś w prosty sposób
+8. Jeśli treść jest za długa, skróć ją do najważniejszych informacji
+
+Odpowiedź w formacie JSON (tylko JSON, bez markdown):
+{
+  "content": "<spersonalizowana treść>"
+}`;
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-4-26b-a4b-it',
+        max_tokens: 500,
+        temperature: 0.8,
+        messages: [
+          { role: 'system', content: prompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.message || 'Błąd OpenRouter API.' });
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() ?? '';
+
+    try {
+      let cleanRaw = raw;
+      const markdownMatch = raw.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+      if (markdownMatch) {
+        cleanRaw = markdownMatch[1];
+      }
+      const parsed = JSON.parse(cleanRaw);
+      return res.json(parsed);
+    } catch {
+      return res.json({ content: raw });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

@@ -69,3 +69,7 @@ export const validateExercise = (task, sql, result, validateOnly = false, schema
 // POST /api/ai/hint
 // Zwraca { hint: string }
 export const getHint = (task, currentSql, schema) => post('/api/ai/hint', { task, currentSql, schema });
+
+// POST /api/ai/personalized-content
+// Zwraca { content: string }
+export const getPersonalizedContent = (lessonTitle, lessonSubtitle, theoryContent, keywords) => post('/api/ai/personalized-content', { lessonTitle, lessonSubtitle, theoryContent, keywords });

@@ -88,3 +88,27 @@ export const getPersonalizedContent = async (lessonTitle, lessonSubtitle, sectio
 
   return result;
 };
+
+// POST /api/sqlite/sandbox/initialize
+export const initializeSandboxDatabase = (userId, dbId) => post('/api/sqlite/sandbox/initialize', { userId, dbId });
+
+// GET /api/sqlite/sandbox/:userId
+export const getUserSandboxDatabases = (userId) => fetch(`${BASE}/api/sqlite/sandbox/${userId}`).then(r => r.json());
+
+// POST /api/sqlite/sandbox/execute
+export const executeSandboxSQL = (userId, dbId, sql) => post('/api/sqlite/sandbox/execute', { userId, dbId, sql });
+
+// GET /api/sqlite/sandbox/tables/:userId/:dbId
+export const getSandboxTables = (userId, dbId) => fetch(`${BASE}/api/sqlite/sandbox/tables/${userId}/${dbId}`).then(r => r.json());
+
+// GET /api/sqlite/sandbox/schema/:userId/:dbId/:tableName
+export const getSandboxTableSchema = (userId, dbId, tableName) => fetch(`${BASE}/api/sqlite/sandbox/schema/${userId}/${dbId}/${tableName}`).then(r => r.json());
+
+// GET /api/sqlite/sandbox/data/:userId/:dbId/:tableName
+export const getSandboxTableData = (userId, dbId, tableName, limit = 100) => fetch(`${BASE}/api/sqlite/sandbox/data/${userId}/${dbId}/${tableName}?limit=${limit}`).then(r => r.json());
+
+// POST /api/sqlite/sandbox/exists
+export const sandboxDatabaseExists = (userId, dbId) => post('/api/sqlite/sandbox/exists', { userId, dbId });
+
+// POST /api/sqlite/sandbox/drop
+export const dropSandboxDatabase = (userId, dbId) => post('/api/sqlite/sandbox/drop', { userId, dbId });

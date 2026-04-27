@@ -6,7 +6,15 @@ import {
   databaseExists,
   getTables,
   getTableSchema,
-  createConnection
+  createConnection,
+  initializeSandboxDatabase,
+  executeSandboxSQL,
+  getSandboxTables,
+  getSandboxTableSchema,
+  getSandboxTableData,
+  getUserSandboxDatabases,
+  sandboxDatabaseExists,
+  dropSandboxDatabase
 } from '../db/knexConfig.js';
 
 const router = express.Router();
@@ -148,6 +156,119 @@ router.post('/exists', async (req, res) => {
     res.json({ success: true, exists });
   } catch {
     res.json({ success: true, exists: false });
+  }
+});
+
+router.post('/sandbox/initialize', async (req, res) => {
+  const { userId, dbId } = req.body;
+
+  if (!userId || !dbId) {
+    return res.status(400).json({ error: 'userId i dbId są wymagane' });
+  }
+
+  try {
+    await initializeSandboxDatabase(userId, dbId);
+    res.json({ success: true, message: 'Baza danych sandbox utworzona' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/sandbox/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const dbIds = await getUserSandboxDatabases(userId);
+    res.json({ success: true, databases: dbIds });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/sandbox/execute', async (req, res) => {
+  const { userId, dbId, sql } = req.body;
+
+  if (!userId || !dbId || !sql) {
+    return res.status(400).json({ error: 'userId, dbId i sql są wymagane' });
+  }
+
+  try {
+    const result = await executeSandboxSQL(userId, dbId, sql);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: `Błąd: ${error.message}`,
+      affectedRows: 0,
+      data: null
+    });
+  }
+});
+
+router.get('/sandbox/tables/:userId/:dbId', async (req, res) => {
+  const { userId, dbId } = req.params;
+
+  try {
+    const tables = await getSandboxTables(userId, dbId);
+    res.json({ success: true, tables });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/sandbox/schema/:userId/:dbId/:tableName', async (req, res) => {
+  const { userId, dbId, tableName } = req.params;
+
+  try {
+    const schema = await getSandboxTableSchema(userId, dbId, tableName);
+    if (schema.length === 0) {
+      return res.status(404).json({ error: 'Tabela nie istnieje' });
+    }
+    res.json({ success: true, schema });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/sandbox/data/:userId/:dbId/:tableName', async (req, res) => {
+  const { userId, dbId, tableName } = req.params;
+  const limit = parseInt(req.query.limit) || 100;
+
+  try {
+    const result = await getSandboxTableData(userId, dbId, tableName, limit);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/sandbox/exists', async (req, res) => {
+  const { userId, dbId } = req.body;
+
+  if (!userId || !dbId) {
+    return res.status(400).json({ error: 'userId i dbId są wymagane' });
+  }
+
+  try {
+    const exists = await sandboxDatabaseExists(userId, dbId);
+    res.json({ success: true, exists });
+  } catch {
+    res.json({ success: true, exists: false });
+  }
+});
+
+router.post('/sandbox/drop', async (req, res) => {
+  const { userId, dbId } = req.body;
+
+  if (!userId || !dbId) {
+    return res.status(400).json({ error: 'userId i dbId są wymagane' });
+  }
+
+  try {
+    await dropSandboxDatabase(userId, dbId);
+    res.json({ success: true, message: 'Baza danych została usunięta' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

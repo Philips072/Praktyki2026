@@ -133,7 +133,6 @@ function TeacherPanelPage() {
     const { data, error } = await supabase
       .from('classes')
       .select('*, class_students(count)')
-      .eq('created_by', user.id)
       .order('name', { ascending: true })
 
     if (error) { setClassesError(error.message); setClassesLoading(false); return }
@@ -155,7 +154,7 @@ function TeacherPanelPage() {
     setClassStudentsData(data ?? [])
   }
 
-  useEffect(() => { fetchClasses() }, [user])
+  useEffect(() => { fetchClasses() }, [])
   useEffect(() => { fetchClassStudents() }, [classes])
 
   // ── Testy ────────────────────────────────────────────────────────────────

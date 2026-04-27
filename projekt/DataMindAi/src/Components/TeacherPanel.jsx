@@ -529,7 +529,12 @@ function TeacherPanel({
             isAdmin={isAdmin}
           />
         )}
-        {activeTab === 'grading' && <GradingSection />}
+        {activeTab === 'grading' && (
+          <>
+            {console.log('TeacherPanel: Rendering GradingSection, activeTab =', activeTab)}
+            <GradingSection />
+          </>
+        )}
         {activeTab === 'classes' && (
           <ClassManagement
             classes={classes}

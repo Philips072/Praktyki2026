@@ -70,7 +70,7 @@ function AssignedTests() {
   }
 
   const getGrade = (score, thresholds) => {
-    if (!thresholds) return null
+    if (!Array.isArray(thresholds) || thresholds.length === 0) return null
     const sorted = [...thresholds].sort((a, b) => b.minPercent - a.minPercent)
     for (const t of sorted) {
       if (score >= t.minPercent) return t.grade

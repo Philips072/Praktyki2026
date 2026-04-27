@@ -30,6 +30,9 @@ export const initializeDatabase = (userId, lessonId) => post('/api/sqlite/initia
 // Zwraca { success, message, affectedRows, data }
 export const executeSQL = (userId, lessonId, sql) => post('/api/sqlite/execute', { userId, lessonId, sql });
 
+// Funkcja pomocnicza do usuwania tabeli
+export const dropTable = (userId, lessonId, tableName) => executeSQL(userId, lessonId, `DROP TABLE ${tableName};`);
+
 // GET /api/sqlite/tables/:userId/:lessonId
 // Zwraca { success, tables }
 export const getDatabaseTables = (userId, lessonId) => fetch(`${BASE}/api/sqlite/tables/${userId}/${lessonId}`).then(r => r.json());

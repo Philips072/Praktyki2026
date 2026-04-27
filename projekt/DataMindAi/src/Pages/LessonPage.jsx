@@ -350,8 +350,10 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
         console.warn('Failed to fetch database schema:', e.message)
       }
 
-      const validateOnly = exercise.validateOnly || false
-      const validation = await validateExercise(exercise.task, query, sqlResult.data, validateOnly, dbSchema)
+      const validateOnly = exercise.validateOnly || sqlResult.data === null
+      // Pass empty result structure for non-SELECT queries to avoid backend errors
+      const resultToSend = sqlResult.data || [{ columns: [], rows: [] }]
+      const validation = await validateExercise(exercise.task, query, resultToSend, validateOnly, dbSchema)
 
       console.log('AI validation:', validation)
 

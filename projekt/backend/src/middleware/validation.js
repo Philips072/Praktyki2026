@@ -66,10 +66,16 @@ export const interestsSchema = z.object({
 export const validateExerciseSchema = z.object({
   task: z.string().min(5, 'Zadanie musi mieć co najmniej 5 znaków').max(1000),
   sql: z.string().min(1, 'SQL nie może być puste').max(10000),
-  result: z.object({
-    columns: z.array(z.string()).optional(),
-    rows: z.array(z.any()).optional()
-  }).optional(),
+  result: z.union([
+    z.array(z.object({
+      columns: z.array(z.string()).optional(),
+      rows: z.array(z.any()).optional()
+    })),
+    z.object({
+      columns: z.array(z.string()).optional(),
+      rows: z.array(z.any()).optional()
+    })
+  ]).optional(),
   validateOnly: z.boolean().optional(),
   schema: z.any().optional()
 })

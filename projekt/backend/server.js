@@ -60,7 +60,16 @@ app.use('/api/', generalLimiter);
 
 // ==================== ROUTES ====================
 
-app.use('/api/ai', aiLimiter, aiRouter);
+// AI routes - use longer timeout (120s) for AI generation
+app.use('/api/ai', aiLimiter, (req, res, next) => {
+  res.setTimeout(120000, () => {
+    req.log?.warn?.({ reqId: req.id }, 'AI request timeout');
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'AI request timeout' });
+    }
+  });
+  next();
+}, aiRouter);
 app.use('/api/sqlite', sqliteRouter);
 
 // Specific strict limiters for sensitive operations

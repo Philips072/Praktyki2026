@@ -3,10 +3,19 @@ import path from 'path';
 import fs from 'fs/promises';
 
 const DB_DIR = path.join(process.cwd(), 'databases');
+const SANDBOX_DIR = path.join(process.cwd(), 'sandbox');
 
 const ensureDbDir = async () => {
   try {
     await fs.mkdir(DB_DIR, { recursive: true });
+  } catch (e) {
+    if (e.code !== 'EEXIST') throw e;
+  }
+};
+
+const ensureSandboxDir = async () => {
+  try {
+    await fs.mkdir(SANDBOX_DIR, { recursive: true });
   } catch (e) {
     if (e.code !== 'EEXIST') throw e;
   }
@@ -376,6 +385,203 @@ const executeSQL = async (userId, lessonId, sqlQuery) => {
   }
 };
 
+const getSandboxDbPath = (userId, dbId) => path.join(SANDBOX_DIR, `${userId}_${dbId}.db`);
+
+const createSandboxConnection = async (userId, dbId) => {
+  await ensureSandboxDir();
+  const dbPath = getSandboxDbPath(userId, dbId);
+
+  return knex({
+    client: 'sqlite3',
+    connection: {
+      filename: dbPath
+    },
+    useNullAsDefault: true
+  });
+};
+
+const getUserSandboxDatabases = async (userId) => {
+  await ensureSandboxDir();
+  try {
+    const files = await fs.readdir(SANDBOX_DIR);
+    const sandboxDbs = files
+      .filter(file => file.startsWith(`${userId}_`) && file.endsWith('.db'))
+      .map(file => {
+        const dbId = file.substring(userId.length + 1, file.length - 3);
+        return dbId;
+      });
+    return sandboxDbs;
+  } catch {
+    return [];
+  }
+};
+
+const initializeSandboxDatabase = async (userId, dbId) => {
+  const db = await createSandboxConnection(userId, dbId);
+
+  await db.destroy();
+};
+
+const executeSandboxSQL = async (userId, dbId, sqlQuery) => {
+  const db = await createSandboxConnection(userId, dbId);
+
+  let processedSql = sqlQuery.trim();
+  const normalizedSql = processedSql.toUpperCase();
+
+  if (normalizedSql.startsWith('CREATE DATABASE') || normalizedSql.startsWith('USE') || normalizedSql.startsWith('DROP DATABASE')) {
+    await db.destroy();
+    return {
+      success: true,
+      message: 'Polecenie DDL ignorowane (CREATE DATABASE, USE, DROP DATABASE nie są obsługiwane w tej wersji)',
+      affectedRows: 0,
+      data: null
+    };
+  }
+
+  if (normalizedSql === 'SHOW TABLES' || normalizedSql.startsWith('SHOW TABLES')) {
+    try {
+      const result = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+      await db.destroy();
+      return {
+        success: true,
+        message: `Znaleziono ${result.length} tabel`,
+        affectedRows: 0,
+        data: [{ columns: ['name'], rows: result.map(r => [r.name]) }]
+      };
+    } catch (e) {
+      await db.destroy();
+      return {
+        success: true,
+        message: 'Polecenie SHOW TABLES ignorowane',
+        affectedRows: 0,
+        data: [{ columns: ['name'], rows: [] }]
+      };
+    }
+  }
+
+  const describeMatch = normalizedSql.match(/^DESCRIBE\s+(\w+)|^DESC\s+(\w+)/);
+  if (describeMatch) {
+    const tableName = describeMatch[1] || describeMatch[2];
+    try {
+      const pragmaResult = await db.raw(`PRAGMA table_info(${tableName})`);
+      await db.destroy();
+      const rows = pragmaResult.map(row => [
+        row.name, row.type, row.notnull ? 'NO' : 'YES', row.pk === 1 ? 'PRI' : '', row.dflt_value || ''
+      ]);
+      return {
+        success: true,
+        message: `Struktura tabeli ${tableName}`,
+        affectedRows: 0,
+        data: [{ columns: ['Field', 'Type', 'Null', 'Key', 'Default'], rows }]
+      };
+    } catch (e) {
+      await db.destroy();
+      throw new Error(`Tabela '${tableName}' nie istnieje`);
+    }
+  }
+
+  const createTableMatch = normalizedSql.match(/^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z_][a-zA-Z0-9_]*)/i);
+  if (createTableMatch) {
+    const tableNameToDrop = createTableMatch[1];
+    try {
+      await db.raw(`DROP TABLE IF EXISTS [${tableNameToDrop}]`);
+    } catch (e) {
+      console.warn('Error dropping table:', e.message);
+    }
+  }
+
+  const dropTableMatch = normalizedSql.match(/DROP\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)/i);
+  if (dropTableMatch) {
+    processedSql = processedSql.replace(/DROP\s+TABLE\s+/i, `DROP TABLE IF EXISTS `);
+  }
+
+  processedSql = processedSql.replace(/\bAUTO_INCREMENT\b/gi, 'AUTOINCREMENT');
+
+  try {
+    const isSelect = normalizedSql.startsWith('SELECT');
+    if (isSelect) {
+      const result = await db.raw(processedSql);
+      await db.destroy();
+      const rows = Array.isArray(result) ? result : [];
+      const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+      return {
+        success: true,
+        message: `Znaleziono ${rows.length} wyników`,
+        affectedRows: 0,
+        data: [{ columns, rows: rows.map(row => Object.values(row)) }]
+      };
+    } else {
+      const result = await db.raw(processedSql);
+      await db.destroy();
+      return {
+        success: true,
+        message: 'Zapytanie wykonane pomyślnie',
+        affectedRows: result?.changes || 0,
+        data: null
+      };
+    }
+  } catch (error) {
+    await db.destroy();
+    throw error;
+  }
+};
+
+const getSandboxTables = async (userId, dbId) => {
+  const db = await createSandboxConnection(userId, dbId);
+  const result = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+  await db.destroy();
+  return result.map(row => row.name);
+};
+
+const getSandboxTableSchema = async (userId, dbId, tableName) => {
+  const db = await createSandboxConnection(userId, dbId);
+  const result = await db.raw(`PRAGMA table_info(${tableName})`);
+  await db.destroy();
+  return result.map(row => ({
+    cid: row.cid,
+    name: row.name,
+    type: row.type,
+    notNull: row.notnull === 1,
+    defaultValue: row.dflt_value,
+    primaryKey: row.pk === 1
+  }));
+};
+
+const getSandboxTableData = async (userId, dbId, tableName, limit = 100) => {
+  const db = await createSandboxConnection(userId, dbId);
+  const result = await db.raw(`SELECT * FROM ${tableName} LIMIT ${limit}`);
+  await db.destroy();
+  const rows = Array.isArray(result) ? result : [];
+  const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
+  return { columns, rows: rows.map(row => Object.values(row)) };
+};
+
+const sandboxDatabaseExists = async (userId, dbId) => {
+  try {
+    const dbPath = getSandboxDbPath(userId, dbId);
+    await fs.access(dbPath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const dropSandboxDatabase = async (userId, dbId) => {
+  const dbPath = getSandboxDbPath(userId, dbId);
+
+  // Nie pozwól usunąć głównej bazy danych
+  if (dbId === 'main') {
+    throw new Error('Nie można usunąć głównej bazy danych');
+  }
+
+  try {
+    await fs.unlink(dbPath);
+    return true;
+  } catch (e) {
+    throw new Error(`Nie można usunąć bazy danych: ${e.message}`);
+  }
+};
+
 export {
   ensureDbDir,
   getSchemas,
@@ -387,5 +593,16 @@ export {
   databaseExists,
   getTables,
   getTableSchema,
-  executeSQL
+  executeSQL,
+  ensureSandboxDir,
+  getSandboxDbPath,
+  createSandboxConnection,
+  getUserSandboxDatabases,
+  initializeSandboxDatabase,
+  executeSandboxSQL,
+  getSandboxTables,
+  getSandboxTableSchema,
+  getSandboxTableData,
+  sandboxDatabaseExists,
+  dropSandboxDatabase
 };

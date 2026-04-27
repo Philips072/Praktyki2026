@@ -165,6 +165,50 @@
     color: var(--secondaryText);
 }
 
+.sandbox-query-message {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.sandbox-query-success {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.sandbox-query-warning {
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.2);
+}
+
+.sandbox-query-error {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+.sandbox-empty-message {
+    text-align: center;
+    padding: 24px;
+    color: var(--secondaryText);
+    font-style: italic;
+}
+
+.sandbox-hint {
+    margin-top: 8px;
+    color: var(--secondaryText);
+    font-style: italic;
+    font-size: 13px;
+}
+
+.sandbox-query-results {
+    min-height: 200px;
+}
+
 .sandbox-page button,
 .sandbox-page select {
     background: var(--grayBtnBg);
@@ -564,12 +608,11 @@
     background: var(--inputBg) !important;
     border: 1px solid var(--borderColor) !important;
 }
-.sandbox-sidebar-box button{
-  cursor: default;
-}
 
 .sandbox-example-btn:hover {
-    background: var(--inputBg) !important;
+    background: var(--borderColor) !important;
+    border-color: var(--accentColor) !important;
+    color: var(--primaryText);
 }
 
 @media (max-width: 1200px) {

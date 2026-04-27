@@ -80,9 +80,95 @@
     border-left: 3px solid var(--accentColor);
 }
 
+.at-item--in_progress {
+    border-left: 3px solid #ffa500;
+}
+
 .at-item--completed {
-    opacity: 0.65;
+    opacity: 0.7;
     border-left: 3px solid #4caf80;
+}
+
+.at-item--graded {
+    opacity: 0.8;
+    border-left: 3px solid #2fa05e;
+}
+
+/* Pasek postępu */
+.at-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.at-progress-label {
+    font-size: 0.75rem;
+    color: var(--secondaryText);
+    min-width: 45px;
+}
+
+.at-progress-bar {
+    flex: 1;
+    height: 6px;
+    background-color: var(--inputBg);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.at-progress-fill {
+    height: 100%;
+    background-color: var(--accentColor);
+    transition: width 0.3s ease;
+}
+
+.at-item--completed .at-progress-fill {
+    background-color: #4caf80;
+}
+
+.at-item--graded .at-progress-fill {
+    background-color: #2fa05e;
+}
+
+.at-progress-value,
+.at-grade-badge {
+    font-size: 0.75rem;
+    font-family: VennBold, sans-serif;
+    color: var(--secondaryText);
+    min-width: 35px;
+    text-align: right;
+}
+
+.at-grade-badge {
+    color: #2fa05e;
+}
+
+/* Ocena */
+.at-grade {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.at-grade-label {
+    font-size: 0.75rem;
+    color: var(--secondaryText);
+}
+
+.at-grade-value {
+    font-size: 0.9rem;
+    font-family: VennBold, sans-serif;
+    color: #2fa05e;
+    padding: 0.1rem 0.5rem;
+    background-color: rgba(47, 160, 94, 0.1);
+    border-radius: 6px;
+}
+
+/* Akcje */
+.at-item-actions {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .at-item:hover {
@@ -168,26 +254,53 @@
     color: var(--secondaryText);
 }
 
-/* Przycisk "Rozpocznij test" */
-.at-btn-start {
+/* Przyciski akcji */
+.at-btn-start,
+.at-btn-continue,
+.at-btn-view {
     flex-shrink: 0;
     padding: 0.55rem 1.1rem;
     border-radius: 8px;
     border: none;
-    background-color: var(--accentColor);
-    color: var(--primaryText);
     font-family: VennRegular, sans-serif;
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.2s;
     white-space: nowrap;
 }
 
-.at-btn-start:hover:not(:disabled) {
+.at-btn-start {
+    background-color: var(--accentColor);
+    color: var(--primaryText);
+}
+
+.at-btn-start:hover {
     background-color: var(--btnHoverBlue);
 }
 
-.at-btn-start:disabled {
+.at-btn-continue {
+    background-color: #ffa500;
+    color: var(--primaryText);
+}
+
+.at-btn-continue:hover {
+    background-color: #ff9100;
+    transform: translateY(-2px);
+}
+
+.at-btn-view {
+    background-color: transparent;
+    border: 1px solid var(--borderColor);
+    color: var(--secondaryText);
+}
+
+.at-btn-view:hover {
+    background-color: var(--inputBg);
+    color: var(--primaryText);
+    border-color: var(--accentColor);
+}
+
+.at-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
 }

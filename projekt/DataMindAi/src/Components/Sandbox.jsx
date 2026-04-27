@@ -302,7 +302,7 @@ function Sandbox() {
     const normalizedQuery = trimmedQuery.toUpperCase();
 
     // Obsługa CREATE DATABASE
-    const createDbMatch = normalizedQuery.match(/^CREATE\s+DATABASE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/);
+    const createDbMatch = trimmedQuery.match(/^CREATE\s+DATABASE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i);
     if (createDbMatch) {
       const dbName = createDbMatch[1];
       setIsLoading(true);
@@ -323,7 +323,7 @@ function Sandbox() {
     }
 
     // Obsługa USE
-    const useMatch = normalizedQuery.match(/^USE\s+([a-zA-Z0-9_]+)/);
+    const useMatch = trimmedQuery.match(/^USE\s+([a-zA-Z0-9_]+)/i);
     if (useMatch) {
       const dbName = useMatch[1];
       setIsLoading(true);
@@ -342,7 +342,7 @@ function Sandbox() {
     }
 
     // Obsługa DROP DATABASE
-    const dropDbMatch = normalizedQuery.match(/^DROP\s+DATABASE\s+(?:IF\s+EXISTS\s+)?([a-zA-Z0-9_]+)/);
+    const dropDbMatch = trimmedQuery.match(/^DROP\s+DATABASE\s+(?:IF\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i);
     if (dropDbMatch) {
       const dbName = dropDbMatch[1];
       setIsLoading(true);

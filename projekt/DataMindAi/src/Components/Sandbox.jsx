@@ -51,10 +51,7 @@ function Sandbox() {
   const examples = [
     'CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT);',
     'INSERT INTO users (name, email) VALUES (\'Jan Kowalski\', \'jan@email.com\');',
-    'SELECT * FROM users;',
-    'CREATE DATABASE moja_baza;',
-    'USE moja_baza;',
-    'DROP DATABASE moja_baza;'
+    'SELECT * FROM users;'
   ];
 
   const handleClickOutside = (e) => {
@@ -302,7 +299,7 @@ function Sandbox() {
     const normalizedQuery = trimmedQuery.toUpperCase();
 
     // Obsługa CREATE DATABASE
-    const createDbMatch = normalizedQuery.match(/^CREATE\s+DATABASE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/);
+    const createDbMatch = trimmedQuery.match(/^CREATE\s+DATABASE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i);
     if (createDbMatch) {
       const dbName = createDbMatch[1];
       setIsLoading(true);
@@ -323,7 +320,7 @@ function Sandbox() {
     }
 
     // Obsługa USE
-    const useMatch = normalizedQuery.match(/^USE\s+([a-zA-Z0-9_]+)/);
+    const useMatch = trimmedQuery.match(/^USE\s+([a-zA-Z0-9_]+)/i);
     if (useMatch) {
       const dbName = useMatch[1];
       setIsLoading(true);
@@ -342,7 +339,7 @@ function Sandbox() {
     }
 
     // Obsługa DROP DATABASE
-    const dropDbMatch = normalizedQuery.match(/^DROP\s+DATABASE\s+(?:IF\s+EXISTS\s+)?([a-zA-Z0-9_]+)/);
+    const dropDbMatch = trimmedQuery.match(/^DROP\s+DATABASE\s+(?:IF\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i);
     if (dropDbMatch) {
       const dbName = dropDbMatch[1];
       setIsLoading(true);
@@ -356,6 +353,40 @@ function Sandbox() {
         }
       } catch (error) {
         setQueryMessage(`Błąd: ${error.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Obsługa SHOW DATABASES
+    const showDbsMatch = normalizedQuery.match(/^SHOW\s+DATABASES\s*;?\s*$/);
+    if (showDbsMatch) {
+      setIsLoading(true);
+      setQueryMessage('');
+      try {
+        const userId = getUserId();
+        const result = await getUserSandboxDatabases(userId);
+        const dbList = result.databases || [];
+
+        // Formatuj wyniki do wyświetlenia
+        const formattedResult = {
+          data: [{
+            columns: ['Nazwa bazy danych'],
+            rows: dbList.map(dbId => [dbId === 'main' ? DEFAULT_DB_NAME : dbId])
+          }],
+          message: `Znaleziono ${dbList.length} baz danych`
+        };
+
+        setQueryResults(formattedResult);
+        setQueryMessage(formattedResult.message);
+        setMessageType('success');
+        setResultsView('results');
+        updateQueryCount();
+      } catch (error) {
+        setQueryMessage(`Błąd: ${error.message}`);
+        setMessageType('error');
+        setQueryResults(null);
       } finally {
         setIsLoading(false);
       }

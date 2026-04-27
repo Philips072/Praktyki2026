@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
-import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent } from '../api.js'
+import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent, dropTable } from '../api.js'
 import { supabase } from '../supabaseClient'
 
 const getUserId = () => {
@@ -15,6 +15,12 @@ const getUserId = () => {
   } catch {
     return 'guest'
   }
+}
+
+function extractTableName(sql) {
+  const trimmed = sql.trim()
+  const match = trimmed.match(/^CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z0-9_]+)/i)
+  return match ? match[1] : null
 }
 
 function highlightSQL(code) {
@@ -362,6 +368,18 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
       } else {
         console.error('Validation failed:', validation.reason)
         setError('To jeszcze nie to')
+
+        // Usuń tabelę jeśli użytkownik stworzył tabelę a walidacja się nie powiodła
+        const tableName = extractTableName(query)
+        if (tableName) {
+          try {
+            console.log('Dropping table:', tableName)
+            await dropTable(userId, db.lessonId, tableName)
+            console.log('Table dropped successfully')
+          } catch (e) {
+            console.error('Failed to drop table:', e.message)
+          }
+        }
       }
     } catch (e) {
       console.error('Error:', e)
@@ -468,8 +486,8 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
       )}
 
       {result && result.data && result.data.length > 0 && (
-        <div className="ls-result">
-          <p className="ls-result-label">Wynik zapytania:</p>
+        <div className={`ls-result${isCompleted ? ' ls-result--success' : ''}`}>
+          <p className={`ls-result-label${isCompleted ? ' ls-result-label--success' : ''}`}>Wynik zapytania:</p>
           <div className="ls-table-scroll">
             <table className="ls-example-table">
               <thead>

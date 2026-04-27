@@ -137,14 +137,14 @@ Twoim zadaniem jest:
 1. Przeczytać treść zadania użytkownika
 2. Przeanalizować zapytanie SQL użytkownika
 3. Sprawdzić czy zapytanie jest poprawne składniowo DLA MYSQL
-4. Sprawdzić czy zapytanie pasuje do treści zadania - PORÓWNAJ WYRAŹNIE identyczne nazwy tabel/kolumn z zadaniem
+4. Sprawdzić czy zapytanie pasuje do treści zadania - nazwa tabeli/kolumny w SQL musi być identyczna z nazwą w zadaniu (case-insensitive)
 ${schema ? '5. Sprawdzić czy użyte kolumny i tabele pasują do schematu' : ''}
 
 WAŻNE - SPRAWDZANIE NAZW TABEL/KOLUMN:
-- Jeśli zadanie mówi "Usuń tabelę statystyki", a SQL to "DROP TABLE statystyki" - to jest POPRAWNE
-- Jeśli nazwa w SQL jest identyczna (dokładnie taka sama) jak w zadaniu - to jest POPRAWNE
-- NIE wymyślaj różnic - jeśli ciągi znaków są identyczne, to jest zgodne
-- Porównywanie case-insensitive (wielkość liter nie ma znaczenia)
+- Jeśli zadanie mówi "Usuń tabelę statystyki", a SQL to "DROP TABLE statystyki;" - to jest POPRAWNE
+- Jeśli nazwa tabeli w SQL jest taka sama jak w zadaniu (case-insensitive) - to jest POPRAWNE
+- Jeśli ciąg znaków nazwy tabeli w SQL jest identyczny (lub różni się tylko wielkością liter) z nazwą w zadaniu - to jest zgodne
+- NIE ZNAJDUJ RÓŻNIC TAM GDZIE ICH NIE MA - jeśli ciągi są takie same (case-insensitive), uznaj za poprawne
 
 WAŻNE - ŚREDNIK NA KOŃCU:
 - KAŻDE zapytanie SQL MUSI kończyć się średnikiem (;)

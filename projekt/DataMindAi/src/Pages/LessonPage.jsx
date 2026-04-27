@@ -489,7 +489,7 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
         </div>
       )}
 
-      {exercise.expectedColumns.length > 0 && (
+      {exercise.expectedColumns && exercise.expectedColumns.length > 0 && (
         <div className="ls-expected">
           <p className="ls-expected-label">Oczekiwany wynik:</p>
           <div className="ls-table-scroll">
@@ -523,6 +523,7 @@ function LessonPage() {
   const [userQueries, setUserQueries] = useState({})
   const [personalizedSections, setPersonalizedSections] = useState(null)
   const [personalizedSchema, setPersonalizedSchema] = useState(null)
+  const [personalizedExercises, setPersonalizedExercises] = useState(null)
   const [personalizedLoading, setPersonalizedLoading] = useState(false)
   const [isPersonalized, setIsPersonalized] = useState(false)
   const [loadingPersonalized, setLoadingPersonalized] = useState(false)
@@ -539,8 +540,12 @@ function LessonPage() {
     }
   }, [lesson, user, queriesKey])
 
-  const currentQuery = lesson?.exercises?.[activeExercise]?.id
-    ? userQueries[lesson.exercises[activeExercise].id] || ''
+  const currentSections = isPersonalized && personalizedSections ? personalizedSections : lesson?.theory?.sections || []
+  const currentSchema = isPersonalized && personalizedSchema ? personalizedSchema : lesson?.theory?.schema || []
+  const currentExercises = isPersonalized && personalizedExercises ? personalizedExercises : lesson?.exercises || []
+
+  const currentQuery = currentExercises?.[activeExercise]?.id
+    ? userQueries[currentExercises[activeExercise].id] || ''
     : ''
 
   const setQuery = (exerciseId, value) => {
@@ -581,7 +586,7 @@ function LessonPage() {
         try {
           const { data, error } = await supabase
             .from('personalized_lessons')
-            .select('sections, schema')
+            .select('sections, schema, exercises')
             .eq('user_id', user.id)
             .eq('lesson_id', lesson.id)
             .maybeSingle()
@@ -590,6 +595,7 @@ function LessonPage() {
             console.log('=== Załadowano spersonalizowaną lekcję ===')
             setPersonalizedSections(data.sections)
             setPersonalizedSchema(data.schema)
+            setPersonalizedExercises(data.exercises)
             setIsPersonalized(true)
           }
         } catch (e) {
@@ -646,13 +652,15 @@ function LessonPage() {
       console.log('Zainteresowania:', interests)
       console.log('Lekcja:', lesson.title)
       console.log('Sekcje wejściowe:', lesson.theory.sections?.length)
+      console.log('Zadania wejściowe:', lesson.exercises?.length)
 
       const response = await getPersonalizedContent(
         lesson.title,
         lesson.subtitle,
         lesson.theory.sections,
         interests,
-        lesson.theory.schema
+        lesson.theory.schema,
+        lesson.exercises
       )
 
       console.log('Odpowiedź z API:', response)
@@ -663,12 +671,29 @@ function LessonPage() {
         const validSections = response.sections.filter(s => s.type && (s.content || s.label || (s.columns && s.rows)))
         console.log('Poprawne sekcje:', validSections.length, 'z', response.sections.length)
 
+        // Walidacja i połączenie zadań - zachowaj oryginalne pola, tylko zmień treść (task)
+        const validExercises = lesson.exercises.map(originalEx => {
+          const personalizedEx = response.exercises?.find(pe => pe.id === originalEx.id)
+          if (personalizedEx && personalizedEx.task) {
+            // Zachowaj wszystkie oryginalne pola, tylko zmień treść zadania
+            return {
+              ...originalEx,
+              task: personalizedEx.task
+            }
+          }
+          return originalEx
+        })
+
+        console.log('Poprawne zadania:', validExercises.length, 'z', lesson.exercises?.length)
+
         if (validSections.length > 0) {
           setPersonalizedSections(validSections)
           setPersonalizedSchema(response.schema || lesson.theory.schema)
+          setPersonalizedExercises(validExercises)
           setIsPersonalized(true)
           console.log('Ustawiono spersonalizowane sekcje:', validSections.length)
           console.log('Schemat:', response.schema ? 'spersonalizowany' : 'oryginalny')
+          console.log('Zadania:', response.exercises ? 'spersonalizowane' : 'oryginalne')
 
           // Zapisz spersonalizowaną lekcję do bazy
           try {
@@ -678,7 +703,8 @@ function LessonPage() {
                 user_id: user.id,
                 lesson_id: lesson.id,
                 sections: validSections,
-                schema: response.schema || lesson.theory.schema
+                schema: response.schema || lesson.theory.schema,
+                exercises: validExercises
               }, {
                 onConflict: 'user_id,lesson_id'
               })
@@ -709,6 +735,7 @@ function LessonPage() {
     // Najpierw reset stanu lokalnego
     setPersonalizedSections(null)
     setPersonalizedSchema(null)
+    setPersonalizedExercises(null)
     setIsPersonalized(false)
 
     // Usuń spersonalizowaną lekcję z Supabase
@@ -738,9 +765,6 @@ function LessonPage() {
       console.error('Błąd podczas usuwania:', e)
     }
   }
-
-  const currentSections = isPersonalized && personalizedSections ? personalizedSections : lesson?.theory?.sections || []
-  const currentSchema = isPersonalized && personalizedSchema ? personalizedSchema : lesson?.theory?.schema || []
 
   if (!lesson) {
     return (
@@ -779,10 +803,10 @@ function LessonPage() {
 
   const completedCount = completed.size
 
-  const currentExerciseId = lesson?.exercises?.[activeExercise]?.id
+  const currentExerciseId = currentExercises?.[activeExercise]?.id
 
   const handleNextExercise = () => {
-    if (activeExercise < lesson.exercises.length - 1) {
+    if (activeExercise < currentExercises.length - 1) {
       setActiveExercise(activeExercise + 1)
     }
   }
@@ -801,7 +825,7 @@ function LessonPage() {
           <div className="ls-header-titles">
             <h1 className="ls-header-title">
               Lekcja {lesson.id}: {lesson.title}
-              {completedCount === lesson.exercises.length && (
+              {completedCount === currentExercises.length && (
                 <span className="ls-title-check">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="#2fa05e" strokeWidth="2" fill="rgba(47, 160, 94, 0.15)"/>
@@ -818,7 +842,7 @@ function LessonPage() {
             {LEVEL_LABELS[lesson.level]}
           </span>
           <span className="ls-badge ls-badge--progress">
-            {completedCount} / {lesson.exercises.length} ukończone
+            {completedCount} / {currentExercises.length} ukończone
           </span>
         </div>
       </header>
@@ -918,7 +942,7 @@ function LessonPage() {
             </div>
             <h2 className="ls-section-title">Ćwiczenia</h2>
             {!exercisesOpen && (
-              <span className="ls-exercises-count">{lesson.exercises.length} zadań</span>
+              <span className="ls-exercises-count">{currentExercises.length} zadań</span>
             )}
             <button
               className="ls-collapse-btn"
@@ -936,7 +960,7 @@ function LessonPage() {
             <>
               {/* Tabs */}
               <div className="ls-tabs">
-                {lesson.exercises.map((ex, i) => (
+                {currentExercises.map((ex, i) => (
                   <button
                     key={ex.id}
                     className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
@@ -950,15 +974,15 @@ function LessonPage() {
               {/* Aktywne ćwiczenie */}
               <Exercise
                 key={activeExercise}
-                exercise={lesson.exercises[activeExercise]}
+                exercise={currentExercises[activeExercise]}
                 db={db}
                 query={currentQuery}
-                setQuery={(value) => setQuery(lesson.exercises[activeExercise].id, value)}
+                setQuery={(value) => setQuery(currentExercises[activeExercise].id, value)}
                 schema={lesson.theory.schema}
-                isCompleted={completed.has(lesson.exercises[activeExercise].id)}
-                isLastExercise={activeExercise === lesson.exercises.length - 1}
-                onComplete={() => markComplete(lesson.exercises[activeExercise].id)}
-                onReset={() => resetExercise(lesson.exercises[activeExercise].id)}
+                isCompleted={completed.has(currentExercises[activeExercise].id)}
+                isLastExercise={activeExercise === currentExercises.length - 1}
+                onComplete={() => markComplete(currentExercises[activeExercise].id)}
+                onReset={() => resetExercise(currentExercises[activeExercise].id)}
                 onNextExercise={handleNextExercise}
               />
             </>

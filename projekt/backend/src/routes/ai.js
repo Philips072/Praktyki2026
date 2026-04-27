@@ -376,11 +376,11 @@ PRZYKŁADY DOBRYCH ODPOWIEDZI:
 });
 
 // POST /api/ai/personalized-content
-// Przyjmuje: { lessonTitle: string, lessonSubtitle: string, sections: array, interests: string, schema: array }
-// Zwraca: { sections: array, schema: array }
+// Przyjmuje: { lessonTitle: string, lessonSubtitle: string, sections: array, interests: string, schema: array, exercises: array }
+// Zwraca: { sections: array, schema: array, exercises: array }
 router.post('/personalized-content', async (req, res, next) => {
   try {
-    const { lessonTitle, lessonSubtitle, sections = [], interests = '', schema = [] } = req.body;
+    const { lessonTitle, lessonSubtitle, sections = [], interests = '', schema = [], exercises = [] } = req.body;
 
     console.log('=== Personalized Content Request ===');
     console.log('Lesson Title:', lessonTitle);
@@ -409,6 +409,9 @@ router.post('/personalized-content', async (req, res, next) => {
       return `[${s.type}]`;
     }).join('\n');
 
+    // Przygotuj uproszczoną reprezentację ćwiczeń dla AI
+    const exercisesSummary = exercises.map(e => `- [ZADANIE ${e.id}] ${e.task}`).join('\n');
+
     const prompt = `Jesteś przyjaznym asystentem AI platformy DataMindAI. Twoim zadaniem jest wygenerowanie SPERSONALIZOWANEJ wersji materiałów edukacyjnych o SQL.
 
 INFORMACJE O UŻYTKOWNIKU:
@@ -424,6 +427,9 @@ ${schemaText || 'Brak informacji o schemacie'}
 ORYGINALNE SEKCJE TEORII (uproszczone):
 ${sectionsSummary}
 
+ORYGINALNE ZADANIA (uproszczone):
+${exercisesSummary}
+
 ZASADY:
 1. Przepisz treść w bardziej przystępny i osobisty sposób, dopasowując przykłady do zainteresowań użytkownika
 2. Zainteresowania użytkownika: "${interests}". Wszystkie przykłady SQL i nazwy tabel/kolumn DOSTOSUJ do tych zainteresowań
@@ -432,6 +438,7 @@ ZASADY:
 5. Dla sekcji "code" — dostosuj przykłady SQL do zainteresowań użytkownika (zmień nazwy tabel, kolumn, danych)
 6. Dla sekcji "hint" — zachowaj naturę porady
 7. Dziel teksty na krótkie akapity (max 3-4 zdania)
+8. ZADANIA — zmień nazwy tabel/kolumn w treści zadań (pole "task") aby pasowały do spersonalizowanego schematu i przykładów
 
 DOSTOSOWANIE PRZYKŁADÓW DO ZAINTERESOWAŃ:
 - Jeśli "sport" — używaj tabel: "druzyny", "pilkarze", "mecze", kolumn: "imie", "nazwisko", "pozycja", "bramki"
@@ -464,11 +471,17 @@ Zwróć TYLKO JSON w tym formacie (bez żadnego tekstu przed ani po):
   ],
   "schema": [
     {"name": "nazwa_kolumny", "type": "TYP", "desc": "opis"}
+  ],
+  "exercises": [
+    {"id": 1, "task": "spersonalizowana treść zadania"},
+    {"id": 2, "task": "spersonalizowana treść zadania"}
   ]
 }
 
 ZACHOWAJ LICZBĘ I RODZAJE SEKCJI jak w oryginale!
-SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań użytkownika!`;
+SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań użytkownika!
+SPERSONALIZUJ ZADANIA - zmień nazwy tabel/kolumn w treści zadań aby pasowały do spersonalizowanego schematu!
+W zadaniach zachowaj pole "id" - musi być takie samo jak w oryginale!`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -525,7 +538,8 @@ SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań 
         };
         return res.json({
           sections: [introSection, ...sections],
-          schema: schema
+          schema: schema,
+          exercises: exercises
         });
       }
 
@@ -560,17 +574,24 @@ SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań 
         };
         return res.json({
           sections: [introSection, ...sections],
-          schema: schema
+          schema: schema,
+          exercises: exercises
         });
       }
 
-      // Zwróć zarówno sekcje jak i spersonalizowany schemat (lub oryginalny jeśli AI nie zwrócił)
+      // Walidacja zadań - każde musi mieć id i task
+      const validExercises = parsed.exercises && Array.isArray(parsed.exercises)
+        ? parsed.exercises.filter(e => e.id !== undefined && e.task)
+        : exercises;
+
+      // Zwróć zarówno sekcje jak i spersonalizowany schemat oraz zadania
       const result = {
         sections: validSections,
-        schema: parsed.schema || schema
+        schema: parsed.schema || schema,
+        exercises: validExercises
       };
 
-      console.log('Zwracam:', result.sections.length, 'sekcji i', result.schema.length, 'kolumn schematu');
+      console.log('Zwracam:', result.sections.length, 'sekcji,', result.schema.length, 'kolumn schematu,', result.exercises.length, 'zadań');
       return res.json(result);
     } catch (e) {
       console.error('Parse error:', e.message);
@@ -585,6 +606,7 @@ SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań 
       return res.json({
         sections: [introSection, ...sections],
         schema: schema,
+        exercises: exercises,
         error: 'Parse error: ' + e.message
       });
     }

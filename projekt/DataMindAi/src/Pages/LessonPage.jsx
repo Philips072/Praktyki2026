@@ -217,7 +217,7 @@ const dropExistingTablesIfNeeded = async (userId, lessonId, sql, tableNames) => 
   }
 }
 
-function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onReset, isLastExercise, onNextExercise, schema }) {
+function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onReset, isLastExercise, onNextExercise, schema, hasNextIncomplete, exerciseIndex, totalExercises, allExercisesComplete }) {
   const [showHint, setShowHint] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
@@ -417,13 +417,13 @@ function Exercise({ exercise, db, query, setQuery, isCompleted, onComplete, onRe
 
       <div className="ls-exercise-actions">
         <button
-          className={`ls-btn${isCompleted && !isLastExercise ? ' ls-btn--next' : isCompleted ? ' ls-btn--done' : ' ls-btn--check'}`}
-          onClick={isCompleted && !isLastExercise ? onNextExercise : handleSubmit}
-          disabled={loading}
+          className={`ls-btn${isCompleted && !allExercisesComplete && hasNextIncomplete ? ' ls-btn--next' : isCompleted ? ' ls-btn--done' : ' ls-btn--check'}`}
+          onClick={isCompleted && !allExercisesComplete && hasNextIncomplete ? onNextExercise : handleSubmit}
+          disabled={loading || (isCompleted && allExercisesComplete)}
         >
           {loading ? (
             <>Sprawdzanie...</>
-          ) : isCompleted && !isLastExercise ? (
+          ) : isCompleted && !allExercisesComplete && hasNextIncomplete ? (
             <>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
                 <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -823,9 +823,24 @@ function LessonPage() {
 
   const currentExerciseId = currentExercises?.[activeExercise]?.id
 
+  // Sprawdź czy wszystkie zadania są ukończone
+  const allExercisesComplete = currentExercises && currentExercises.every(ex => completed.has(ex.id))
+
+  // Sprawdź czy jest nieukończone zadanie po obecnym
+  const nextIncompleteIndex = currentExercises.findIndex((ex, idx) => idx > activeExercise && !completed.has(ex.id))
+  const hasNextIncomplete = nextIncompleteIndex !== -1 || currentExercises.some((ex, idx) => idx !== activeExercise && !completed.has(ex.id))
+
   const handleNextExercise = () => {
-    if (activeExercise < currentExercises.length - 1) {
-      setActiveExercise(activeExercise + 1)
+    // Znajdź nastepne nieukończone zadanie od obecnego indeksu
+    const nextIncompleteIndex = currentExercises.findIndex((ex, idx) => idx > activeExercise && !completed.has(ex.id))
+    if (nextIncompleteIndex !== -1) {
+      setActiveExercise(nextIncompleteIndex)
+    } else {
+      // Jeśli nie ma nieukończonego zadania po obecnym, znajdź pierwsze nieukończone
+      const firstIncompleteIndex = currentExercises.findIndex(ex => !completed.has(ex.id))
+      if (firstIncompleteIndex !== -1) {
+        setActiveExercise(firstIncompleteIndex)
+      }
     }
   }
 
@@ -1008,6 +1023,10 @@ function LessonPage() {
                   schema={lesson.theory.schema}
                   isCompleted={completed.has(currentExercises[activeExercise].id)}
                   isLastExercise={activeExercise === currentExercises.length - 1}
+                  hasNextIncomplete={hasNextIncomplete}
+                  exerciseIndex={activeExercise}
+                  totalExercises={currentExercises.length}
+                  allExercisesComplete={allExercisesComplete}
                   onComplete={() => markComplete(currentExercises[activeExercise].id)}
                   onReset={() => resetExercise(currentExercises[activeExercise].id)}
                   onNextExercise={handleNextExercise}

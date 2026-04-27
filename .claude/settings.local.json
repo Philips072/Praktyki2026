@@ -8,7 +8,14 @@
       "Bash(node -c \"console.log\\('Test basic JS'\\)\")",
       "Bash(node -e \"const fs = require\\('fs'\\); const path = require\\('path'\\); const localStoragePath = path.join\\(process.env.LOCALAPPDATA || process.env.HOME, 'AppData', 'Local', 'Microsoft', 'Edge', 'User Data', 'Default', 'Local Storage', 'leveldb'\\); console.log\\('Checking localStorage path...'\\); if \\(fs.existsSync\\(localStoragePath\\)\\) { console.log\\('Path exists'\\); } else { console.log\\('Path not found'\\); }\")",
       "Bash(npx vite *)",
-      "Bash(npm start *)"
+      "Bash(npm start *)",
+      "Bash(where supabase *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3001)",
+      "Bash(taskkill /F /PID 8232)",
+      "Bash(cmd //c taskkill //F //PID 8232)",
+      "Bash(node --check src/routes/ai.js)",
+      "Bash(npx eslint *)"
     ]
   }
 }

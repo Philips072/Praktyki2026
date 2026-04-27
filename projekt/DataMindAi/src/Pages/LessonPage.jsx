@@ -906,29 +906,31 @@ function LessonPage() {
               <span className="ls-hint-loading-dot"></span>
             </div>
           ) : (
-            <div className="ls-theory-content">
-              {currentSections.map((section, i) => (
-                <TheorySection key={i} section={section} />
-              ))}
-            </div>
-          )}
-
-          {/* Schemat tabeli */}
-          {currentSchema.length > 0 && (
-            <div className="ls-schema">
-              <h3 className="ls-schema-title">Schemat tabeli{currentSchema[0]?.name ? ` ${currentSchema[0].name}` : ''}:</h3>
-              <div className="ls-schema-list">
-                {currentSchema.map(col => (
-                  <div key={col.name} className="ls-schema-item">
-                    <p className="ls-schema-col">
-                      <span className="ls-schema-name">{col.name}</span>
-                      <span className="ls-schema-type">({col.type})</span>
-                    </p>
-                    <p className="ls-schema-desc">{col.desc}</p>
-                  </div>
+            <>
+              <div className="ls-theory-content">
+                {currentSections.map((section, i) => (
+                  <TheorySection key={i} section={section} />
                 ))}
               </div>
-            </div>
+
+              {/* Schemat tabeli */}
+              {currentSchema.length > 0 && (
+                <div className="ls-schema">
+                  <h3 className="ls-schema-title">Przykładowy schemat tabeli</h3>
+                  <div className="ls-schema-list">
+                    {currentSchema.map(col => (
+                      <div key={col.name} className="ls-schema-item">
+                        <p className="ls-schema-col">
+                          <span className="ls-schema-name">{col.name}</span>
+                          <span className="ls-schema-type">({col.type})</span>
+                        </p>
+                        <p className="ls-schema-desc">{col.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </section>
 
@@ -957,35 +959,43 @@ function LessonPage() {
           </div>
 
           {(exercisesOpen || isMobile) && (
-            <>
-              {/* Tabs */}
-              <div className="ls-tabs">
-                {currentExercises.map((ex, i) => (
-                  <button
-                    key={ex.id}
-                    className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
-                    onClick={() => setActiveExercise(i)}
-                  >
-                    Zadanie {ex.id}
-                  </button>
-                ))}
+            personalizedLoading ? (
+              <div className="ls-personalized-loading">
+                <span className="ls-hint-loading-dot"></span>
+                <span className="ls-hint-loading-dot"></span>
+                <span className="ls-hint-loading-dot"></span>
               </div>
+            ) : (
+              <>
+                {/* Tabs */}
+                <div className="ls-tabs">
+                  {currentExercises.map((ex, i) => (
+                    <button
+                      key={ex.id}
+                      className={`ls-tab${activeExercise === i ? ' ls-tab--active' : ''}${completed.has(ex.id) ? ' ls-tab--done' : ''}`}
+                      onClick={() => setActiveExercise(i)}
+                    >
+                      Zadanie {ex.id}
+                    </button>
+                  ))}
+                </div>
 
-              {/* Aktywne ćwiczenie */}
-              <Exercise
-                key={activeExercise}
-                exercise={currentExercises[activeExercise]}
-                db={db}
-                query={currentQuery}
-                setQuery={(value) => setQuery(currentExercises[activeExercise].id, value)}
-                schema={lesson.theory.schema}
-                isCompleted={completed.has(currentExercises[activeExercise].id)}
-                isLastExercise={activeExercise === currentExercises.length - 1}
-                onComplete={() => markComplete(currentExercises[activeExercise].id)}
-                onReset={() => resetExercise(currentExercises[activeExercise].id)}
-                onNextExercise={handleNextExercise}
-              />
-            </>
+                {/* Aktywne ćwiczenie */}
+                <Exercise
+                  key={activeExercise}
+                  exercise={currentExercises[activeExercise]}
+                  db={db}
+                  query={currentQuery}
+                  setQuery={(value) => setQuery(currentExercises[activeExercise].id, value)}
+                  schema={lesson.theory.schema}
+                  isCompleted={completed.has(currentExercises[activeExercise].id)}
+                  isLastExercise={activeExercise === currentExercises.length - 1}
+                  onComplete={() => markComplete(currentExercises[activeExercise].id)}
+                  onReset={() => resetExercise(currentExercises[activeExercise].id)}
+                  onNextExercise={handleNextExercise}
+                />
+              </>
+            )
           )}
         </section>
 

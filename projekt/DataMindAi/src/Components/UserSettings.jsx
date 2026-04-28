@@ -250,7 +250,7 @@ function UserSettings() {
       try {
         const { error, data } = await supabase.auth.updateUser({
           email: newEmail,
-          emailRedirectTo: `${window.location.origin}/weryfikacja-email?email=${encodeURIComponent(newEmail)}`
+          emailRedirectTo: `${window.location.origin}/potwierdzenie-email?email=${encodeURIComponent(newEmail)}&type=change`
         })
 
         console.log('updateUser result:', { error, data })
@@ -278,7 +278,7 @@ function UserSettings() {
           setEmailStatus({
             loading: false,
             error: '',
-            success: `Link weryfikacyjny został wysłany na ${newEmail}. Potwierdź zmianę klikając w link z emaila.`
+            success: `Link weryfikacyjny został wysłany na ${newEmail}. Sprawdź swoją skrzynkę email i kliknij w link. Po weryfikacji zobaczysz instrukcje co robić dalej.`
           })
           setEmail(user.email)
         }
@@ -364,6 +364,7 @@ function UserSettings() {
   const handleLogout = async () => {
     setLoggingOut(true)
     await supabase.auth.signOut()
+    localStorage.removeItem('user')
     navigate('/logowanie')
   }
 

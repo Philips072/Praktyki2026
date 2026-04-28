@@ -1,0 +1,204 @@
+.email-change-confirm {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #fcf6f3;
+}
+
+.email-change-confirm-card {
+  background: rgba(28, 33, 53, 0.95);
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(127, 159, 245, 0.2);
+}
+
+.email-change-confirm-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.email-change-confirm-icon.checking {
+  background: rgba(127, 159, 245, 0.2);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.email-change-confirm-icon.waiting {
+  background: rgba(127, 159, 245, 0.15);
+}
+
+.email-change-confirm-icon.waiting svg {
+  color: #7f9ff5;
+}
+
+.email-change-confirm-icon.success {
+  background: rgba(47, 160, 94, 0.2);
+}
+
+.email-change-confirm-icon.success svg {
+  color: #2fa05e;
+}
+
+.email-change-confirm-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.email-change-confirm-card h2 {
+  font-size: 24px;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+
+.email-change-confirm-email {
+  font-size: 18px;
+  color: #7f9ff5;
+  font-weight: 500;
+  margin: 0 0 20px;
+  word-break: break-all;
+}
+
+.email-change-confirm-message {
+  color: #a0aec0;
+  margin: 0 0 20px;
+}
+
+.email-change-confirm-info {
+  color: #e2e8f0;
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.email-change-confirm-info strong {
+  color: #7f9ff5;
+}
+
+.email-change-confirm-hint {
+  color: #718096;
+  font-size: 14px;
+  margin: 0 0 30px;
+  line-height: 1.5;
+}
+
+.email-change-confirm-hint a {
+  color: #7f9ff5;
+  text-decoration: none;
+}
+
+.email-change-confirm-hint a:hover {
+  text-decoration: underline;
+}
+
+.email-change-confirm-steps {
+  background: rgba(127, 159, 245, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+.email-change-confirm-steps h3 {
+  font-size: 16px;
+  margin: 0 0 16px;
+  color: #fcf6f3;
+}
+
+.email-change-confirm-steps ol {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.email-change-confirm-steps li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.email-change-confirm-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.email-change-confirm-steps strong {
+  color: #7f9ff5;
+}
+
+.email-change-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.email-change-confirm-btn {
+  padding: 14px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.email-change-confirm-btn.primary {
+  background: #7f9ff5;
+  color: #1a1a2e;
+}
+
+.email-change-confirm-btn.primary:hover {
+  background: #6b8ae8;
+  transform: translateY(-1px);
+}
+
+.email-change-confirm-btn.primary svg {
+  width: 18px;
+  height: 18px;
+}
+
+.email-change-confirm-btn.secondary {
+  background: rgba(127, 159, 245, 0.1);
+  color: #7f9ff5;
+  border: 1px solid rgba(127, 159, 245, 0.3);
+}
+
+.email-change-confirm-btn.secondary:hover {
+  background: rgba(127, 159, 245, 0.2);
+}
+
+@media (max-width: 600px) {
+  .email-change-confirm-card {
+    padding: 30px 20px;
+  }
+
+  .email-change-confirm-card h2 {
+    font-size: 20px;
+  }
+
+  .email-change-confirm-email {
+    font-size: 16px;
+  }
+
+  .email-change-confirm-steps {
+    padding: 16px;
+  }
+}

@@ -1,6 +1,6 @@
 import './SidebarHeader.css'
 import { useMemo, useState, useEffect } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/nazwa.PNG'
@@ -60,9 +60,12 @@ const ROLE_LABELS = {
 function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = false }) {
   const { profile, user } = useAuth()
   const unreadCount = useUnreadCount(user?.id)
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    localStorage.removeItem('user')
+    navigate('/logowanie')
   }
  
   const todayDate = useMemo(() => {

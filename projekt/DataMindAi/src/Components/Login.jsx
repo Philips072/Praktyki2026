@@ -33,16 +33,23 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setNeedsVerification(false)
     setLoading(true)
 
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (authError) {
-      setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
+      if (authError.message === 'Email not confirmed') {
+        setNeedsVerification(true)
+        setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
+      } else {
+        setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
+      }
     } else {
       navigate('/dashboard')
     }
@@ -104,6 +111,12 @@ function Login() {
             </div>
 
             {error && <p className="form-error">{error}</p>}
+
+            {needsVerification && (
+              <Link to={`/weryfikacja-email?email=${encodeURIComponent(email)}`} className="login-verify">
+                Wyślij ponownie email weryfikacyjny
+              </Link>
+            )}
 
             <Link to="/reset-hasla" className="login-forgot">Zapomniałeś hasła?</Link>
 

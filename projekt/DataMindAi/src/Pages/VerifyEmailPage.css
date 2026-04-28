@@ -1,4 +1,4 @@
-.login-page {
+.verify-email-page {
     min-height: 100vh;
     width: 100%;
     display: flex;
@@ -16,11 +16,11 @@
     background-size: 40px 40px, 40px 40px, auto, auto, auto;
 }
 
-.login-page * {
+.verify-email-page * {
     box-sizing: border-box;
 }
 
-.login-back {
+.verify-email-back {
     position: absolute;
     top: 24px;
     left: 24px;
@@ -34,21 +34,21 @@
     z-index: 1;
 }
 
-.login-back svg {
+.verify-email-back svg {
     width: 18px;
     height: 18px;
     transition: transform 0.2s;
 }
 
-.login-back:hover {
+.verify-email-back:hover {
     color: #2ea0f8;
 }
 
-.login-back:hover svg {
+.verify-email-back:hover svg {
     transform: translateX(-3px);
 }
 
-.login-body {
+.verify-email-body {
     flex: 1;
     display: flex;
     justify-content: center;
@@ -56,7 +56,7 @@
     padding: 40px 24px;
 }
 
-.login-card {
+.verify-email-card {
     width: 100%;
     max-width: 430px;
     background: var(--containerBoxBg);
@@ -66,64 +66,90 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.login-logo {
-    width: 210px;
-    height: auto;
-    object-fit: contain;
-    margin-bottom: 28px;
-}
-
-.login-card h1 {
-    margin: 0 0 10px;
-    color: var(--primaryText);
-    font-size: 2.1rem;
-    font-family: VennBold;
-}
-
-.login-card p {
-    margin: 0 0 28px;
-    color: var(--secondaryText);
-    font-size: 1rem;
     text-align: center;
 }
 
-.login-form {
+.verify-email-logo {
+    width: 210px;
+    margin-bottom: 24px;
+}
+
+.verify-email-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(46, 160, 248, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.verify-email-icon svg {
+    width: 36px;
+    height: 36px;
+    color: #2ea0f8;
+}
+
+.verify-email-card h1 {
+    margin: 0 0 12px;
+    color: var(--primaryText);
+    font-size: 1.9rem;
+    font-family: VennBold;
+}
+
+.verify-email-card p {
+    margin: 0 0 24px;
+    color: var(--secondaryText);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.verify-email-info {
+    background: rgba(46, 160, 248, 0.08);
+    border: 1px solid rgba(46, 160, 248, 0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.verify-email-form {
     width: 100%;
     display: flex;
     flex-direction: column;
+    text-align: left;
 }
 
-.login-form label {
-    color: var(--primaryText);
+.verify-email-form label {
     font-size: 0.85rem;
     margin-bottom: 6px;
+    color: var(--primaryText);
 }
 
-.login-form input {
+.verify-email-form input {
     width: 100%;
     height: 58px;
-    border: 2px solid var(--borderColor);
-    outline: none;
     border-radius: 12px;
+    border: 2px solid var(--borderColor);
     background: var(--inputBg);
     color: var(--primaryText);
     padding: 0 16px;
-    font-size: 1rem;
     margin-bottom: 16px;
-    transition: 0.25s ease;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.25s;
 }
 
-.login-form input::placeholder {
+.verify-email-form input::placeholder {
     color: #8d94a5;
 }
 
-.login-form input:focus {
+.verify-email-form input:focus {
     border-color: var(--accentColor);
 }
 
-.form-error {
+.verify-email-error {
     color: #e06c6c;
     font-size: 0.85rem;
     margin-bottom: 10px;
@@ -133,39 +159,22 @@
     border: 1px solid rgba(224, 108, 108, 0.25);
 }
 
-.login-form button:disabled {
+.verify-email-success {
+    color: #6ce087;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background: rgba(108, 224, 135, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(108, 224, 135, 0.25);
+}
+
+.verify-email-form button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.login-forgot {
-    align-self: flex-end;
-    font-size: 0.82rem;
-    color: var(--secondaryText);
-    text-decoration: none;
-    margin-bottom: 6px;
-    transition: color 0.2s;
-}
-
-.login-forgot:hover {
-    color: #2ea0f8;
-}
-
-.login-verify {
-    align-self: center;
-    font-size: 0.85rem;
-    color: #2ea0f8;
-    text-decoration: none;
-    margin-bottom: 10px;
-    transition: color 0.2s;
-}
-
-.login-verify:hover {
-    color: #52b4ff;
-    text-decoration: underline;
-}
-
-.login-form button {
+.verify-email-form button {
     width: 100%;
     height: 52px;
     border: none;
@@ -179,58 +188,34 @@
     font-family: VennRegular;
 }
 
-.login-form button:hover {
+.verify-email-form button:hover {
     background: var(--btnHoverBlue);
 }
 
-.login-form .password-wrapper {
-    margin-bottom: 16px;
-}
-
-.login-form .password-wrapper input {
-    padding-right: 48px;
-    margin-bottom: 0;
-}
-
-.login-form .password-toggle {
-    width: auto;
-    height: auto;
-    background: none;
-    border-radius: 4px;
-    margin-top: 0;
-    color: #8d94a5;
-}
-
-.login-form .password-toggle:hover {
-    background: none;
-    color: var(--primaryText);
-}
-
-.login-register-text {
+.verify-email-login-text {
     margin-top: 24px;
     color: var(--secondaryText);
     font-size: 0.95rem;
-    text-align: center;
 }
 
-.login-register-text a {
+.verify-email-login-text a {
     color: #2ea0f8;
     text-decoration: none;
     transition: 0.2s;
 }
 
-.login-register-text a:hover {
+.verify-email-login-text a:hover {
     color: #52b4ff;
     text-decoration: underline;
 }
 
 @media screen and (max-width: 768px) {
-    .login-page {
+    .verify-email-page {
         min-height: 100svh;
         background: none;
     }
 
-    .login-page::before {
+    .verify-email-page::before {
         content: '';
         position: fixed;
         inset: 0;
@@ -244,37 +229,24 @@
         background-size: 40px 40px, 40px 40px, auto, auto, auto;
     }
 
-    .login-back {
+    .verify-email-back {
         position: relative;
         top: auto;
         left: auto;
         padding: 20px 16px 0;
     }
 
-    .login-body {
-        padding: 16px 16px 32px;
+    .verify-email-body {
+        padding: 16px 16px 40px;
         align-items: flex-start;
     }
 
-    .login-card {
+    .verify-email-card {
         padding: 28px 20px 22px;
         border-radius: 18px;
     }
 
-    .login-logo {
+    .verify-email-logo {
         width: 180px;
-        margin-bottom: 24px;
-    }
-
-    .login-card h1 {
-        font-size: 1.8rem;
-    }
-
-    .login-form input {
-        height: 54px;
-    }
-
-    .login-form button {
-        height: 50px;
     }
 }

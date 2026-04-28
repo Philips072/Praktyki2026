@@ -60,6 +60,10 @@ const ROLE_LABELS = {
 function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = false }) {
   const { profile, user } = useAuth()
   const unreadCount = useUnreadCount(user?.id)
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+  }
  
   const todayDate = useMemo(() => {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -260,25 +264,52 @@ function SidebarHeader({ children, sidebarOpen, setSidebarOpen, noPadding = fals
           </nav>
         </div>
 
-        <Link to="/ustawienia" className="dashboard-user-box">
-          <div className="dashboard-user-avatar">
+        <div className="dashboard-user-box">
+          <Link to="/ustawienia" className="dashboard-user-link">
+            <div className="dashboard-user-avatar">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+
+            <div className="dashboard-user-info">
+              <strong>{profile?.name ?? 'Użytkownik'}</strong>
+              <span>{ROLE_LABELS[profile?.role] ?? 'Gość'}</span>
+            </div>
+          </Link>
+          <button type="button" className="sidebar-logout-btn" onClick={handleLogout} aria-label="Wyloguj się">
             <svg viewBox="0 0 24 24" fill="none">
               <path
-                d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
-                fill="currentColor"
+                d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
-                d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20"
-                fill="currentColor"
+                d="M16 17L21 12L16 7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M21 12H9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
-          </div>
-
-          <div className="dashboard-user-info">
-            <strong>{profile?.name ?? 'Użytkownik'}</strong>
-            <span>{ROLE_LABELS[profile?.role] ?? 'Gość'}</span>
-          </div>
-        </Link>
+          </button>
+        </div>
       </aside>
 
       <div className="dashboard-main">

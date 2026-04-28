@@ -25,6 +25,7 @@ const ERROR_MESSAGES = {
   'User already registered': 'Konto z tym adresem email już istnieje.',
   'Password should be at least 6 characters': 'Hasło musi mieć co najmniej 6 znaków.',
   'Too many requests': 'Zbyt wiele prób. Spróbuj ponownie za chwilę.',
+  'Email not confirmed': 'Potwierdź adres email przed zalogowaniem.',
 }
 
 function Register() {
@@ -57,7 +58,10 @@ function Register() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } }
+      options: {
+        data: { name },
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
     })
 
     if (authError) {
@@ -66,23 +70,29 @@ function Register() {
       return
     }
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ id: authData.user.id, name, email, role: 'uczen' })
+    if (authData.user && !authData.session) {
+      localStorage.setItem('pendingRegistration', JSON.stringify({ name, email }))
+      navigate(`/weryfikacja-email?email=${encodeURIComponent(email)}`)
+    } else if (authData.session) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({ id: authData.user.id, name, email, role: 'uczen' })
 
-    if (profileError) {
-      setError('Konto zostało utworzone, ale nie udało się zapisać profilu.')
-      setLoading(false)
-      return
+      if (profileError) {
+        setError('Konto zostało utworzone, ale nie udało się zapisać profilu.')
+        setLoading(false)
+        return
+      }
+
+      try {
+        await initializeDatabase(authData.user.id, 1)
+      } catch (dbError) {
+        console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
+      }
+
+      navigate('/onboarding')
     }
 
-    try {
-      await initializeDatabase(authData.user.id, 1)
-    } catch (dbError) {
-      console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
-    }
-
-    navigate('/onboarding')
     setLoading(false)
   }
 

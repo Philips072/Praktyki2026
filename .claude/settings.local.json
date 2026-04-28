@@ -15,7 +15,8 @@
       "Bash(taskkill /F /PID 8232)",
       "Bash(cmd //c taskkill //F //PID 8232)",
       "Bash(node --check src/routes/ai.js)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(node server.js)"
     ]
   }
 }

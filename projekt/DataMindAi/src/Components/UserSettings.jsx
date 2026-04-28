@@ -232,13 +232,70 @@ function UserSettings() {
   const handleSaveEmail = async (e) => {
     e.preventDefault()
     if (!email.trim()) return
-    setEmailStatus({ loading: true, error: '', success: '' })
-    const { error } = await supabase.auth.updateUser({ email: email.trim() })
-    if (error) {
-      setEmailStatus({ loading: false, error: 'Nie udało się zmienić emaila.', success: '' })
-    } else {
-      setEmailStatus({ loading: false, error: '', success: 'Potwierdzenie wysłane na nowy adres email.' })
+
+    const newEmail = email.trim()
+
+    if (newEmail === user.email) {
+      setEmailStatus({ loading: false, error: 'Podaj inny adres email.', success: '' })
+      return
     }
+
+    setEmailStatus({ loading: true, error: '', success: '' })
+
+    console.log('=== Zmiana emaila ===')
+    console.log('Obecny email:', user.email)
+    console.log('Nowy email:', newEmail)
+
+    const updateEmail = async (retryCount = 0) => {
+      try {
+        const { error, data } = await supabase.auth.updateUser({
+          email: newEmail,
+          emailRedirectTo: `${window.location.origin}/weryfikacja-email?email=${encodeURIComponent(newEmail)}`
+        })
+
+        console.log('updateUser result:', { error, data })
+
+        if (error) {
+          console.error('Błąd zmiany emaila:', error)
+          let errorMessage = 'Nie udało się zmienić emaila.'
+
+          if (error.message.includes('rate limit exceeded') || error.message.includes('email rate limit')) {
+            errorMessage = 'Przekroczono limit zmian emaila. Spróbuj ponownie za kilka minut lub skontaktuj się z supportem.'
+          } else if (error.message.includes('email')) {
+            errorMessage = 'Podany adres email jest nieprawidłowy lub już zajęty.'
+          } else if (error.message.includes('security')) {
+            errorMessage = 'Dla bezpieczeństwa musisz się ponownie zalogować przed zmianą emaila.'
+          } else if (error.message.includes('Lock') || retryCount < 2) {
+            // Błąd blokady - spróbuj ponownie po krótkim opóźnieniu
+            console.log('Błąd blokady, ponowna próba:', retryCount + 1)
+            await new Promise(resolve => setTimeout(resolve, 500))
+            return updateEmail(retryCount + 1)
+          }
+
+          setEmailStatus({ loading: false, error: errorMessage, success: '' })
+        } else {
+          console.log('Email zmieniony pomyślnie, oczekiwanie na weryfikację')
+          setEmailStatus({
+            loading: false,
+            error: '',
+            success: `Link weryfikacyjny został wysłany na ${newEmail}. Potwierdź zmianę klikając w link z emaila.`
+          })
+          setEmail(user.email)
+        }
+      } catch (err) {
+        console.error('Wyjątek przy zmianie emaila:', err)
+
+        if (retryCount < 2) {
+          console.log('Wyjątek, ponowna próba:', retryCount + 1)
+          await new Promise(resolve => setTimeout(resolve, 500))
+          return updateEmail(retryCount + 1)
+        }
+
+        setEmailStatus({ loading: false, error: 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', success: '' })
+      }
+    }
+
+    await updateEmail()
   }
 
   const handleSavePassword = async (e) => {

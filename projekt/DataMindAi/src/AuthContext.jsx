@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import { databaseExists, resetDatabase } from './sqliteManager'
+import { initializeDatabase } from './api.js'
 
 const AuthContext = createContext(null)
 
@@ -12,7 +13,7 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (userId) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('name, role, sql_level, interests')
+      .select('name, role, sql_level, interests, email')
       .eq('id', userId)
       .single()
 
@@ -24,9 +25,76 @@ export function AuthProvider({ children }) {
         .single()
       setProfile(fallback)
     } else {
+      // Sprawdź czy email w profilu jest zgodny z sesją
+      const currentUser = await supabase.auth.getUser()
+      const sessionEmail = currentUser.data.user?.email
+
+      if (sessionEmail && data.email !== sessionEmail) {
+        console.log('Email w profilie różni się od sesji - aktualizacja:', data.email, '->', sessionEmail)
+        await supabase
+          .from('profiles')
+          .update({ email: sessionEmail })
+          .eq('id', userId)
+        data.email = sessionEmail
+      }
+
       setProfile(data)
     }
     setLoading(false)
+  }
+
+  const createProfileAfterVerification = async (sessionUser) => {
+    try {
+      console.log('=== createProfileAfterVerification ===')
+      console.log('User ID:', sessionUser.id)
+      console.log('User email:', sessionUser.email)
+      console.log('User metadata:', sessionUser.user_metadata)
+
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', sessionUser.id)
+        .single()
+
+      console.log('Existing profile check:', { existingProfile, checkError })
+
+      if (!existingProfile) {
+        let userName = sessionUser.user_metadata?.name
+
+        if (!userName) {
+          const pendingData = localStorage.getItem('pendingRegistration')
+          if (pendingData) {
+            const { name } = JSON.parse(pendingData)
+            userName = name
+          }
+        }
+
+        const finalName = userName || sessionUser.email?.split('@')[0] || 'Użytkownik'
+        console.log('Tworzenie nowego profilu z imieniem:', finalName)
+
+        const { data: insertData, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: sessionUser.id,
+            name: finalName,
+            email: sessionUser.email,
+            role: 'uczen'
+          })
+          .select()
+          .single()
+
+        console.log('Insert result:', { insertData, insertError })
+
+        if (!insertError) {
+          localStorage.removeItem('pendingRegistration')
+        }
+      } else {
+        console.log('Profil już istnieje, pomijam')
+        localStorage.removeItem('pendingRegistration')
+      }
+    } catch (error) {
+      console.error('Błąd podczas tworzenia profilu po weryfikacji:', error)
+    }
   }
 
   useEffect(() => {
@@ -42,12 +110,24 @@ export function AuthProvider({ children }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null
+      console.log('=== Auth state change ===', { event: _event, userId: currentUser?.id, email: currentUser?.email })
       setUser(currentUser)
+
       if (currentUser) {
         localStorage.setItem('user', JSON.stringify(currentUser))
-        fetchProfile(currentUser.id)
+
+        if (_event === 'SIGNED_IN' && currentUser.user_metadata?.name) {
+          await createProfileAfterVerification(currentUser)
+          fetchProfile(currentUser.id)
+        } else if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') {
+          fetchProfile(currentUser.id)
+        } else if (_event === 'TOKEN_REFRESHED') {
+          // Pobierz świeży profil po odświeżeniu tokenu
+          fetchProfile(currentUser.id)
+        }
+        // USER_UPDATED jest pomijany aby uniknąć konfliktów z updateUser
       } else {
         localStorage.removeItem('user')
         setProfile(null)

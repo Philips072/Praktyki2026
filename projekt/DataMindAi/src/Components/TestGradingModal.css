@@ -1,0 +1,670 @@
+/* TestGradingModal Styles - Matches TeacherPanel color scheme */
+
+/* ── Overlay & Modal ───────────────────────────────────────────────────── */
+.tgm-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.tgm-modal {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+}
+
+.tgm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.tgm-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.25rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.tgm-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--grayBtnBg);
+  border-radius: 6px;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondaryText);
+  transition: all 0.2s;
+}
+
+.tgm-close-btn:hover {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.tgm-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Sections ───────────────────────────────────────────────────────── */
+.tgm-section {
+  margin-bottom: 1.5rem;
+}
+
+.tgm-label {
+  display: block;
+  font-family: VennRegular, sans-serif;
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--secondaryText);
+  margin-bottom: 0.5rem;
+}
+
+.tgm-select {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background-color: var(--inputBg);
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a6a6a6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2rem;
+}
+
+.tgm-select:hover {
+  border-color: var(--accentColor);
+}
+
+.tgm-select:focus {
+  outline: none;
+  border-color: var(--accentColor);
+  box-shadow: 0 0 0 3px rgba(50, 66, 119, 0.1);
+}
+
+.tgm-loading {
+  padding: 1rem;
+  color: var(--secondaryText);
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.tgm-empty {
+  padding: 1rem;
+  color: var(--secondaryText);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* ── Student Info ──────────────────────────────────────────────────────── */
+.tgm-student-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--sidebarBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tgm-student-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tgm-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  font-family: VennBold, sans-serif;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tgm-student-name {
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+  color: var(--primaryText);
+  font-size: 1rem;
+}
+
+.tgm-test-name {
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  color: var(--secondaryText);
+  margin-top: 0.25rem;
+}
+
+.tgm-auto-check-btn {
+  padding: 0.5rem 1rem;
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  border: none;
+  border-radius: 8px;
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-height: 40px;
+}
+
+.tgm-auto-check-btn:hover {
+  background-color: var(--btnHoverBlue);
+}
+
+/* ── Questions ──────────────────────────────────────────────────────── */
+.tgm-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tgm-question {
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 1.25rem;
+  background-color: var(--containerBoxBg);
+}
+
+.tgm-question--graded {
+  border-color: rgba(49, 116, 80, 0.5);
+  background-color: rgba(49, 116, 80, 0.05);
+}
+
+.tgm-question-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tgm-question-number {
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+  color: var(--primaryText);
+  font-size: 0.95rem;
+}
+
+.tgm-question-type-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--inactiveBlueBtn);
+  color: var(--primaryText);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: VennBold, sans-serif;
+  font-weight: 500;
+}
+
+.tgm-question-points {
+  margin-left: auto;
+  color: var(--secondaryText);
+  font-size: 0.875rem;
+}
+
+.tgm-question-title {
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--primaryText);
+  margin: 0 0 0.5rem 0;
+}
+
+.tgm-question-desc {
+  font-family: VennRegular, sans-serif;
+  color: var(--secondaryText);
+  font-size: 0.875rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+/* ── Answers ───────────────────────────────────────────────────────── */
+.tgm-answer-section {
+  background-color: var(--inputBg);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--borderColor);
+}
+
+.tgm-answer-label {
+  display: block;
+  font-family: VennBold, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--secondaryText);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tgm-answer-code {
+  background-color: #1e293b;
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: #e2e8f0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+}
+
+.tgm-answer-code code {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.tgm-expected {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #334155;
+}
+
+.tgm-expected-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.tgm-expected code {
+  color: #86efac;
+}
+
+.tgm-answer-choice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+}
+
+.tgm-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+}
+
+.tgm-badge.correct {
+  background-color: rgba(49, 116, 80, 0.3);
+  color: #9dffb4;
+}
+
+.tgm-badge.incorrect {
+  background-color: rgba(119, 50, 50, 0.3);
+  color: #ffb4b4;
+}
+
+/* ── Points Input ──────────────────────────────────────────────────── */
+.tgm-grading-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--borderColor);
+  flex-wrap: wrap;
+}
+
+.tgm-points-label {
+  font-family: VennRegular, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primaryText);
+}
+
+.tgm-points-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tgm-points-input {
+  width: 60px;
+  padding: 0.5rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 6px;
+  text-align: center;
+  background-color: var(--inputBg);
+  color: var(--primaryText);
+  font-size: 1rem;
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+}
+
+.tgm-points-input:focus {
+  outline: none;
+  border-color: var(--accentColor);
+  box-shadow: 0 0 0 3px rgba(50, 66, 119, 0.1);
+}
+
+.tgm-points-max {
+  color: var(--secondaryText);
+  font-size: 0.875rem;
+}
+
+.tgm-points-btn {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--borderColor);
+  background-color: var(--grayBtnBg);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: VennBold, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: var(--primaryText);
+}
+
+.tgm-points-btn:hover {
+  background-color: var(--btnHoverGray);
+}
+
+.tgm-points-btn--zero:hover {
+  background-color: rgba(119, 50, 50, 0.15);
+  border-color: rgba(119, 50, 50, 0.4);
+  color: var(--secondaryText);
+}
+
+.tgm-points-btn--full:hover {
+  background-color: rgba(49, 116, 80, 0.15);
+  border-color: rgba(49, 116, 80, 0.4);
+  color: #9dffb4;
+}
+
+/* ── Summary Section ──────────────────────────────────────────────────── */
+.tgm-summary {
+  background-color: var(--sidebarBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tgm-summary-points {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 1rem;
+}
+
+.tgm-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--secondaryText);
+  font-family: VennRegular, sans-serif;
+}
+
+.tgm-summary-row strong {
+  font-family: VennBold, sans-serif;
+  font-size: 1.125rem;
+  color: var(--primaryText);
+}
+
+.tgm-grade-badge {
+  padding: 0.5rem 1rem;
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+  border-radius: 8px;
+  font-size: 1.25rem;
+  font-family: VennBold, sans-serif;
+  font-weight: 700;
+}
+
+/* ── Thresholds Display ──────────────────────────────────────────────── */
+.tgm-thresholds {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--borderColor);
+  margin-bottom: 1rem;
+}
+
+.tgm-thresholds h5 {
+  font-family: VennBold, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--secondaryText);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tgm-thresholds-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tgm-threshold-item {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--inputBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+}
+
+.tgm-threshold-item strong {
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+}
+
+/* ── Manual Score Override ────────────────────────────────────────────── */
+.tgm-manual-score {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tgm-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  cursor: pointer;
+}
+
+.tgm-checkbox-label input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  accent-color: var(--accentColor);
+}
+
+.tgm-manual-input {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tgm-manual-input .tgm-input {
+  width: 80px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borderColor);
+  border-radius: 6px;
+  text-align: center;
+  background-color: var(--inputBg);
+  color: var(--primaryText);
+  font-size: 1rem;
+  font-family: VennBold, sans-serif;
+  font-weight: 600;
+}
+
+.tgm-manual-input .tgm-input:focus {
+  outline: none;
+  border-color: var(--accentColor);
+  box-shadow: 0 0 0 3px rgba(50, 66, 119, 0.1);
+}
+
+.tgm-manual-input span {
+  color: var(--secondaryText);
+  font-size: 0.875rem;
+}
+
+/* ── Graded Badge ───────────────────────────────────────────────────── */
+.tgm-graded-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(49, 116, 80, 0.3);
+  color: #9dffb4;
+  border-radius: 4px;
+  font-family: VennBold, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ── Action Buttons ───────────────────────────────────────────────────── */
+.tgm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.tgm-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: VennRegular, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.tgm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tgm-btn--secondary {
+  background-color: var(--grayBtnBg);
+  color: var(--secondaryText);
+  border: 1px solid var(--borderColor);
+}
+
+.tgm-btn--secondary:hover:not(:disabled) {
+  background-color: var(--btnHoverGray);
+  color: var(--primaryText);
+}
+
+.tgm-btn--primary {
+  background-color: var(--accentColor);
+  color: var(--primaryText);
+}
+
+.tgm-btn--primary:hover:not(:disabled) {
+  background-color: var(--btnHoverBlue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(50, 66, 119, 0.3);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .tgm-modal {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .tgm-header,
+  .tgm-content {
+    padding: 1rem;
+  }
+
+  .tgm-student-info {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .tgm-summary-points {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tgm-actions {
+    flex-direction: column;
+  }
+
+  .tgm-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .tgm-modal {
+    max-width: 100%;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+
+  .tgm-header,
+  .tgm-content {
+    padding: 0.875rem;
+  }
+
+  .tgm-question-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tgm-question-points {
+    margin-left: 0;
+  }
+
+  .tgm-grading-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tgm-points-wrapper {
+    justify-content: center;
+  }
+}

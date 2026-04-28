@@ -72,7 +72,7 @@ function TeacherPanelPage() {
         }
 
         studentStats[assignment.student_id].totalAssigned++
-        if (assignment.status === 'completed') {
+        if (assignment.status === 'completed' || assignment.status === 'graded') {
           studentStats[assignment.student_id].completedTasks++
         }
 
@@ -161,6 +161,7 @@ function TeacherPanelPage() {
   const [tests, setTests] = useState([])
   const [testsLoading, setTestsLoading] = useState(true)
   const [testsError, setTestsError] = useState(null)
+  const [gradedAssignments, setGradedAssignments] = useState([]) // Ocenione przypisania
 
   const fetchTests = async () => {
     setTestsLoading(true)
@@ -176,7 +177,69 @@ function TeacherPanelPage() {
     setTestsLoading(false)
   }
 
-  useEffect(() => { fetchTests() }, [])
+  // Pobierz ocenione przypisania
+  const fetchGradedAssignments = async () => {
+    try {
+      const { data: allAssignments, error: allError } = await supabase
+        .from('assignments')
+        .select('id, status, score')
+        .not('score', 'is', null)
+
+      console.log('Wszystkie przypisania z score:', allAssignments)
+
+      if (allError) throw allError
+
+      // Sprawdź czy allAssignments jest tablicą
+      const assignmentIds = Array.isArray(allAssignments) && allAssignments.length > 0
+        ? allAssignments.map(a => a.id)
+        : []
+
+      if (assignmentIds.length === 0) {
+        console.log('Brak przypisań z ustawionym wynikiem')
+        setGradedAssignments([])
+        return
+      }
+
+      // Pobierz szczegółowe dane
+      const { data, error } = await supabase
+        .from('assignments')
+        .select(`
+          id,
+          score,
+          assigned_at,
+          status,
+          student_id,
+          tests (
+            id,
+            title,
+            skill
+          ),
+          profiles!assignments_student_id_fkey (
+            id,
+            name
+          )
+        `)
+        .in('id', assignmentIds)
+        .order('assigned_at', { ascending: false })
+
+      console.log('Szczegółowe przypisania:', data)
+
+      if (error) throw error
+
+      // Po pobraniu szczegółów, zaktualizuj dane z nazwami uczniów
+      setGradedAssignments(data ?? [])
+    } catch (error) {
+      console.error('Błąd pobierania ocenionych przypisań:', error)
+    }
+  }
+
+  // Pobierz listę ID testów z ocenionymi przypisaniami
+  const gradedTestIds = gradedAssignments.map(a => a.tests?.id).filter(Boolean)
+
+  useEffect(() => {
+    fetchTests()
+    fetchGradedAssignments()
+  }, [])
 
   // ── Callbacki ─────────────────────────────────────────────────────────────
 
@@ -499,6 +562,156 @@ function TeacherPanelPage() {
     fetchStudentStats()
   }
 
+  // Funkcja pobierająca historię wyników ucznia
+  const handleFetchStudentHistory = async (studentId) => {
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .select(`
+          id,
+          score,
+          assigned_at,
+          question_answers,
+          tests (
+            id,
+            title,
+            questions
+          )
+        `)
+        .eq('student_id', studentId)
+        .not('score', 'is', null)
+        .order('assigned_at', { ascending: true })
+
+      if (error) throw error
+
+      // Przekształć dane do formatu wykresu
+      const history = (data || []).map(item => ({
+        date: item.assigned_at,
+        score: item.score,
+        testName: item.tests?.title || 'Test'
+      }))
+
+      // Analizuj błędy ucznia
+      const errors = analyzeStudentErrors(data || [])
+
+      return { history, errors }
+    } catch (error) {
+      console.error('Błąd pobierania historii ucznia:', error)
+      return { history: [], errors: [] }
+    }
+  }
+
+  // Funkcja analizująca najczęstsze błędy ucznia
+  const analyzeStudentErrors = (assignments) => {
+    const errorCounts = {}
+
+    assignments.forEach(assignment => {
+      const questions = assignment.tests?.questions || []
+      const answers = assignment.question_answers || []
+
+      questions.forEach(question => {
+        const answer = answers.find(a => a.questionId === question.id)
+        if (!answer || !answer.answer) return
+
+        let isError = false
+        let errorDescription = ''
+
+        if (question.type === 'sql') {
+          const expectedSql = question.expectedSql || question.expected_sql
+          if (expectedSql) {
+            const expectedClean = expectedSql.trim().replace(/\s+/g, ' ').toLowerCase()
+            const answerClean = answer.answer.trim().replace(/\s+/g, ' ').toLowerCase()
+            isError = expectedClean !== answerClean
+
+            if (isError) {
+              // Zidentyfikuj rodzaj błędu SQL
+              const errorType = identifySQLErrorType(answer.answer, expectedSql)
+              errorDescription = errorType || 'Błędne zapytanie SQL'
+            }
+          }
+        } else if (question.type === 'multiple_choice' || question.type === 'true_false') {
+          isError = answer.answer !== question.correctAnswer
+
+          if (isError) {
+            const correctText = question.type === 'true_false'
+              ? (question.correctAnswer === 'true' ? 'Prawda' : 'Fałsz')
+              : question.correctAnswer
+            const answerText = question.type === 'true_false'
+              ? (answer.answer === 'true' ? 'Prawda' : 'Fałsz')
+              : answer.answer
+            errorDescription = `Wybrano: ${answerText}, poprawne: ${correctText}`
+          }
+        }
+
+        if (isError && errorDescription) {
+          const key = `${question.id}-${question.type}`
+          if (!errorCounts[key]) {
+            errorCounts[key] = {
+              description: errorDescription,
+              count: 0,
+              questionType: question.type,
+              questionTitle: question.title?.substring(0, 50) + (question.title?.length > 50 ? '...' : '')
+            }
+          }
+          errorCounts[key].count++
+        }
+      })
+    })
+
+    // Zwróć posortowaną listę najczęstszych błędów
+    return Object.values(errorCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10) // Top 10 najczęstszych błędów
+      .map(e => ({
+        ...e,
+        formatted: `${e.questionType === 'sql' ? 'SQL' : e.questionType === 'multiple_choice' ? 'Wybór' : 'P/F'}: ${e.description}`
+      }))
+  }
+
+  // Funkcja identyfikująca rodzaj błędu SQL
+  const identifySQLErrorType = (answer, expected) => {
+    const answerLower = answer.toLowerCase()
+    const expectedLower = expected.toLowerCase()
+
+    // Brak FROM
+    if (expectedLower.includes(' from ') && !answerLower.includes(' from ')) {
+      return 'Brak klauzuli FROM'
+    }
+    // Brak WHERE
+    if (expectedLower.includes(' where ') && !answerLower.includes(' where ')) {
+      return 'Brak klauzuli WHERE'
+    }
+    // Błędna nazwa tabeli
+    if (!answerLower.includes(expectedLower.match(/from\s+(\w+)/)?.[1])) {
+      return 'Błędna nazwa tabeli'
+    }
+    // Błędna nazwa kolumny
+    const expectedColumns = expectedLower.match(/select\s+(.+?)\s+from/)?.[1] || ''
+    const answerColumns = answerLower.match(/select\s+(.+?)\s+from/)?.[1] || ''
+    if (expectedColumns && answerColumns && expectedColumns !== answerColumns) {
+      return 'Błędne kolumny w SELECT'
+    }
+    // Złe użycie operatorów
+    if (expectedLower.includes('=') && !answerLower.includes('=')) {
+      return 'Brak operatora porównania'
+    }
+    // Brak GROUP BY
+    if (expectedLower.includes(' group by ') && !answerLower.includes(' group by ')) {
+      return 'Brak klauzuli GROUP BY'
+    }
+    // Brak ORDER BY
+    if (expectedLower.includes(' order by ') && !answerLower.includes(' order by ')) {
+      return 'Brak klauzuli ORDER BY'
+    }
+    // Błędny JOIN
+    if ((expectedLower.includes(' join ') || expectedLower.includes(' inner join ') || expectedLower.includes(' left join '))
+        && !(answerLower.includes(' join ') || answerLower.includes(' inner join ') || answerLower.includes(' left join '))) {
+      return 'Błędne użycie JOIN'
+    }
+
+    return null
+  }
+
   return (
     <SidebarHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} noPadding>
       <TeacherPanel
@@ -509,6 +722,9 @@ function TeacherPanelPage() {
         tests={tests}
         testsLoading={testsLoading}
         testsError={testsError}
+        gradedTestIds={gradedTestIds}
+        gradedAssignments={gradedAssignments}
+        gradedAssignmentsLoading={false}
         classStats={classStats}
         classes={classes}
         classesLoading={classesLoading}
@@ -526,6 +742,7 @@ function TeacherPanelPage() {
         onRemoveStudentFromClass={handleRemoveStudentFromClass}
         classStudentsData={classStudentsData}
         onExportResults={handleExportResults}
+        onFetchStudentHistory={handleFetchStudentHistory}
       />
     </SidebarHeader>
   )

@@ -6,6 +6,7 @@ import BulkAssignmentModal from './BulkAssignmentModal'
 import StudentSelector from './StudentSelector'
 import CustomSelect from './CustomSelect'
 import GradingSection from './GradingSection'
+import TestGradingModal from './TestGradingModal'
 import './TeacherPanel.css'
 
 const IconCSV = () => (
@@ -244,6 +245,7 @@ function TestsSection({
   const [assignModal, setAssignModal] = useState(null) // id testu do przypisania
   const [bulkAssignModal, setBulkAssignModal] = useState(null) // id testu do masowego przypisania
   const [assignedIds, setAssignedIds] = useState([])   // uczniowie już przypisani w tej sesji
+  const [gradingModal, setGradingModal] = useState(null) // { testId, assignmentId }
 
   const handleAssign = async (studentId) => {
     await onAssignTest(assignModal, studentId)
@@ -308,6 +310,12 @@ function TestsSection({
                   Przypisz masowo
                 </button>
                 <button
+                  className="tp-btn tp-btn--ghost tp-btn--sm tp-btn--grading"
+                  onClick={() => setGradingModal({ testId: test.id, assignmentId: null })}
+                >
+                  Oceń
+                </button>
+                <button
                   className="tp-btn tp-btn--ghost tp-btn--sm tp-btn--danger"
                   onClick={() => onDeleteTest(test.id)}
                 >
@@ -360,6 +368,16 @@ function TestsSection({
           classes={classes}
           onAssign={onBulkAssignTest}
           onClose={() => setBulkAssignModal(null)}
+        />
+      )}
+
+      {/* Modal oceniania testu */}
+      {gradingModal && (
+        <TestGradingModal
+          tests={tests}
+          onClose={() => setGradingModal(null)}
+          preSelectedTestId={gradingModal.testId}
+          preSelectedAssignmentId={gradingModal.assignmentId}
         />
       )}
     </div>

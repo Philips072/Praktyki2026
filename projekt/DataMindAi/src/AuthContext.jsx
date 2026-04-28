@@ -88,13 +88,6 @@ export function AuthProvider({ children }) {
         if (!insertError) {
           localStorage.removeItem('pendingRegistration')
         }
-
-        try {
-          await initializeDatabase(sessionUser.id, 1)
-          console.log('Baza SQLite utworzona')
-        } catch (dbError) {
-          console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
-        }
       } else {
         console.log('Profil już istnieje, pomijam')
         localStorage.removeItem('pendingRegistration')

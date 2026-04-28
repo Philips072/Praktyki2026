@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (userId) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('name, role, sql_level, interests')
+      .select('name, role, sql_level, interests, email')
       .eq('id', userId)
       .single()
 
@@ -25,6 +25,19 @@ export function AuthProvider({ children }) {
         .single()
       setProfile(fallback)
     } else {
+      // Sprawdź czy email w profilu jest zgodny z sesją
+      const currentUser = await supabase.auth.getUser()
+      const sessionEmail = currentUser.data.user?.email
+
+      if (sessionEmail && data.email !== sessionEmail) {
+        console.log('Email w profilie różni się od sesji - aktualizacja:', data.email, '->', sessionEmail)
+        await supabase
+          .from('profiles')
+          .update({ email: sessionEmail })
+          .eq('id', userId)
+        data.email = sessionEmail
+      }
+
       setProfile(data)
     }
     setLoading(false)
@@ -106,15 +119,22 @@ export function AuthProvider({ children }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null
+      console.log('=== Auth state change ===', { event: _event, userId: currentUser?.id, email: currentUser?.email })
       setUser(currentUser)
+
       if (currentUser) {
         localStorage.setItem('user', JSON.stringify(currentUser))
 
         if (_event === 'SIGNED_IN' && currentUser.user_metadata?.name) {
           await createProfileAfterVerification(currentUser)
+          fetchProfile(currentUser.id)
+        } else if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') {
+          fetchProfile(currentUser.id)
+        } else if (_event === 'TOKEN_REFRESHED') {
+          // Pobierz świeży profil po odświeżeniu tokenu
+          fetchProfile(currentUser.id)
         }
-
-        fetchProfile(currentUser.id)
+        // USER_UPDATED jest pomijany aby uniknąć konfliktów z updateUser
       } else {
         localStorage.removeItem('user')
         setProfile(null)

@@ -59,7 +59,7 @@ router.post('/chat', async (req, res, next) => {
 
 // POST /api/ai/interests
 // Przyjmuje: { message: string } — tekst użytkownika o zainteresowaniach
-// Zwraca: { message: string, interests: string } — odpowiedź AI + znormalizowane zainteresowania
+// Zwraca: { message: string, interests: string | null, valid: boolean }
 router.post('/interests', async (req, res, next) => {
   try {
     const { message } = req.body;
@@ -73,6 +73,50 @@ router.post('/interests', async (req, res, next) => {
       return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
+    // Najpierw sprawdź czy zainteresowania są sensowne
+    const validationResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-4-31b-it',
+        max_tokens: 50,
+        temperature: 0.3,
+        messages: [
+          {
+            role: 'system',
+            content: `Sprawdź czy podane zainteresowania są sensowne i faktycznie opisują jakieś zainteresowania/hobby/pasje użytkownika.
+Użytkownik może pisać: "sport", "programowanie", "gry komputerowe", "muzyka", "czytam książki", "film noir", "piłka nożna", "języki obce" itp.
+Odrzuć jeśli to: przypadkowe znaki ("dsafas", "xyz"), negacje ("nic", "nie mam zainteresowań", "nie wiem"), wulgarności, bardzo ogólne odpowiedzi bez szczegółów ("coś", "różne rzeczy").
+
+Odpowiedz TYLKO "true" jeśli zainteresowania są sensowne lub "false" jeśli nie. Bez markdown, bez cudzysłowów, bez dodatkowego tekstu.`,
+          },
+          { role: 'user', content: message.trim() },
+        ],
+      }),
+    });
+
+    let isValid = false;
+    if (validationResponse.ok) {
+      const validationData = await validationResponse.json();
+      const validationRaw = validationData.choices?.[0]?.message?.content?.trim().toLowerCase() ?? '';
+      isValid = validationRaw === 'true';
+    }
+
+    // Jeśli nie są sensowne, zwróć odpowiedź AI, że nie zaktualizowano zainteresowań
+    if (!isValid) {
+      return res.json({
+        message: 'Rozumiem, że nie chcesz teraz podawać zainteresowań lub wpisałeś coś, co nie wygląda na faktyczne zainteresowanie. Możesz to zmienić w dowolnym momencie!',
+        interests: null,
+        valid: false
+      });
+    }
+
+    // Jeśli są sensowne, wygeneruj normalną odpowiedź
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -82,7 +126,7 @@ router.post('/interests', async (req, res, next) => {
         'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'google/gemma-4-26b-a4b-it',
+        model: 'google/gemma-4-31b-it',
         max_tokens: 250,
         temperature: 0.8,
         messages: [
@@ -108,9 +152,10 @@ router.post('/interests', async (req, res, next) => {
     const raw = data.choices?.[0]?.message?.content?.trim() ?? '';
 
     try {
-      return res.json(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      return res.json({ ...parsed, valid: true });
     } catch {
-      return res.json({ message: raw, interests: raw });
+      return res.json({ message: raw, interests: raw, valid: true });
     }
   } catch (err) {
     next(err);

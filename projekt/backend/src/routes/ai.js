@@ -2,6 +2,29 @@ import { Router } from 'express';
 
 const router = Router();
 
+const AI_TIMEOUT = 30000; // 30 sekund timeout dla zapytań AI
+
+// Funkcja pomocnicza do fetch z timeout
+const fetchWithTimeout = async (url, options = {}, timeout = AI_TIMEOUT) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout - serwer AI nie odpowiedział w wymaganym czasie');
+    }
+    throw error;
+  }
+};
+
 // POST /api/ai/chat
 // Przyjmuje: { messages: [{ role: 'user'|'assistant', content: string }] }
 // Zwraca: { reply: string }
@@ -18,7 +41,7 @@ router.post('/chat', async (req, res, next) => {
       return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +97,7 @@ router.post('/interests', async (req, res, next) => {
     }
 
     // Najpierw sprawdź czy zainteresowania są sensowne
-    const validationResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const validationResponse = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -117,7 +140,7 @@ Odpowiedz TYLKO "true" jeśli zainteresowania są sensowne lub "false" jeśli ni
     }
 
     // Jeśli są sensowne, wygeneruj normalną odpowiedź
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -289,7 +312,7 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
 }`;
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -404,7 +427,7 @@ PRZYKŁADY:
 - "Dodaj średnik"
 - "Wszystko jest w porządku"`;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -544,7 +567,7 @@ SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań 
 SPERSONALIZUJ ZADANIA - zmień nazwy tabel/kolumn w treści zadań aby pasowały do spersonalizowanego schematu!
 W zadaniach zachowaj pole "id" - musi być takie samo jak w oryginale!`;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -560,7 +583,7 @@ W zadaniach zachowaj pole "id" - musi być takie samo jak w oryginale!`;
           { role: 'system', content: prompt },
         ],
       }),
-    });
+    }, 60000); // 60 sekund timeout dla personalized-content
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

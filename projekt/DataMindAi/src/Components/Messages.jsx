@@ -137,7 +137,9 @@ function Messages() {
   const [replyingTo, setReplyingTo] = useState(null)
   const messagesEndRef = useRef(null)
   const selectedRef = useRef(null)
+  const convsRef = useRef(null)
   selectedRef.current = selected
+  convsRef.current = convs
 
   const myInitials = getInitials(myProfile?.name, user?.email)
 
@@ -268,7 +270,15 @@ function Messages() {
 
     setConvs(convList)
     setLoadingConvs(false)
-  }, [user, onlineUsers])
+  }, [user])
+
+  // Aktualizuj status online bez przeładowania rozmów
+  useEffect(() => {
+    setConvs(prev => prev.map(c => ({
+      ...c,
+      online: onlineUsers.has(c.otherUserId)
+    })))
+  }, [onlineUsers])
 
   useEffect(() => { loadConversations() }, [loadConversations])
 
@@ -360,8 +370,9 @@ function Messages() {
               : c
           ))
         } else {
-          // Nowa wiadomość w innej rozmowie — odśwież listę
-          const convExists = convs.some(c => c.id === msg.conversation_id)
+          // Nowa wiadomość w innej rozmowie — sprawdź czy rozmowa istnieje w aktualnym stanie
+          const currentConvs = convsRef.current
+          const convExists = currentConvs.some(c => c.id === msg.conversation_id)
           if (convExists) {
             setConvs(prev => prev.map(c =>
               c.id === msg.conversation_id
@@ -388,7 +399,7 @@ function Messages() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [user, convs, loadConversations])
+  }, [user, loadConversations])
 
   // ── Handlers ────────────────────────────────────────────
 

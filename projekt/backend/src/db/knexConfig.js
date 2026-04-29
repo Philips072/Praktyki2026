@@ -194,18 +194,20 @@ const initializeDatabase = async (userId, lessonId) => {
   const initialData = getInitialData();
 
   if (!schemas[lessonId]) {
+    await db.destroy();
     throw new Error(`Lekcja ${lessonId} nie istnieje`);
   }
 
   await db.raw(schemas[lessonId]);
 
-  initialData[lessonId]?.forEach(async (stmt) => {
+  const dataStatements = initialData[lessonId] || [];
+  for (const stmt of dataStatements) {
     try {
       await db.raw(stmt);
     } catch (e) {
       console.warn('Błąd podczas wstawiania danych:', e.message);
     }
-  });
+  }
 
   await db.destroy();
 };

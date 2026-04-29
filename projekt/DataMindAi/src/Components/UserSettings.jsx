@@ -207,9 +207,11 @@ function UserSettings() {
   useEffect(() => {
     if (profile?.name) setName(profile.name)
     if (user?.email) setEmail(user.email)
-    if (profile?.sql_level) setSqlLevel(profile.sql_level)
-    if (profile?.interests) setInterests(
-      Array.isArray(profile.interests) ? profile.interests.join(', ') : (profile.interests ?? '')
+    setSqlLevel(profile?.sql_level ?? '')
+    setInterests(
+      profile?.interests
+        ? Array.isArray(profile.interests) ? profile.interests.join(', ') : profile.interests
+        : ''
     )
   }, [profile, user])
 

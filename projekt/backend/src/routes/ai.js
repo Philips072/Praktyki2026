@@ -317,7 +317,7 @@ router.post('/hint', async (req, res, next) => {
 
     const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
 
-    const prompt = `Jesteś asystentem AI pomagającym w rozwiązywaniu ćwiczeń SQL. Daj jedną stopniową podpowiedź dotyczącą TYLKO składni.
+    const prompt = `Jesteś asystentem AI pomagającym w rozwiązywaniu ćwiczeń SQL. Daj JEDNĄ krótką podpowiedź.
 
 Treść zadania: "${task}"
 
@@ -326,21 +326,37 @@ Co użytkownik już wpisał: "${currentSql}"
 Schemat tabeli:
 ${schemaText || 'Brak informacji o schemacie'}
 
-ZASADY:
-1. Podpowiedź dotyczy TYLKO składni SQL - NIE sprawdzaj czy tabele istnieją w bazie
-2. Jeśli użytkownik nic nie wpisał: podaj pierwsze słowo polecenia
-3. Jeśli użytkownik wpisał część: podaj co powinno być następnym krokiem składniowym
-4. ZAWSZE na końcu zapytania musi być średnik (;) - jeśli brakuje, powiedz "Dodaj średnik na końcu"
-5. Jeśli zapytanie jest POPRAWNE składniowo i ma średnik na końcu: odpowiedz "Wszystko jest w porządku"
-6. Jeśli coś brakuje składniowo: podaj tylko następną rzecz do dodania (1-2 krótkie zdania)
-7. Nie dawaj gotowej odpowiedzi ani pełnego kodu
-8. Nie używaj formatowania markdown, tylko zwykły tekst
+ZASADY (bardzo ważne):
+1. ZAWSZE użyj słów-kluczy na początku: "Zacznij od", "Następnie", "Teraz", "Dodaj"
+2. ODPOWIEDŹ MA BYĆ KRÓTKA - maksymalnie 5-6 słów
+3. Jeśli użytkownik NIC nie wpisał: Zacznij od "Zacznij od" + polecenie SQL
+4. Jeśli użytkownik wpisał coś - NAJPIERW sprawdź błędy:
+   a) Literówki w słowach kluczowych SQL (SELECT, FROM, WHERE, CREATE, TABLE, AUTO_INCREMENT)
+   b) Literówki w nazwach tabel/kolumn UŻYTYCH przez użytkownika
+   c) BRAK AUTO_INCREMENT przy id PRIMARY KEY - powiedz "Dodaj AUTO_INCREMENT"
+   d) BRAK średnika na końcu - powiedz "Dodaj średnik"
+   e) JEŚLI JEST BŁĄD: powiedz tylko co poprawić
+5. DOPHIERO gdy brak błędów:
+   - Użyj "Następnie" lub "Teraz" na początku
+   - Podaj co dodać jako następną rzecz
+   - Jeśli wszystko kompletne: powiedz "Wszystko jest w porządku"
 
-PRZYKŁADY DOBRYCH ODPOWIEDZI:
-- "Zacznij od CREATE DATABASE"
-- "Teraz podaj nazwę tabeli"
-- "Dodaj WHERE z warunkiem filtrowania"
-- "Dodaj średnik na końcu"
+SŁOWA-KLUCZE do użycia:
+- "Zacznij od" - na początku, gdy input pusty
+- "Następnie" - gdy kontynuujesz
+- "Teraz" - gdy coś dodajesz
+- "Dodaj" - gdy dodajesz element
+- "Popraw" - gdy poprawiasz błąd
+- "Wszystko jest w porządku" - gdy kompletne
+
+PRZYKŁADY:
+- "Zacznij od CREATE"
+- "Następnie podaj nazwę"
+- "Teraz FROM tabela"
+- "Dodaj WHERE"
+- "Następnie ORDER BY"
+- "Dodaj AUTO_INCREMENT"
+- "Dodaj średnik"
 - "Wszystko jest w porządku"`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -352,9 +368,9 @@ PRZYKŁADY DOBRYCH ODPOWIEDZI:
         'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        max_tokens: 150,
-        temperature: 0.5,
+        model: 'google/gemma-4-31b-it',
+        max_tokens: 50,
+        temperature: 0.3,
         messages: [
           { role: 'system', content: prompt },
         ],

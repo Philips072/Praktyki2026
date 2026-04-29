@@ -17,13 +17,35 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .single()
 
-    if (error) {
-      const { data: fallback } = await supabase
-        .from('profiles')
-        .select('name, role')
-        .eq('id', userId)
-        .single()
-      setProfile(fallback)
+    if (error || !data) {
+      // Profil nie istnieje - utwórz domyślny
+      console.log('Profil nie istnieje, tworzę domyślny dla:', userId)
+      const { data: newUser, error: authError } = await supabase.auth.getUser()
+      if (!authError && newUser?.user) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: newUser.user.user_metadata?.name || newUser.user.email?.split('@')[0] || 'Użytkownik',
+            email: newUser.user.email,
+            role: 'uczen'
+          })
+        if (!insertError) {
+          // Pobierz nowo utworzony profil
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('name, role, sql_level, interests, email')
+            .eq('id', userId)
+            .single()
+          setProfile(newProfile)
+        } else {
+          console.error('Błąd tworzenia profilu:', insertError)
+          setProfile(null)
+        }
+      } else {
+        console.error('Błąd pobierania użytkownika:', authError)
+        setProfile(null)
+      }
     } else {
       // Sprawdź czy email w profilu jest zgodny z sesją
       const currentUser = await supabase.auth.getUser()
@@ -118,10 +140,13 @@ export function AuthProvider({ children }) {
       if (currentUser) {
         localStorage.setItem('user', JSON.stringify(currentUser))
 
-        if (_event === 'SIGNED_IN' && currentUser.user_metadata?.name) {
-          await createProfileAfterVerification(currentUser)
+        if (_event === 'SIGNED_IN') {
+          if (currentUser.user_metadata?.name) {
+            await createProfileAfterVerification(currentUser)
+          }
+          // Pobierz profil po potencjalnym utworzeniu
           fetchProfile(currentUser.id)
-        } else if (_event === 'SIGNED_IN' || _event === 'INITIAL_SESSION') {
+        } else if (_event === 'INITIAL_SESSION') {
           fetchProfile(currentUser.id)
         } else if (_event === 'TOKEN_REFRESHED') {
           // Pobierz świeży profil po odświeżeniu tokenu

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './AiChat.css';
@@ -205,7 +205,12 @@ function AiChat() {
                           </pre>
                         );
                       },
-                      p: ({ children }) => <p className="aichat-line">{children}</p>,
+                      p: ({ children }) => {
+                        if (React.Children.toArray(children).some(child => React.isValidElement(child) && child.type === 'pre')) {
+                          return <>{children}</>;
+                        }
+                        return <p className="aichat-line">{children}</p>;
+                      },
                       strong: ({ children }) => <strong className="aichat-strong">{children}</strong>,
                       em: ({ children }) => <em className="aichat-em">{children}</em>,
                       table: ({ children }) => <div className="aichat-table-wrapper"><div className="aichat-table-container"><table className="aichat-table">{children}</table></div></div>,

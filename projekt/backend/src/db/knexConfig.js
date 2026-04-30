@@ -71,31 +71,11 @@ const getSchemas = () => ({
     );
   `,
   2: `
-    CREATE TABLE IF NOT EXISTS students (
+    CREATE TABLE IF NOT EXISTS gracze (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      enrollment_date DATE DEFAULT CURRENT_DATE
-    );
-
-    CREATE TABLE IF NOT EXISTS courses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      code TEXT UNIQUE NOT NULL,
-      credits INTEGER DEFAULT 1 CHECK (credits > 0),
-      description TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS enrollments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id INTEGER NOT NULL,
-      course_id INTEGER NOT NULL,
-      enrollment_date DATE DEFAULT CURRENT_DATE,
-      grade TEXT CHECK (grade IN ('A', 'B', 'C', 'D', 'F')),
-      FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-      FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-      UNIQUE(student_id, course_id)
+      imie TEXT NOT NULL,
+      nazwisko TEXT NOT NULL,
+      pozycja TEXT
     );
   `
 });
@@ -147,28 +127,12 @@ const getInitialData = () => ({
     (3, 'Monitor 27"', 1, 899.99, '2024-06-20', 'completed');`
   ],
   2: [
-    `INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-    ('Anna', 'Kowalska', 'anna.kowalska@uni.edu', '2023-09-01'),
-    ('Piotr', 'Nowak', 'piotr.nowak@uni.edu', '2023-09-01'),
-    ('Maria', 'Wójcik', 'maria.wojcik@uni.edu', '2023-09-01'),
-    ('Jan', 'Lewandowski', 'jan.lewandowski@uni.edu', '2023-09-01'),
-    ('Ewa', 'Zielińska', 'ewa.zielinska@uni.edu', '2023-09-01');`,
-    `INSERT INTO courses (name, code, credits, description) VALUES
-    ('Programowanie w Pythonie', 'PY101', 3, 'Podstawy programowania w Pythonie'),
-    ('Bazy danych SQL', 'SQL201', 4, 'Zaawansowane zapytania SQL'),
-    ('Web Development', 'WD301', 3, 'Tworzenie stron WWW'),
-    ('Algorytmy i struktury danych', 'AS401', 4, 'Podstawy algorytmiki'),
-    ('Matematyka dyskretna', 'MD501', 3, 'Teoria grafów i kombinatoryka');`,
-    `INSERT INTO enrollments (student_id, course_id, enrollment_date, grade) VALUES
-    (1, 1, '2023-09-15', 'A'),
-    (1, 2, '2023-09-15', 'B'),
-    (2, 1, '2023-09-15', 'A'),
-    (2, 3, '2023-09-15', 'C'),
-    (3, 2, '2023-09-15', 'A'),
-    (3, 4, '2023-09-15', 'B'),
-    (4, 3, '2023-09-15', 'A'),
-    (4, 5, '2023-09-15', 'B'),
-    (5, 4, '2023-09-15', 'A');`
+    `INSERT INTO gracze (imie, nazwisko, pozycja) VALUES
+    ('Robert', 'Lewandowski', 'napastnik'),
+    ('Kevin', 'De Bruyne', 'pomocnik'),
+    ('Virgil', 'van Dijk', 'obronca'),
+    ('Manuel', 'Neuer', 'bramkarz'),
+    ('Kylian', 'Mbappe', 'napastnik');`
   ]
 });
 
@@ -354,6 +318,292 @@ const executeSQL = async (userId, lessonId, sqlQuery) => {
   // Convert AUTO_INCREMENT to AUTOINCREMENT for SQLite
   processedSql = processedSql.replace(/\bAUTO_INCREMENT\b/gi, 'AUTOINCREMENT');
 
+  // Fix common typos for RENAME
+  processedSql = processedSql.replace(/\bRENAMTE\b/gi, 'RENAME');
+  processedSql = processedSql.replace(/\bRENAMR\b/gi, 'RENAME');
+  processedSql = processedSql.replace(/\bRENAMEA\b/gi, 'RENAME');
+
+  // Special handling for Lesson 2 - CHANGE COLUMN (SQLite doesn't support CHANGE COLUMN)
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('CHANGE COLUMN')) {
+    console.log('=== Lesson 2: Handling CHANGE COLUMN ===');
+
+    const changeColumnMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)\s+CHANGE\s+COLUMN\s+(\w+)\s+(\w+)\s+(.+)/i);
+    if (changeColumnMatch) {
+      const [, tableName, oldColumn, newColumn, restOfDefinition] = changeColumnMatch;
+      console.log(`CHANGE COLUMN - table: ${tableName}, old: ${oldColumn}, new: ${newColumn}, type: ${restOfDefinition}`);
+
+      try {
+        // Check which table exists (gracze or zawodnicy)
+        const tables = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        const tableNames = tables.map(t => t.name.toLowerCase());
+        const actualTableName = tableNames.includes('gracze') ? 'gracze' : (tableNames.includes('zawodnicy') ? 'zawodnicy' : 'gracze');
+        console.log('Actual table name:', actualTableName);
+
+        // Get current schema
+        const pragmaResult = await db.raw(`PRAGMA table_info(${actualTableName})`);
+        console.log('Current columns:', pragmaResult.map(r => ({ name: r.name, type: r.type })));
+
+        // Get all data
+        const data = await db.raw(`SELECT * FROM ${actualTableName}`);
+        console.log('Data to preserve:', data.length, 'rows');
+
+        // Build new column definitions
+        const newColumnDefs = pragmaResult.map(row => {
+          let def = `${row.name === oldColumn ? newColumn : row.name} ${row.type}`;
+          if (row.notnull) def += ' NOT NULL';
+          if (row.dflt_value) def += ` DEFAULT ${row.dflt_value}`;
+          if (row.pk) def += ' PRIMARY KEY';
+          return def;
+        });
+
+        console.log('New column definitions:', newColumnDefs);
+
+        // Drop and recreate table
+        await db.raw(`DROP TABLE IF EXISTS ${actualTableName}`);
+        await db.raw(`CREATE TABLE ${actualTableName} (${newColumnDefs.join(', ')})`);
+        console.log('Table recreated with renamed column');
+
+        // Restore data (map old column name to new column name)
+        if (data.length > 0) {
+          for (const row of data) {
+            const columns = Object.keys(row).map(k => k === oldColumn ? newColumn : k);
+            const values = columns.map(c => {
+              const val = row[c === newColumn ? oldColumn : c];
+              if (val === null) return 'NULL';
+              if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+              return val;
+            });
+            await db.raw(`INSERT INTO ${actualTableName} (${columns.join(', ')}) VALUES (${values.join(', ')})`);
+          }
+          console.log('Data restored');
+        }
+
+        await db.destroy();
+        return {
+          success: true,
+          message: `Zmieniono nazwę kolumny z ${oldColumn} na ${newColumn}`,
+          affectedRows: 0,
+          data: null
+        };
+      } catch (e) {
+        console.warn('Error handling CHANGE COLUMN:', e.message);
+        await db.destroy();
+        throw e;
+      }
+    }
+  }
+
+  // Special handling for Lesson 2 - MODIFY COLUMN (SQLite doesn't support MODIFY COLUMN)
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('MODIFY COLUMN')) {
+    console.log('=== Lesson 2: Handling MODIFY COLUMN ===');
+
+    const modifyColumnMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)\s+MODIFY\s+COLUMN\s+(\w+)\s+(.+)/i);
+    if (modifyColumnMatch) {
+      const [, tableName, columnName, newType] = modifyColumnMatch;
+      console.log(`MODIFY COLUMN - table: ${tableName}, column: ${columnName}, new type: ${newType}`);
+
+      try {
+        // Check which table exists (gracze or zawodnicy)
+        const tables = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        const tableNames = tables.map(t => t.name.toLowerCase());
+        const actualTableName = tableNames.includes('gracze') ? 'gracze' : (tableNames.includes('zawodnicy') ? 'zawodnicy' : 'gracze');
+        console.log('Actual table name:', actualTableName);
+
+        // Get current schema
+        const pragmaResult = await db.raw(`PRAGMA table_info(${actualTableName})`);
+        console.log('Current columns:', pragmaResult.map(r => ({ name: r.name, type: r.type })));
+
+        // Get all data
+        const data = await db.raw(`SELECT * FROM ${actualTableName}`);
+        console.log('Data to preserve:', data.length, 'rows');
+
+        // Build new column definitions with modified type
+        const newColumnDefs = pragmaResult.map(row => {
+          let def = `${row.name} ${row.name === columnName ? newType : row.type}`;
+          if (row.notnull && row.name !== columnName) def += ' NOT NULL';
+          if (row.dflt_value) def += ` DEFAULT ${row.dflt_value}`;
+          if (row.pk) def += ' PRIMARY KEY';
+          return def;
+        });
+
+        console.log('New column definitions:', newColumnDefs);
+
+        // Drop and recreate table
+        await db.raw(`DROP TABLE IF EXISTS ${actualTableName}`);
+        await db.raw(`CREATE TABLE ${actualTableName} (${newColumnDefs.join(', ')})`);
+        console.log('Table recreated with modified column type');
+
+        // Restore data
+        if (data.length > 0) {
+          for (const row of data) {
+            const columns = Object.keys(row);
+            const values = columns.map(c => {
+              const val = row[c];
+              if (val === null) return 'NULL';
+              if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
+              return val;
+            });
+            await db.raw(`INSERT INTO ${actualTableName} (${columns.join(', ')}) VALUES (${values.join(', ')})`);
+          }
+          console.log('Data restored');
+        }
+
+        await db.destroy();
+        return {
+          success: true,
+          message: `Zmieniono typ kolumny ${columnName} na ${newType}`,
+          affectedRows: 0,
+          data: null
+        };
+      } catch (e) {
+        console.warn('Error handling MODIFY COLUMN:', e.message);
+        await db.destroy();
+        throw e;
+      }
+    }
+  }
+
+  // Special handling for Lesson 2 - check if column already exists before ADD COLUMN
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('ALTER TABLE') && normalizedSql.includes('ADD COLUMN')) {
+    console.log('=== Lesson 2: Checking column existence before execution ===');
+
+    const tableNameMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)/i);
+    if (tableNameMatch) {
+      const tableName = tableNameMatch[1];
+      const columnNameMatch = normalizedSql.match(/ALTER\s+TABLE\s+\w+\s+ADD\s+COLUMN\s+(\w+)/i);
+
+      if (columnNameMatch) {
+        const columnName = columnNameMatch[1];
+        console.log(`Checking if column ${columnName} exists in table ${tableName}`);
+
+        try {
+          const pragmaResult = await db.raw(`PRAGMA table_info(${tableName})`);
+          const columnExists = pragmaResult.some(row => row.name === columnName);
+          console.log(`Column ${columnName} exists:`, columnExists);
+
+          if (columnExists) {
+            console.log(`Column ${columnName} already exists - resetting table`);
+
+            // Check which table exists (gracze or zawodnicy)
+            const tables = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+            const tableNames = tables.map(t => t.name.toLowerCase());
+            const actualTableName = tableNames.includes('gracze') ? 'gracze' : (tableNames.includes('zawodnicy') ? 'zawodnicy' : 'gracze');
+            console.log('Actual table name:', actualTableName);
+
+            // Drop and recreate with initial schema
+            await db.raw(`DROP TABLE IF EXISTS ${actualTableName}`);
+            await db.raw(`CREATE TABLE gracze (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              imie TEXT NOT NULL,
+              nazwisko TEXT NOT NULL,
+              pozycja TEXT
+            )`);
+
+            // Rename to zawodnicy if needed
+            if (actualTableName === 'zawodnicy') {
+              await db.raw(`ALTER TABLE gracze RENAME TO zawodnicy`);
+            }
+
+            // Restore initial data
+            const targetTable = actualTableName === 'zawodnicy' ? 'zawodnicy' : 'gracze';
+            await db.raw(`INSERT INTO ${targetTable} (imie, nazwisko, pozycja) VALUES
+              ('Robert', 'Lewandowski', 'napastnik'),
+              ('Kevin', 'De Bruyne', 'pomocnik'),
+              ('Virgil', 'van Dijk', 'obronca'),
+              ('Manuel', 'Neuer', 'bramkarz'),
+              ('Kylian', 'Mbappe', 'napastnik')`);
+
+            console.log('Table reset to initial state');
+          }
+        } catch (e) {
+          console.warn('Error checking column existence:', e.message);
+        }
+      }
+    }
+  }
+
+  // Special handling for Lesson 2 - RENAME TABLE check if source table exists
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('RENAME TO')) {
+    console.log('=== Lesson 2: Handling RENAME TABLE ===');
+
+    const renameTableMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)\s+RENAME\s+TO\s+(\w+)/i);
+    if (renameTableMatch) {
+      const [, sourceTable, targetTable] = renameTableMatch;
+      console.log(`RENAME TABLE - source: ${sourceTable}, target: ${targetTable}`);
+
+      try {
+        // Check which tables exist
+        const tables = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        const tableNames = tables.map(t => t.name.toLowerCase());
+        console.log('Existing tables:', tableNames);
+
+        const sourceExists = tableNames.includes(sourceTable.toLowerCase());
+        const targetExists = tableNames.includes(targetTable.toLowerCase());
+
+        if (!sourceExists && targetExists) {
+          console.log(`Source table ${sourceTable} does not exist, but target table ${targetTable} does. Treating as success.`);
+          await db.destroy();
+          return {
+            success: true,
+            message: `Tabela ${sourceTable} nie istnieje, ale ${targetTable} już istnieje - operacja zignorowana`,
+            affectedRows: 0,
+            data: null
+          };
+        }
+
+        if (!sourceExists && !targetExists) {
+          console.log(`Neither ${sourceTable} nor ${targetTable} exist. Treating as success.`);
+          await db.destroy();
+          return {
+            success: true,
+            message: `Tabele ${sourceTable} i ${targetTable} nie istnieją - operacja zignorowana`,
+            affectedRows: 0,
+            data: null
+          };
+        }
+      } catch (e) {
+        console.warn('Error checking table existence for RENAME:', e.message);
+      }
+    }
+  }
+
+  // Special handling for Lesson 2 - DROP COLUMN check if column exists
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('DROP COLUMN')) {
+    console.log('=== Lesson 2: Handling DROP COLUMN ===');
+
+    const dropColumnMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)\s+DROP\s+COLUMN\s+(\w+)/i);
+    if (dropColumnMatch) {
+      const [, tableName, columnName] = dropColumnMatch;
+      console.log(`DROP COLUMN - table: ${tableName}, column: ${columnName}`);
+
+      try {
+        // Check if column exists
+        const pragmaResult = await db.raw(`PRAGMA table_info(${tableName})`);
+        const columnExists = pragmaResult.some(row => row.name === columnName);
+        console.log(`Column ${columnName} exists:`, columnExists);
+
+        if (!columnExists) {
+          console.log(`Column ${columnName} does not exist, treating as success`);
+          await db.destroy();
+          return {
+            success: true,
+            message: `Kolumna ${columnName} nie istnieje - operacja zignorowana`,
+            affectedRows: 0,
+            data: null
+          };
+        }
+      } catch (e) {
+        console.warn('Error checking column existence for DROP:', e.message);
+      }
+    }
+  }
+
+  // Validate that ADD COLUMN requires COLUMN keyword for Lesson 2
+  if (parseInt(lessonId) === 2 && normalizedSql.includes('ADD') && !normalizedSql.includes('ADD COLUMN')) {
+    await db.destroy();
+    throw new Error('Przy ALTER TABLE po ADD wymagane jest słowo COLUMN. Użyj: ALTER TABLE nazwa_tabeli ADD COLUMN nazwa_kolumny typ;');
+  }
+
   try {
     const isSelect = normalizedSql.startsWith('SELECT');
 
@@ -382,6 +632,72 @@ const executeSQL = async (userId, lessonId, sqlQuery) => {
       };
     }
   } catch (error) {
+    // Special handling for Lesson 2 - duplicate column name error
+    if (parseInt(lessonId) === 2 && error.message.includes('duplicate column name')) {
+      console.log('=== Duplicate column error - resetting table ===');
+      console.log('Error:', error.message);
+
+      // Extract table name from ALTER TABLE query
+      const tableNameMatch = normalizedSql.match(/ALTER\s+TABLE\s+(\w+)/i);
+      const tableName = tableNameMatch ? tableNameMatch[1].toLowerCase() : 'gracze';
+      console.log('Table name from query:', tableName);
+
+      try {
+        // Reset table to initial state for Lesson 2
+        const db2 = await createConnection(userId, lessonId);
+
+        // Check if table exists before dropping
+        const tables = await db2.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        const tableNames = tables.map(t => t.name.toLowerCase());
+        console.log('Existing tables:', tableNames);
+
+        // Use the correct table name (gracze or zawodnicy) for operations
+        const actualTableName = tableNames.includes('gracze') ? 'gracze' : (tableNames.includes('zawodnicy') ? 'zawodnicy' : 'gracze');
+        console.log('Actual table name:', actualTableName);
+
+        // Drop and recreate with initial schema
+        await db2.raw(`DROP TABLE IF EXISTS ${actualTableName}`);
+        await db2.raw(`CREATE TABLE gracze (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          imie TEXT NOT NULL,
+          nazwisko TEXT NOT NULL,
+          pozycja TEXT
+        )`);
+
+        // Rename to zawodnicy if original query was working with zawodnicy
+        if (tableName === 'zawodnicy') {
+          await db2.raw(`ALTER TABLE gracze RENAME TO zawodnicy`);
+        }
+
+        // Restore initial data
+        await db2.raw(`INSERT INTO ${tableName === 'zawodnicy' ? 'zawodnicy' : 'gracze'} (imie, nazwisko, pozycja) VALUES
+          ('Robert', 'Lewandowski', 'napastnik'),
+          ('Kevin', 'De Bruyne', 'pomocnik'),
+          ('Virgil', 'van Dijk', 'obronca'),
+          ('Manuel', 'Neuer', 'bramkarz'),
+          ('Kylian', 'Mbappe', 'napastnik')`);
+
+        await db2.destroy();
+        console.log('Table reset to initial state');
+
+        // Now execute the original query again
+        const db3 = await createConnection(userId, lessonId);
+        const result = await db3.raw(processedSql);
+        await db3.destroy();
+
+        return {
+          success: true,
+          message: 'Zapytanie wykonane pomyślnie po resecie tabeli',
+          affectedRows: result?.changes || 0,
+          data: null
+        };
+      } catch (resetError) {
+        console.warn('Error resetting table:', resetError.message);
+        await db.destroy();
+        throw resetError;
+      }
+    }
+
     await db.destroy();
     throw error;
   }

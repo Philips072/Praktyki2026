@@ -23,11 +23,27 @@
 - Użytkownik widzi liczbę ukończonych lekcji, rozwiązanych zadań i dni nauki
 - Użytkownik może przeglądać dostępne lekcje SQL
 - Użytkownik może otworzyć wybraną lekcję i ją przerobić
+- Użytkownik może wykonywać zapytania SQL na izolowanej bazie danych dla każdej lekcji
+- Użytkownik widzi wyniki zapytań SQL w formacie tabeli
+- Użytkownik może resetować bazę danych lekcji do stanu początkowego
+- Użytkownik może przeglądać schemat bazy danych lekcji
 - Użytkownik może zadawać pytania asystentowi AI dotyczące SQL i baz danych
 - Odpowiedzi AI są renderowane z formatowaniem Markdown (tabela, pogrubienia, inline code)
 - Użytkownik otrzymuje powiadomienia (toasty) o akcjach w systemie
 - Użytkownik może wysyłać i odbierać wiadomości od innych użytkowników (real-time)
 - Użytkownik może edytować ustawienia swojego konta
+
+### Sandbox SQL
+
+- Użytkownik może tworzyć własne bazy danych SQLite do swobodnego ćwiczenia
+- Użytkownik może tworzyć wiele baz sandbox o różnych nazwach
+- Użytkownik może wykonywać dowolne zapytania SQL (SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, etc.)
+- Użytkownik może przeglądać listę tabel w bazie sandbox
+- Użytkownik może przeglądać schemat tabel w bazie sandbox
+- Użytkownik może przeglądać dane z tabel w bazie sandbox
+- Użytkownik może usuwać bazy sandbox
+- Sandbox jest całkowicie oddzielony od baz lekcji
+- Dane w sandbox są przechowywane na serwerze (backend) w folderze `sandbox/`
 
 ### Użytkownik - Nauczyciel
 
@@ -130,12 +146,18 @@
 - Komunikacja frontend ↔ backend ograniczona do zaufanego originu (CORS)
 - Trasy administratora są chronione przez `AdminRoute` komponent
 - Użytkownik nie może zmienić/usunąć swojego konta z poziomu panelu administratora
+- Security headers zaimplementowane przez Helmet (X-Content-Type-Options, X-Frame-Options, etc.)
+- Protection przed XSS atakami przez xss-clean
+- Walidacja danych wejściowych przez Zod
+- Rate limiting dla wszystkich endpointów API
 
 ### Wydajność
 
 - Aplikacja działa jako SPA (Single Page Application) — przełączanie widoków bez przeładowania strony
 - Strona główna ładuje się w czasie poniżej 3 sekund
 - Odpowiedzi AI są renderowane przy użyciu `react-markdown` dla wydajnego wyświetlania Markdown
+- Kompresja gzip dla odpowiedzi HTTP
+- Request timeout (30s domyślnie, 120s dla AI) zapobiega wiszącym requestom
 
 ### Responsywność
 
@@ -149,6 +171,7 @@
 - Komunikaty błędów są czytelne dla użytkownika (polskie komunikaty)
 - Aplikacja używa ciemnego motywu (dark theme)
 - Powiadomienia (toasty) zapewniają natychmiastową informację zwrotną
+- Sandbox SQL pozwala na swobodne ćwiczenie bez ryzyka uszkodzenia danych lekcji
 
 ### Techniczne
 
@@ -156,10 +179,29 @@
 - Style zarządzane przez osobne pliki CSS per komponent
 - Routing po stronie klienta obsługiwany przez React Router DOM v7
 - Frontend budowany przez Vite
-- Backend oparty na Node.js + Express — obsługuje wywołania AI
+- Backend oparty na Node.js + Express — obsługuje wywołania AI i SQLite
 - Baza danych i auth w Supabase (PostgreSQL)
 - Dane sesji i profilu użytkownika dostępne globalnie przez `AuthContext`
 - Wywołania AI realizowane przez backend (nie bezpośrednio z przeglądarki)
 - AI używa modelu Google Gemma 4-26B przez agregator OpenRouter
 - Powiadomienia realizowane przez bibliotekę `react-toastify`
-- Renderowanie Markdown przez `react-markdown`
+- Renderowanie Markdown przez `react-markdown` + `remark-gfm`
+- SQLite w backend przez Knex.js + sqlite3
+- SQLite w frontend przez sql.js (WebAssembly)
+- Middleware do zarządzania requestami (auth, rate limiting, logging, compression, security)
+- Request ID do śledzenia każdego requesta
+- Konfiguracja środowiskowa z walidacją (dotenv-safe)
+
+### Skalowalność
+
+- Bazy SQLite lekcji są izolowane per użytkownik per lekcja — łatwe skalowanie
+- Rate limiting zapobiega nadmiernemu obciążeniu serwera
+- Sandbox SQL pozwala użytkownikom na własne eksperymenty bez wpływu na system
+- Modularna struktura backendu (routes, middleware, db) ułatwia rozszerzanie
+
+### Dostępność
+
+- Ciemny motyw redukuje zmęczenie oczu
+- Kontrasty spełniają standardy WCAG
+- Nawigacja dostępna przez klawiaturę
+- Formularze mają odpowiednie etykiety

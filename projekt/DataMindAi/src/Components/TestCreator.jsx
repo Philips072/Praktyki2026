@@ -54,14 +54,17 @@ function TestCreator() {
   const [currentQuestionId, setCurrentQuestionId] = useState(1)
   const [saving, setSaving] = useState(false)
 
-  const [gradingThresholds, setGradingThresholds] = useState({
+  const [allowGrade6, setAllowGrade6] = useState(false)
+
+  const getInitialThresholds = () => ({
     1: 0,
     2: 30,
     3: 50,
     4: 75,
-    5: 90,
-    6: 100
+    5: 90
   })
+
+  const [gradingThresholds, setGradingThresholds] = useState(getInitialThresholds())
 
   const currentQuestion = questions.find(q => q.id === currentQuestionId) || questions[0]
   const currentQuestionIndex = questions.findIndex(q => q.id === currentQuestionId)
@@ -132,6 +135,17 @@ function TestCreator() {
 
   const updateThreshold = (grade, value) => {
     setGradingThresholds({ ...gradingThresholds, [grade]: Number(value) })
+  }
+
+  const handleAllowGrade6Change = (checked) => {
+    setAllowGrade6(checked)
+    if (checked) {
+      setGradingThresholds({ ...gradingThresholds, 6: 95 })
+    } else {
+      const newThresholds = { ...gradingThresholds }
+      delete newThresholds[6]
+      setGradingThresholds(newThresholds)
+    }
   }
 
   const validateForm = () => {
@@ -521,6 +535,18 @@ function TestCreator() {
                 </svg>
                 Progi oceniania
               </h4>
+              <div className="tc-form-group">
+                <label className="tc-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={allowGrade6}
+                    onChange={e => handleAllowGrade6Change(e.target.checked)}
+                    className="tc-checkbox"
+                  />
+                  <span className="tc-checkbox-custom"></span>
+                  <span className="tc-checkbox-text">Włącz ocenę 6 (skala 1-6)</span>
+                </label>
+              </div>
               <div className="tc-thresholds-grid">
                 {Object.entries(gradingThresholds).map(([grade, threshold]) => (
                   <div key={grade} className="tc-threshold-item-compact">

@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { supabase } from './supabaseClient'
 import { databaseExists, resetDatabase } from './sqliteManager'
-import { initializeDatabase } from './api.js'
 
 const AuthContext = createContext(null)
 
@@ -84,60 +83,6 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }
 
-  const createProfileAfterVerification = async (sessionUser) => {
-    try {
-      console.log('=== createProfileAfterVerification ===')
-      console.log('User ID:', sessionUser.id)
-      console.log('User email:', sessionUser.email)
-      console.log('User metadata:', sessionUser.user_metadata)
-
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', sessionUser.id)
-        .single()
-
-      console.log('Existing profile check:', { existingProfile, checkError })
-
-      if (!existingProfile) {
-        let userName = sessionUser.user_metadata?.name
-
-        if (!userName) {
-          const pendingData = localStorage.getItem('pendingRegistration')
-          if (pendingData) {
-            const { name } = JSON.parse(pendingData)
-            userName = name
-          }
-        }
-
-        const finalName = userName || sessionUser.email?.split('@')[0] || 'Użytkownik'
-        console.log('Tworzenie nowego profilu z imieniem:', finalName)
-
-        const { data: insertData, error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: sessionUser.id,
-            name: finalName,
-            email: sessionUser.email,
-            role: 'uczen'
-          })
-          .select()
-          .single()
-
-        console.log('Insert result:', { insertData, insertError })
-
-        if (!insertError) {
-          localStorage.removeItem('pendingRegistration')
-        }
-      } else {
-        console.log('Profil już istnieje, pomijam')
-        localStorage.removeItem('pendingRegistration')
-      }
-    } catch (error) {
-      console.error('Błąd podczas tworzenia profilu po weryfikacji:', error)
-    }
-  }
-
   useEffect(() => {
     let isInitialProfileFetched = false
 
@@ -154,7 +99,7 @@ export function AuthProvider({ children }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ?? null
       console.log('=== Auth state change ===', { event: _event, userId: currentUser?.id, email: currentUser?.email })
       setUser(currentUser)
@@ -163,10 +108,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify(currentUser))
 
         if (_event === 'SIGNED_IN') {
-          if (currentUser.user_metadata?.name) {
-            await createProfileAfterVerification(currentUser)
-          }
-          // Pobierz profil po potencjalnym utworzeniu
+          // Pobierz profil po zalogowaniu - fetchProfile automatycznie utworzy profil jeśli nie istnieje
           fetchProfile(currentUser.id)
         } else if (_event === 'INITIAL_SESSION' && !isInitialProfileFetched) {
           // Pobierz profil tylko jeśli nie został jeszcze pobrany

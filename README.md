@@ -37,6 +37,7 @@ Aplikacja dostępna pod `http://localhost:5173`
 
 Szczegółowa dokumentacja znajduje się w folderze [`dokumentacja/`](dokumentacja/):
 
+- **[Szybki start](dokumentacja/QUICKSTART.md)** — uruchomienie projektu w 5 minut
 - [Wymagania](dokumentacja/wymagania.md)
 - [Architektura](dokumentacja/architektura.md)
-- [Uruchomienie](dokumentacja/uruchomienie.md)
+- [Uruchomienie](dokumentacja/uruchomienie.md) — szczegółowa konfiguracja

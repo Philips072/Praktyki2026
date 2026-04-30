@@ -1,0 +1,21 @@
+
+/* Responsive actions for tests section */
+@media (max-width: 640px) {
+  .tp-exercise-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tp-exercise-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* Responsive buttons for tests */
+@media (max-width: 640px) {
+  .tp-exercise-actions .tp-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

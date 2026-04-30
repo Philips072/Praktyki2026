@@ -2,8 +2,9 @@
 
 ## Zawartość
 
+- [Szybki start](QUICKSTART.md) — skrócona instrukcja uruchomienia projektu (5 minut)
 - [Architektura](architektura.md) — struktura folderów, technologie, endpointy backendu, komponenty
-- [Uruchomienie](uruchomienie.md) — jak uruchomić frontend i backend, zmienne środowiskowe
+- [Uruchomienie](uruchomienie.md) — szczegółowa instrukcja konfiguracji i uruchomienia
 - [Wymagania](wymagania.md) — wymagania funkcjonalne i niefunkcjonalne
 
 ## Skrócony opis

@@ -108,10 +108,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem('user', JSON.stringify(currentUser))
 
         if (_event === 'SIGNED_IN') {
-          if (currentUser.user_metadata?.name) {
-            await createProfileAfterVerification(currentUser)
-          }
-          // Pobierz profil po potencjalnym utworzeniu
+          // Pobierz profil po zalogowaniu - fetchProfile automatycznie utworzy profil jeśli nie istnieje
           fetchProfile(currentUser.id)
         } else if (_event === 'INITIAL_SESSION' && !isInitialProfileFetched) {
           // Pobierz profil tylko jeśli nie został jeszcze pobrany

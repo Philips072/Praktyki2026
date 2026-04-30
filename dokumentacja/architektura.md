@@ -11,7 +11,8 @@ Przeglądarka
 │  localhost:5173     │  HTTP  │  localhost:3001          │
 │                     │        │  /api/ai/chat            │
 │  - UI / routing     │        │  /api/ai/interests       │
-│  - Supabase client  │        │  /api/health             │
+│  - Supabase client  │        │  /api/sqlite/*           │
+│  - SQLite manager   │        │  /api/health             │
 └─────────────────────┘        └──────────┬───────────────┘
          │                                │
          │ Supabase JS SDK                │ fetch (klucz API)
@@ -36,7 +37,11 @@ Przeglądarka
 | Supabase JS | 2.103.0 | Auth, baza danych (PostgreSQL), realtime |
 | react-toastify | 11.1.0 | Powiadomienia (toasty) |
 | react-markdown | 9.1.0 | Renderowanie Markdown (odpowiedzi AI) |
+| chart.js | 4.5.1 | Wykresy w dashboardach |
+| file-saver | 2.0.5 | Eksport plików (CSV/PDF) |
+| remark-gfm | 4.0.1 | GitHub Flavored Markdown |
 | CSS (własne arkusze) | — | Stylowanie komponentów |
+| sql.js | 1.14.1 | SQLite w przeglądarce (sandbox) |
 
 ### Backend (`projekt/backend/`)
 
@@ -46,7 +51,18 @@ Przeglądarka
 | Express | 4.22.1 | Framework HTTP |
 | cors | 2.8.6 | Obsługa nagłówków CORS |
 | dotenv | 16.5.0 | Wczytywanie zmiennych środowiskowych |
+| dotenv-safe | 9.1.0 | Walidacja zmiennych środowiskowych |
+| compression | 1.8.1 | Kompresja odpowiedzi HTTP (gzip) |
+| helmet | 8.1.0 | Security headers |
+| express-rate-limit | 8.4.1 | Rate limiting API |
+| morgan | 1.10.1 | Logger HTTP |
+| knex | 3.2.9 | Query builder dla SQLite |
+| sqlite3 | 6.0.1 | Sterownik SQLite |
+| uuid | 14.0.0 | Generowanie unikalnych ID |
+| xss-clean | 0.1.4 | Ochrona przed XSS |
+| zod | 4.3.6 | Walidacja danych |
 | OpenRouter API | — | Agregator modeli AI (Google Gemma 4) |
+| @supabase/supabase-js | 2.104.1 | Klient Supabase (opcjonalnie w backend) |
 
 ## Struktura folderów
 
@@ -67,6 +83,7 @@ praktyki2026/
     │   │   ├── hooks/             # Custom hooki React
     │   │   ├── data/              # Dane statyczne (lekcje SQL)
     │   │   ├── api.js             # Helper do komunikacji z backendem
+    │   │   ├── sqliteManager.js   # Zarządzanie SQLite w przeglądarce
     │   │   ├── Toastify.css       # Style dla react-toastify
     │   │   ├── App.jsx            # Główny komponent z routingiem
     │   │   ├── AuthContext.jsx    # Kontekst autoryzacji (Supabase)
@@ -74,16 +91,33 @@ praktyki2026/
     │   │   ├── main.jsx           # Punkt wejścia aplikacji
     │   │   └── index.css          # Globalne style i zmienne CSS
     │   ├── .env                   # Zmienne środowiskowe frontendu
+    │   ├── .env.example
     │   ├── index.html
     │   ├── package.json
     │   └── vite.config.js
     └── backend/               # Backend — Node.js / Express
+        ├── databases/             # Bazy danych SQLite lekcji użytkowników
+        ├── sandbox/               # Bazy danych SQLite sandbox użytkowników
+        ├── sql-wasm.wasm          # WebAssembly dla sql.js
         ├── src/
-        │   ├── routes/
-        │   │   └── ai.js          # Endpointy AI (chat, interests)
-        │   └── middleware/
-        │       └── errorHandler.js
-        ├── .env                   # Zmienne środowiskowe backendu (klucz OpenRouter)
+        │   ├── config/
+        │   │   └── env.js          # Konfiguracja środowiska
+        │   ├── db/
+        │   │   └── knexConfig.js   # Konfiguracja i operacje SQLite (Knex)
+        │   ├── middleware/
+        │   │   ├── auth.js         # Autoryzacja
+        │   │   ├── compression.js  # Kompresja gzip
+        │   │   ├── errorHandler.js # Obsługa błędów
+        │   │   ├── health.js       # Health check
+        │   │   ├── logger.js       # Logger (Morgan)
+        │   │   ├── rateLimiter.js  # Rate limiting
+        │   │   ├── requestId.js    # Request ID
+        │   │   ├── security.js     # Security headers (Helmet)
+        │   │   └── validation.js   # Walidacja (Zod)
+        │   └── routes/
+        │       ├── ai.js           # Endpointy AI (chat, interests)
+        │       └── sqlite.js       # Endpointy SQLite (lekcje, sandbox)
+        ├── .env                   # Zmienne środowiskowe backendu
         ├── .env.example
         ├── package.json
         └── server.js              # Punkt wejścia — Express + routing
@@ -91,11 +125,45 @@ praktyki2026/
 
 ## Endpointy backendu
 
+### AI Endpoints (`/api/ai/`)
+
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| `POST` | `/api/ai/chat` | Czat z asystentem AI (strona `/ai-chat`) |
+| `POST` | `/api/ai/interests` | AI przetwarza zainteresowania użytkownika |
+
+### SQLite Endpoints - Lekcje (`/api/sqlite/`)
+
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| `POST` | `/api/sqlite/initialize` | Inicjalizuje bazę danych dla lekcji użytkownika |
+| `POST` | `/api/sqlite/execute` | Wykonuje zapytanie SQL na bazie lekcji |
+| `GET` | `/api/sqlite/tables/:userId/:lessonId` | Zwraca listę tabel |
+| `GET` | `/api/sqlite/schema/:userId/:lessonId/:tableName` | Zwraca schemat tabeli |
+| `GET` | `/api/sqlite/full-schema/:userId/:lessonId` | Zwraca pełny schemat wszystkich tabel |
+| `POST` | `/api/sqlite/reset` | Resetuje bazę danych do stanu początkowego |
+| `POST` | `/api/sqlite/exists` | Sprawdza czy baza danych istnieje |
+
+### SQLite Endpoints - Sandbox (`/api/sqlite/sandbox/`)
+
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| `POST` | `/api/sqlite/sandbox/initialize` | Inicjalizuje nową bazę sandbox |
+| `GET` | `/api/sqlite/sandbox/:userId` | Zwraca listę baz sandbox użytkownika |
+| `POST` | `/api/sqlite/sandbox/execute` | Wykonuje SQL w sandboxie |
+| `GET` | `/api/sqlite/sandbox/tables/:userId/:dbId` | Zwraca listę tabel w sandboxie |
+| `GET` | `/api/sqlite/sandbox/schema/:userId/:dbId/:tableName` | Zwraca schemat tabeli w sandboxie |
+| `GET` | `/api/sqlite/sandbox/data/:userId/:dbId/:tableName` | Zwraca dane z tabeli (z limitem) |
+| `POST` | `/api/sqlite/sandbox/exists` | Sprawdza czy baza sandbox istnieje |
+| `POST` | `/api/sqlite/sandbox/drop` | Usuwa bazę sandbox |
+
+### System Endpoints
+
 | Metoda | Ścieżka | Opis |
 |--------|---------|------|
 | `GET` | `/api/health` | Sprawdzenie stanu serwera |
-| `POST` | `/api/ai/chat` | Czat z asystentem AI (strona `/ai-chat`) |
-| `POST` | `/api/ai/interests` | AI przetwarza zainteresowania użytkownika (onboarding, ustawienia) |
+
+## Szczegóły endpointów
 
 ### POST `/api/ai/chat`
 
@@ -119,6 +187,45 @@ Używa modelu **Google Gemma 4-26B** przez OpenRouter.
 { "message": "Fajnie! Dostosujemy ćwiczenia SQL do Twoich zainteresowań.", "interests": "sport i gry wideo" }
 ```
 
+### POST `/api/sqlite/initialize`
+
+Tworzy bazę danych SQLite dla użytkownika i lekcji w folderze `databases/`.
+
+```json
+// Żądanie
+{ "userId": "user-uuid", "lessonId": 1 }
+
+// Odpowiedź
+{ "success": true, "message": "Baza danych utworzona" }
+```
+
+### POST `/api/sqlite/execute`
+
+Wykonuje zapytanie SQL na bazie lekcji.
+
+```json
+// Żądanie
+{ "userId": "user-uuid", "lessonId": 1, "sql": "SELECT * FROM users" }
+
+// Odpowiedź (sukces)
+{ "success": true, "data": [...], "affectedRows": 5 }
+
+// Odpowiedź (błąd)
+{ "success": false, "message": "Błąd: ...", "affectedRows": 0, "data": null }
+```
+
+### POST `/api/sqlite/sandbox/initialize`
+
+Tworzy nową bazę SQLite w folderze `sandbox/` do swobodnego ćwiczenia.
+
+```json
+// Żądanie
+{ "userId": "user-uuid", "dbId": "moja-baza" }
+
+// Odpowiedź
+{ "success": true, "message": "Baza danych sandbox utworzona" }
+```
+
 ## Strony (Pages)
 
 | Plik | Ścieżka | Dostęp | Opis |
@@ -130,12 +237,13 @@ Używa modelu **Google Gemma 4-26B** przez OpenRouter.
 | `OnboardingPage.jsx` | `/onboarding` | zalogowani | Ankieta powitalna (poziom, zainteresowania AI) |
 | `DashboardPage.jsx` | `/dashboard` | zalogowani | Panel użytkownika |
 | `LecturesPage.jsx` | `/lekcje` | zalogowani | Lista lekcji SQL |
-| `LessonPage.jsx` | `/lekcja/:id` | zalogowani | Pojedyncza lekcja SQL |
+| `LessonPage.jsx` | `/lekcja/:id` | zalogowani | Pojedyncza lekcja SQL z edytorem SQL |
 | `AIChatPage.jsx` | `/ai-chat` | zalogowani | Czat z asystentem AI |
 | `MessagesPage.jsx` | `/wiadomosci` | zalogowani | Wiadomości między użytkownikami |
 | `UserSettingsPage.jsx` | `/ustawienia` | zalogowani | Ustawienia konta |
 | `TeacherPanelPage.jsx` | `/panel-nauczyciela` | zalogowani (nauczyciel) | Panel nauczyciela |
 | `AdminPanelPage.jsx` | `/panel-admina` | zalogowani (administrator) | Panel administratora |
+| `SandboxPage.jsx` | `/sandbox` | zalogowani | Sandbox SQL - swobodne ćwiczenie |
 | `NotFoundPage.jsx` | `*` | publiczna | Strona 404 |
 
 ## Komponenty (Components)
@@ -188,6 +296,15 @@ Używa modelu **Google Gemma 4-26B** przez OpenRouter.
 |-----------|------|
 | `AdminPanelPage` | Główny panel administratora z zakładkami (Użytkownicy, Klasy, Statystyki) |
 
+### Sandbox SQL
+
+| Komponent | Opis |
+|-----------|------|
+| `SandboxPage` | Strona sandbox z edytorem SQL i podglądem bazy |
+| `SQLEditor` | Edytor SQL z podświetlaniem składni |
+| `ResultsTable` | Tabela wyników zapytań |
+| `DatabaseExplorer` | Przeglądarka tabel i schematów |
+
 ### Pozostałe
 
 | Komponent | Opis |
@@ -210,10 +327,36 @@ Używa modelu **Google Gemma 4-26B** przez OpenRouter.
 | Pobieranie/zapis profilu | ✅ Supabase JS (anon key + RLS) | — |
 | Wiadomości (realtime) | ✅ Supabase Realtime | — |
 | Wywołania AI | ❌ przeniesione | ✅ klucz API serwera |
+| Bazy SQLite lekcji | ✅ interfejs | ✅ pełna obsługa (Knex) |
+| Bazy SQLite sandbox | ✅ interfejs + sql.js | ✅ pełna obsługa (Knex) |
 | Klucz OpenRouter | ❌ usunięty z `.env` | ✅ `OPENROUTER_API_KEY` w `.env` |
 
 > **Dlaczego Supabase jest w frontendzie?**
 > Klucz `anon` jest publiczny z założenia — dostęp do danych chroni Row Level Security (RLS) po stronie PostgreSQL. Supabase Realtime wymaga połączenia WebSocket bezpośrednio z przeglądarką.
+
+## Middleware backendu
+
+### Kolejność middleware (w server.js)
+
+1. **requestId** — dodaje unikalne ID do każdego requesta
+2. **security** — nagłówki bezpieczeństwa (Helmet, XSS protection)
+3. **CORS** — ograniczenie do zaufanego originu
+4. **logger** — logowanie requestów (Morgan)
+5. **Body parsing** — parsowanie JSON i URL-encoded
+6. **compression** — kompresja gzip
+7. **Request timeout** — 30s domyślnie, 120s dla AI
+8. **Rate limiters** — ochrona przed nadmiernym użyciem
+9. **Routes** — endpointy API
+10. **Error handler** — obsługa błędów
+
+### Rate Limiting
+
+| Typ | Limit | Okno | Dotyczy |
+|-----|-------|------|---------|
+| `generalLimiter` | 100 req | 15 min | `/api/*` |
+| `aiLimiter` | 20 req | 15 min | `/api/ai/*` |
+| `sqlLimiter` | 50 req | 15 min | `/api/sqlite/execute` |
+| `dbResetLimiter` | 5 req | 15 min | `/api/sqlite/reset`, `/api/sqlite/initialize` |
 
 ## Autoryzacja i Supabase
 
@@ -299,6 +442,34 @@ Przypisania testów do uczniów:
 |--------|------|
 | `conversations` | Para użytkowników (participant1_id, participant2_id) |
 | `messages` | Wiadomości przypisane do rozmowy (text, sender_id, deleted, read_by_recipient) |
+
+## SQLite w projekcie
+
+### Bazy danych lekcji
+
+Każda para (userId, lessonId) ma własną bazę SQLite w folderze `databases/`:
+- Nazwa pliku: `{userId}_lesson{lessonId}.db`
+- Inicjowana przez `/api/sqlite/initialize`
+- Resetowalna przez `/api/sqlite/reset`
+
+### Bazy danych sandbox
+
+Użytkownicy mogą tworzyć własne bazy do swobodnego ćwiczenia w folderie `sandbox/`:
+- Nazwa pliku: `{userId}_{dbId}.db`
+- Zarządzane przez `/api/sqlite/sandbox/*` endpointy
+- Możliwość tworzenia wielu baz, wykonywania dowolnych zapytań
+
+### Technologia SQLite w backend
+
+- **Knex.js** — Query builder do zarządzania bazami
+- **sqlite3** — Sterownik Node.js dla SQLite
+- **Knex Config** (`src/db/knexConfig.js`) — centralna konfiguracja operacji
+
+### Technologia SQLite w frontend
+
+- **sql.js** — SQLite skompilowany do WebAssembly
+- **sqliteManager.js** — Manager do lokalnych operacji SQLite w przeglądarce
+- Używany do lokalnego podglądu i wstępnego sprawdzania zapytań
 
 ## Zmienne CSS (design tokens)
 

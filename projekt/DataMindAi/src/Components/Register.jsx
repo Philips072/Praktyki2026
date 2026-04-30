@@ -66,14 +66,39 @@ function Register() {
       return
     }
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ id: authData.user.id, name, email, role: 'uczen' })
+    // Poczekaj chwilę, aby sesja została ustanowiona
+    await new Promise(resolve => setTimeout(resolve, 500))
 
-    if (profileError) {
-      setError('Konto zostało utworzone, ale nie udało się zapisać profilu.')
+    // Sprawdź czy sesja istnieje (nie tylko user)
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session) {
+      // Jeśli nie ma sesji, włączono potwierdzenie e-maila
+      setError('Konto zostało utworzone! Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny, aby się zalogować.')
       setLoading(false)
       return
+    }
+
+    // Sprawdź czy profil już istnieje
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', authData.user.id)
+      .maybeSingle()
+
+    if (!existingProfile) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({ id: authData.user.id, name, email, role: 'uczen' })
+
+      if (profileError) {
+        console.error('Błąd tworzenia profilu w Register:', profileError)
+        setError('Konto zostało utworzone, ale nie udało się zapisać profilu: ' + profileError.message)
+        setLoading(false)
+        return
+      }
+    } else {
+      console.log('Profil już istnieje, pomijam tworzenie')
     }
 
     try {

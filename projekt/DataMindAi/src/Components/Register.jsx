@@ -25,7 +25,12 @@ const ERROR_MESSAGES = {
   'User already registered': 'Konto z tym adresem email już istnieje.',
   'Password should be at least 6 characters': 'Hasło musi mieć co najmniej 6 znaków.',
   'Too many requests': 'Zbyt wiele prób. Spróbuj ponownie za chwilę.',
+  'Email already registered': 'Konto z tym adresem email już istnieje.',
+  'Duplicate email': 'Konto z tym adresem email już istnieje.',
+  'duplicate': 'Konto z tym adresem email już istnieje.',
 }
+
+const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 function Register() {
   const navigate = useNavigate()
@@ -45,11 +50,88 @@ function Register() {
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const lastVerifiedCodeRef = useRef('')
+  const [nameError, setNameError] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [confirmPasswordError, setConfirmPasswordError] = useState('')
+
+  const validateEmail = (value) => {
+    if (!value) return 'Wprowadź adres email.'
+    if (!EMAIL_REGEX.test(value)) return 'Nieprawidłowy format emaila.'
+    return ''
+  }
+
+  const validatePassword = (value) => {
+    if (!value) return 'Wprowadź hasło.'
+    if (value.length < 6) return 'Hasło musi mieć co najmniej 6 znaków.'
+    return ''
+  }
+
+  const validateName = (value) => {
+    if (!value) return 'Wprowadź imię.'
+    if (value.trim().length < 2) return 'Imię musi mieć co najmniej 2 znaki.'
+    return ''
+  }
+
+  const validateConfirmPassword = (value, pwd) => {
+    if (!value) return 'Potwierdź hasło.'
+    if (value !== pwd) return 'Hasła nie są identyczne.'
+    return ''
+  }
+
+  const handleNameChange = (value) => {
+    setName(value)
+    if (nameError) setNameError('')
+  }
+
+  const handleEmailChange = (value) => {
+    setEmail(value)
+    if (emailError) setEmailError('')
+  }
+
+  const handlePasswordChange = (value) => {
+    setPassword(value)
+    if (passwordError) setPasswordError('')
+    if (confirmPasswordError && confirmPassword) setConfirmPasswordError(validateConfirmPassword(confirmPassword, value))
+  }
+
+  const handleConfirmPasswordChange = (value) => {
+    setConfirmPassword(value)
+    if (confirmPasswordError) setConfirmPasswordError('')
+  }
+
+  const hasErrors = () => {
+    return !!nameError || !!emailError || !!passwordError || !!confirmPasswordError
+  }
+
+  const handleFormKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      if (!name) {
+        document.getElementById('name')?.focus()
+        return
+      }
+      if (!email) {
+        document.getElementById('email')?.focus()
+        return
+      }
+      if (!password) {
+        document.getElementById('password')?.focus()
+        return
+      }
+      if (!confirmPassword) {
+        document.getElementById('confirmPassword')?.focus()
+        return
+      }
+
+      sendVerificationCode(e)
+    }
+  }
 
   // Automatyczna weryfikacja po wpisaniu 6 cyfr
   useEffect(() => {
     const code = verificationCode.join('')
-    // Weryfikuj tylko jeśli kod się zmienił i jeszcze nie był weryfikowany
     if (emailSent && code.length === 6 && code !== lastVerifiedCodeRef.current && !isVerifying && !codeVerified) {
       const timer = setTimeout(() => {
         lastVerifiedCodeRef.current = code
@@ -59,28 +141,71 @@ function Register() {
     }
   }, [verificationCode, emailSent])
 
-  const sendVerificationCode = (e) => {
-    e.preventDefault()
+  const checkEmailExists = async (email) => {
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/check-email-exists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      console.log('checkEmailExists - email:', email, 'exists:', data.exists)
+
+      if (data.exists) {
+        return { exists: true, message: 'Konto z tym adresem email już istnieje.' }
+      }
+
+      return { exists: false }
+    } catch (err) {
+      console.error('Error checking email:', err)
+      return { exists: false }
+    }
+  }
+
+  const sendVerificationCode = async (e) => {
+    if (e) e.preventDefault()
     setError('')
+    setEmailError('')
+    setPasswordError('')
+    setConfirmPasswordError('')
+    setNameError('')
 
-    if (password !== confirmPassword) {
-      setError('Hasła nie są identyczne.')
-      return
+    const nameErr = validateName(name)
+    const emailErr = validateEmail(email)
+    const passwordErr = validatePassword(password)
+    const confirmErr = validateConfirmPassword(confirmPassword, password)
+
+    setNameError(nameErr)
+    setEmailError(emailErr)
+    setPasswordError(passwordErr)
+    setConfirmPasswordError(confirmErr)
+
+    if (nameErr || emailErr || passwordErr || confirmErr) return
+
+    setLoading(true)
+
+    try {
+      const { exists, message } = await checkEmailExists(email)
+
+      if (exists) {
+        setEmailError(message)
+        setLoading(false)
+        return
+      }
+
+      setCodeSent(true)
+      setEmailSent(false)
+    } catch (err) {
+      console.error('Error checking email:', err)
+      setError('Wystąpił błąd. Spróbuj ponownie.')
     }
 
-    if (password.length < 6) {
-      setError('Hasło musi mieć co najmniej 6 znaków.')
-      return
-    }
-
-    if (!name || !email) {
-      setError('Wypełnij wszystkie pola.')
-      return
-    }
-
-    // Przejdź do ekranu z kodem
-    setCodeSent(true)
-    setEmailSent(false)
+    setLoading(false)
   }
 
   const sendEmailToUser = async () => {
@@ -88,6 +213,14 @@ function Register() {
     setLoading(true)
 
     try {
+      const { exists, message } = await checkEmailExists(email)
+
+      if (exists) {
+        setError(message)
+        setLoading(false)
+        return
+      }
+
       const response = await fetch(`${supabaseUrl}/functions/v1/send-verification-email`, {
         method: 'POST',
         headers: {
@@ -104,7 +237,6 @@ function Register() {
       } else {
         setEmailSent(true)
         setError('')
-        // Focus na pierwszy input po wysłaniu
         setTimeout(() => {
           const firstInput = document.getElementById('code-0')
           firstInput?.focus()
@@ -167,7 +299,10 @@ function Register() {
         options: { data: { name } }
       })
 
+      console.log('completeRegistration - authError:', authError)
+
       if (authError) {
+        console.log('Auth error message:', authError.message)
         setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
         setLoading(false)
         return
@@ -250,7 +385,6 @@ function Register() {
     setVerificationCode(newCode)
   }
 
-  // Funkcja do ponownego wysłania kodu
   const resendCode = async () => {
     setError('')
     setIsResending(true)
@@ -275,7 +409,6 @@ function Register() {
       } else {
         setEmailSent(true)
         setError('')
-        // Focus na pierwszy input po ponownym wysłaniu
         setTimeout(() => {
           const firstInput = document.getElementById('code-0')
           firstInput?.focus()
@@ -311,35 +444,47 @@ function Register() {
           <h1>Utwórz konto</h1>
           <p>Rozpocznij personalizowaną naukę SQL</p>
 
-          <form className="register-form">
+          <form className="register-form" onKeyDown={handleFormKeyDown}>
             {!codeSent ? (
               <>
                 <label>Imię</label>
-                <input
-                  type="text"
-                  placeholder="Twoje imię"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  disabled={loading}
-                />
+                <div className="input-wrapper">
+                  <input
+                    id="name"
+                    type="text"
+                    placeholder="Twoje imię"
+                    value={name}
+                    onChange={e => handleNameChange(e.target.value)}
+                    disabled={loading}
+                    className={nameError ? 'input-error' : ''}
+                  />
+                  {nameError && <p className="input-error-message">{nameError}</p>}
+                </div>
 
                 <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="twoj@email.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  disabled={loading}
-                />
+                <div className="input-wrapper">
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="twoj@email.com"
+                    value={email}
+                    onChange={e => handleEmailChange(e.target.value)}
+                    disabled={loading}
+                    className={emailError ? 'input-error' : ''}
+                  />
+                  {emailError && <p className="input-error-message">{emailError}</p>}
+                </div>
 
                 <label>Hasło</label>
-                <div className="password-wrapper">
+                <div className="input-wrapper password-wrapper">
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Minimum 6 znaków"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={e => handlePasswordChange(e.target.value)}
                     disabled={loading}
+                    className={passwordError ? 'input-error' : ''}
                   />
                   <button
                     type="button"
@@ -349,16 +494,19 @@ function Register() {
                   >
                     <span className="password-toggle-icon" key={showPassword ? 1 : 0}>{showPassword ? <EyeOpen /> : <EyeClosed />}</span>
                   </button>
+                  {passwordError && <p className="input-error-message">{passwordError}</p>}
                 </div>
 
                 <label>Powtórz hasło</label>
-                <div className="password-wrapper">
+                <div className="input-wrapper password-wrapper">
                   <input
+                    id="confirmPassword"
                     type={showConfirm ? 'text' : 'password'}
                     placeholder="Powtórz hasło"
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    onChange={e => handleConfirmPasswordChange(e.target.value)}
                     disabled={loading}
+                    className={confirmPasswordError ? 'input-error' : ''}
                   />
                   <button
                     type="button"
@@ -368,6 +516,7 @@ function Register() {
                   >
                     <span className="password-toggle-icon" key={showConfirm ? 1 : 0}>{showConfirm ? <EyeOpen /> : <EyeClosed />}</span>
                   </button>
+                  {confirmPasswordError && <p className="input-error-message">{confirmPasswordError}</p>}
                 </div>
 
                 {error && <p className="form-error">{error}</p>}

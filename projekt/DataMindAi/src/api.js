@@ -1,8 +1,29 @@
 const BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const API_TIMEOUT = 30000; // 30 sekund timeout
+
+async function fetchWithTimeout(url, options = {}, timeout = API_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - serwer nie odpowiedział w wymaganym czasie');
+    }
+    throw error;
+  }
+}
 
 async function post(path, body) {
   console.log('=== API POST ===', 'path:', path, 'body:', body)
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetchWithTimeout(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -35,15 +56,15 @@ export const dropTable = (userId, lessonId, tableName) => executeSQL(userId, les
 
 // GET /api/sqlite/tables/:userId/:lessonId
 // Zwraca { success, tables }
-export const getDatabaseTables = (userId, lessonId) => fetch(`${BASE}/api/sqlite/tables/${userId}/${lessonId}`).then(r => r.json());
+export const getDatabaseTables = (userId, lessonId) => fetchWithTimeout(`${BASE}/api/sqlite/tables/${userId}/${lessonId}`).then(r => r.json());
 
 // GET /api/sqlite/schema/:userId/:lessonId/:tableName
 // Zwraca { success, schema }
-export const getTableSchema = (userId, lessonId, tableName) => fetch(`${BASE}/api/sqlite/schema/${userId}/${lessonId}/${tableName}`).then(r => r.json());
+export const getTableSchema = (userId, lessonId, tableName) => fetchWithTimeout(`${BASE}/api/sqlite/schema/${userId}/${lessonId}/${tableName}`).then(r => r.json());
 
 // GET /api/sqlite/data/:userId/:lessonId/:tableName?limit=N
 // Zwraca { success, columns, rows }
-export const getTableData = (userId, lessonId, tableName, limit = 100) => fetch(`${BASE}/api/sqlite/data/${userId}/${lessonId}/${tableName}?limit=${limit}`).then(r => r.json());
+export const getTableData = (userId, lessonId, tableName, limit = 100) => fetchWithTimeout(`${BASE}/api/sqlite/data/${userId}/${lessonId}/${tableName}?limit=${limit}`).then(r => r.json());
 
 // POST /api/sqlite/reset
 // Zwraca { success, message }
@@ -63,7 +84,7 @@ export const databaseExists = (userId, lessonId) => post('/api/sqlite/exists', {
 
 // GET /api/sqlite/full-schema/:userId/:lessonId
 // Zwraca { success, schema: { tableName: { columns: [], foreignKeys: [] } } }
-export const getDatabaseSchema = (userId, lessonId) => fetch(`${BASE}/api/sqlite/full-schema/${userId}/${lessonId}`).then(r => r.json());
+export const getDatabaseSchema = (userId, lessonId) => fetchWithTimeout(`${BASE}/api/sqlite/full-schema/${userId}/${lessonId}`).then(r => r.json());
 
 // POST /api/ai/validate-exercise
 // Zwraca { valid: boolean, reason: string }
@@ -96,19 +117,19 @@ export const getPersonalizedContent = async (lessonTitle, lessonSubtitle, sectio
 export const initializeSandboxDatabase = (userId, dbId) => post('/api/sqlite/sandbox/initialize', { userId, dbId });
 
 // GET /api/sqlite/sandbox/:userId
-export const getUserSandboxDatabases = (userId) => fetch(`${BASE}/api/sqlite/sandbox/${userId}`).then(r => r.json());
+export const getUserSandboxDatabases = (userId) => fetchWithTimeout(`${BASE}/api/sqlite/sandbox/${userId}`).then(r => r.json());
 
 // POST /api/sqlite/sandbox/execute
 export const executeSandboxSQL = (userId, dbId, sql) => post('/api/sqlite/sandbox/execute', { userId, dbId, sql });
 
 // GET /api/sqlite/sandbox/tables/:userId/:dbId
-export const getSandboxTables = (userId, dbId) => fetch(`${BASE}/api/sqlite/sandbox/tables/${userId}/${dbId}`).then(r => r.json());
+export const getSandboxTables = (userId, dbId) => fetchWithTimeout(`${BASE}/api/sqlite/sandbox/tables/${userId}/${dbId}`).then(r => r.json());
 
 // GET /api/sqlite/sandbox/schema/:userId/:dbId/:tableName
-export const getSandboxTableSchema = (userId, dbId, tableName) => fetch(`${BASE}/api/sqlite/sandbox/schema/${userId}/${dbId}/${tableName}`).then(r => r.json());
+export const getSandboxTableSchema = (userId, dbId, tableName) => fetchWithTimeout(`${BASE}/api/sqlite/sandbox/schema/${userId}/${dbId}/${tableName}`).then(r => r.json());
 
 // GET /api/sqlite/sandbox/data/:userId/:dbId/:tableName
-export const getSandboxTableData = (userId, dbId, tableName, limit = 100) => fetch(`${BASE}/api/sqlite/sandbox/data/${userId}/${dbId}/${tableName}?limit=${limit}`).then(r => r.json());
+export const getSandboxTableData = (userId, dbId, tableName, limit = 100) => fetchWithTimeout(`${BASE}/api/sqlite/sandbox/data/${userId}/${dbId}/${tableName}?limit=${limit}`).then(r => r.json());
 
 // POST /api/sqlite/sandbox/exists
 export const sandboxDatabaseExists = (userId, dbId) => post('/api/sqlite/sandbox/exists', { userId, dbId });

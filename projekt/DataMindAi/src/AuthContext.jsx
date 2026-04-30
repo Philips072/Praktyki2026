@@ -8,79 +8,80 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const currentUserIdRef = useRef(null)
+  const fetchProfileRef = useRef(null)
 
   const fetchProfile = async (userId) => {
-    // Jeśli pobieramy profil dla innego użytkownika, anuluj to zapytanie
-    if (currentUserIdRef.current && currentUserIdRef.current !== userId) {
-      console.log('Anulowanie fetchProfile - userId zmienił się:', currentUserIdRef.current, '->', userId)
-      return
+    // Anuluj poprzednie zapytanie jeśli to dla innego użytkownika
+    if (fetchProfileRef.current && fetchProfileRef.current !== userId) {
+      console.log('Anulowanie poprzedniego fetchProfile dla:', userId)
     }
-    currentUserIdRef.current = userId
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('name, role, sql_level, interests, email')
-      .eq('id', userId)
-      .single()
 
-    if (error || !data) {
-      // Profil nie istnieje - utwórz domyślny
-      console.log('Profil nie istnieje, tworzę domyślny dla:', userId)
-      const { data: newUser, error: authError } = await supabase.auth.getUser()
+    fetchProfileRef.current = userId
 
-      // Sprawdź czy nadal chcemy ten profil
-      if (currentUserIdRef.current !== userId) return
-      if (!authError && newUser?.user) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            name: newUser.user.user_metadata?.name || newUser.user.email?.split('@')[0] || 'Użytkownik',
-            email: newUser.user.email,
-            role: 'uczen'
-          })
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, role, sql_level, interests, email')
+        .eq('id', userId)
+        .single()
 
-        if (currentUserIdRef.current !== userId) return
+      // Sprawdź czy to jest nadal odpowiednie zapytanie
+      if (fetchProfileRef.current !== userId) return
 
-        if (!insertError) {
-          // Pobierz nowo utworzony profil
-          const { data: newProfile } = await supabase
+      if (error || !data) {
+        // Profil nie istnieje - utwórz domyślny
+        console.log('=== Profil nie istnieje, tworzę domyślny dla:', userId, 'error:', error)
+
+        // Pobierz z sesji dane użytkownika
+        const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
+
+        console.log('=== Session user:', sessionUser, 'sessionError:', sessionError)
+
+        if (fetchProfileRef.current !== userId) return
+
+        if (sessionUser) {
+          console.log('=== Próba wstawienia profilu dla userId:', userId, 'z nazwą:', sessionUser.user_metadata?.name)
+
+          const { data: insertedData, error: insertError } = await supabase
             .from('profiles')
-            .select('name, role, sql_level, interests, email')
-            .eq('id', userId)
+            .insert({
+              id: userId,
+              name: sessionUser.user_metadata?.name || sessionUser.email?.split('@')[0] || 'Użytkownik',
+              email: sessionUser.email,
+              role: 'uczen'
+            })
+            .select()
             .single()
 
-          if (currentUserIdRef.current !== userId) return
-          setProfile(newProfile)
+          console.log('=== Insert result:', { insertedData, insertError })
+
+          if (fetchProfileRef.current !== userId) return
+
+          if (insertError) {
+            console.error('=== Błąd tworzenia profilu:', insertError)
+            setProfile(null)
+          } else {
+            // Użyj zwróconych danych z insert
+            console.log('=== Profil utworzony:', insertedData)
+            setProfile(insertedData)
+          }
         } else {
-          console.error('Błąd tworzenia profilu:', insertError)
+          console.error('=== Brak sesji użytkownika, sessionError:', sessionError)
           setProfile(null)
         }
       } else {
-        console.error('Błąd pobierania użytkownika:', authError)
+        setProfile(data)
+      }
+    } catch (err) {
+      console.error('Błąd fetchProfile:', err)
+      if (fetchProfileRef.current === userId) {
         setProfile(null)
       }
-    } else {
-      // Sprawdź czy email w profilu jest zgodny z sesją
-      const currentUser = await supabase.auth.getUser()
-      const sessionEmail = currentUser.data.user?.email
-
-      if (currentUserIdRef.current !== userId) return
-
-      if (sessionEmail && data.email !== sessionEmail) {
-        console.log('Email w profilie różni się od sesji - aktualizacja:', data.email, '->', sessionEmail)
-        await supabase
-          .from('profiles')
-          .update({ email: sessionEmail })
-          .eq('id', userId)
-        data.email = sessionEmail
-
-        if (currentUserIdRef.current !== userId) return
+    } finally {
+      if (fetchProfileRef.current === userId) {
+        setLoading(false)
       }
-
-      setProfile(data)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -125,7 +126,10 @@ export function AuthProvider({ children }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      fetchProfileRef.current = null
+    }
   }, [])
 
   const refreshProfile = (userId) => fetchProfile(userId ?? user?.id)

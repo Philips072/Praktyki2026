@@ -326,3 +326,50 @@
         padding: 0 !important;
     }
 }
+
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    z-index: 1000;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-success {
+    background: #10b981;
+    color: white;
+}
+
+.toast-error {
+    background: #ef4444;
+    color: white;
+}
+
+@media screen and (max-width: 768px) {
+    .toast {
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        width: calc(100% - 40px);
+        max-width: none;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+    }
+}

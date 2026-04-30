@@ -54,6 +54,12 @@ function Register() {
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [confirmPasswordError, setConfirmPasswordError] = useState('')
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000)
+  }
 
   const validateEmail = (value) => {
     if (!value) return 'Wprowadź adres email.'
@@ -406,9 +412,11 @@ function Register() {
 
       if (!response.ok) {
         setError(data.error || 'Wystąpił błąd przy wysyłaniu kodu.')
+        showToast('Wystąpił błąd przy wysyłaniu kodu', 'error')
       } else {
         setEmailSent(true)
         setError('')
+        showToast('Nowy kod został wysłany na podany adres email')
         setTimeout(() => {
           const firstInput = document.getElementById('code-0')
           firstInput?.focus()
@@ -417,6 +425,7 @@ function Register() {
     } catch (err) {
       console.error('Error resending verification code:', err)
       setError('Wystąpił błąd przy wysyłaniu kodu. Spróbuj ponownie.')
+      showToast('Wystąpił błąd przy wysyłaniu kodu', 'error')
     }
 
     setIsResending(false)
@@ -597,6 +606,12 @@ function Register() {
           )}
         </div>
       </div>
+
+      {toast.show && (
+        <div className={`toast toast-${toast.type} show`}>
+          {toast.message}
+        </div>
+      )}
     </section>
   )
 }

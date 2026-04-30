@@ -4,6 +4,29 @@ import { validate, chatSchema, interestsSchema, validateExerciseSchema, hintSche
 
 const router = Router();
 
+const AI_TIMEOUT = 30000; // 30 sekund timeout dla zapytań AI
+
+// Funkcja pomocnicza do fetch z timeout
+const fetchWithTimeout = async (url, options = {}, timeout = AI_TIMEOUT) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout - serwer AI nie odpowiedział w wymaganym czasie');
+    }
+    throw error;
+  }
+};
+
 // POST /api/ai/chat
 // Przyjmuje: { messages: [{ role: 'user'|'assistant', content: string }] }
 // Zwraca: { reply: string }
@@ -11,7 +34,16 @@ router.post('/chat', validate(chatSchema), async (req, res, next) => {
   try {
     const { messages } = req.body;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Brak wiadomości w żądaniu.' });
+    }
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
+    }
+
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,12 +84,22 @@ router.post('/chat', validate(chatSchema), async (req, res, next) => {
 
 // POST /api/ai/interests
 // Przyjmuje: { message: string } — tekst użytkownika o zainteresowaniach
-// Zwraca: { message: string, interests: string } — odpowiedź AI + znormalizowane zainteresowania
-router.post('/interests', validate(interestsSchema), async (req, res, next) => {
+// Zwraca: { message: string, interests: string | null, valid: boolean }
+router.post('/interests', async (req, res, next) => {
   try {
     const { message } = req.body;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'Brak wiadomości w żądaniu.' });
+    }
+
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
+    }
+
+    // Najpierw sprawdź czy zainteresowania są sensowne
+    const validationResponse = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +108,50 @@ router.post('/interests', validate(interestsSchema), async (req, res, next) => {
         'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'google/gemma-4-26b-a4b-it',
+        model: 'google/gemma-4-31b-it',
+        max_tokens: 50,
+        temperature: 0.3,
+        messages: [
+          {
+            role: 'system',
+            content: `Sprawdź czy podane zainteresowania są sensowne i faktycznie opisują jakieś zainteresowania/hobby/pasje użytkownika.
+Użytkownik może pisać: "sport", "programowanie", "gry komputerowe", "muzyka", "czytam książki", "film noir", "piłka nożna", "języki obce" itp.
+Odrzuć jeśli to: przypadkowe znaki ("dsafas", "xyz"), negacje ("nic", "nie mam zainteresowań", "nie wiem"), wulgarności, bardzo ogólne odpowiedzi bez szczegółów ("coś", "różne rzeczy").
+
+Odpowiedz TYLKO "true" jeśli zainteresowania są sensowne lub "false" jeśli nie. Bez markdown, bez cudzysłowów, bez dodatkowego tekstu.`,
+          },
+          { role: 'user', content: message.trim() },
+        ],
+      }),
+    });
+
+    let isValid = false;
+    if (validationResponse.ok) {
+      const validationData = await validationResponse.json();
+      const validationRaw = validationData.choices?.[0]?.message?.content?.trim().toLowerCase() ?? '';
+      isValid = validationRaw === 'true';
+    }
+
+    // Jeśli nie są sensowne, zwróć odpowiedź AI, że nie zaktualizowano zainteresowań
+    if (!isValid) {
+      return res.json({
+        message: 'Rozumiem, że nie chcesz teraz podawać zainteresowań lub wpisałeś coś, co nie wygląda na faktyczne zainteresowanie. Możesz to zmienić w dowolnym momencie!',
+        interests: null,
+        valid: false
+      });
+    }
+
+    // Jeśli są sensowne, wygeneruj normalną odpowiedź
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openRouterKey}`,
+        'HTTP-Referer': 'https://datamindai.com',
+        'X-Title': 'DataMindAI',
+      },
+      body: JSON.stringify({
+        model: 'google/gemma-4-31b-it',
         max_tokens: 250,
         temperature: 0.8,
         messages: [
@@ -92,9 +177,10 @@ router.post('/interests', validate(interestsSchema), async (req, res, next) => {
     const raw = data.choices?.[0]?.message?.content?.trim() ?? '';
 
     try {
-      return res.json(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      return res.json({ ...parsed, valid: true });
     } catch {
-      return res.json({ message: raw, interests: raw });
+      return res.json({ message: raw, interests: raw, valid: true });
     }
   } catch (err) {
     next(err);
@@ -219,7 +305,7 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
 }`;
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -283,7 +369,7 @@ router.post('/hint', validate(hintSchema), async (req, res, next) => {
 
     const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
 
-    const prompt = `Jesteś asystentem AI pomagającym w rozwiązywaniu ćwiczeń SQL. Daj jedną stopniową podpowiedź dotyczącą TYLKO składni.
+    const prompt = `Jesteś asystentem AI pomagającym w rozwiązywaniu ćwiczeń SQL. Daj JEDNĄ krótką podpowiedź.
 
 Treść zadania: "${task}"
 
@@ -292,24 +378,40 @@ Co użytkownik już wpisał: "${currentSql}"
 Schemat tabeli:
 ${schemaText || 'Brak informacji o schemacie'}
 
-ZASADY:
-1. Podpowiedź dotyczy TYLKO składni SQL - NIE sprawdzaj czy tabele istnieją w bazie
-2. Jeśli użytkownik nic nie wpisał: podaj pierwsze słowo polecenia
-3. Jeśli użytkownik wpisał część: podaj co powinno być następnym krokiem składniowym
-4. ZAWSZE na końcu zapytania musi być średnik (;) - jeśli brakuje, powiedz "Dodaj średnik na końcu"
-5. Jeśli zapytanie jest POPRAWNE składniowo i ma średnik na końcu: odpowiedz "Wszystko jest w porządku"
-6. Jeśli coś brakuje składniowo: podaj tylko następną rzecz do dodania (1-2 krótkie zdania)
-7. Nie dawaj gotowej odpowiedzi ani pełnego kodu
-8. Nie używaj formatowania markdown, tylko zwykły tekst
+ZASADY (bardzo ważne):
+1. ZAWSZE użyj słów-kluczy na początku: "Zacznij od", "Następnie", "Teraz", "Dodaj"
+2. ODPOWIEDŹ MA BYĆ KRÓTKA - maksymalnie 5-6 słów
+3. Jeśli użytkownik NIC nie wpisał: Zacznij od "Zacznij od" + polecenie SQL
+4. Jeśli użytkownik wpisał coś - NAJPIERW sprawdź błędy:
+   a) Literówki w słowach kluczowych SQL (SELECT, FROM, WHERE, CREATE, TABLE, AUTO_INCREMENT)
+   b) Literówki w nazwach tabel/kolumn UŻYTYCH przez użytkownika
+   c) BRAK AUTO_INCREMENT przy id PRIMARY KEY - powiedz "Dodaj AUTO_INCREMENT"
+   d) BRAK średnika na końcu - powiedz "Dodaj średnik"
+   e) JEŚLI JEST BŁĄD: powiedz tylko co poprawić
+5. DOPHIERO gdy brak błędów:
+   - Użyj "Następnie" lub "Teraz" na początku
+   - Podaj co dodać jako następną rzecz
+   - Jeśli wszystko kompletne: powiedz "Wszystko jest w porządku"
 
-PRZYKŁADY DOBRYCH ODPOWIEDZI:
-- "Zacznij od CREATE DATABASE"
-- "Teraz podaj nazwę tabeli"
-- "Dodaj WHERE z warunkiem filtrowania"
-- "Dodaj średnik na końcu"
+SŁOWA-KLUCZE do użycia:
+- "Zacznij od" - na początku, gdy input pusty
+- "Następnie" - gdy kontynuujesz
+- "Teraz" - gdy coś dodajesz
+- "Dodaj" - gdy dodajesz element
+- "Popraw" - gdy poprawiasz błąd
+- "Wszystko jest w porządku" - gdy kompletne
+
+PRZYKŁADY:
+- "Zacznij od CREATE"
+- "Następnie podaj nazwę"
+- "Teraz FROM tabela"
+- "Dodaj WHERE"
+- "Następnie ORDER BY"
+- "Dodaj AUTO_INCREMENT"
+- "Dodaj średnik"
 - "Wszystko jest w porządku"`;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -318,9 +420,9 @@ PRZYKŁADY DOBRYCH ODPOWIEDZI:
         'X-Title': 'DataMindAI',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o-mini',
-        max_tokens: 150,
-        temperature: 0.5,
+        model: 'google/gemma-4-31b-it',
+        max_tokens: 50,
+        temperature: 0.3,
         messages: [
           { role: 'system', content: prompt },
         ],
@@ -440,7 +542,7 @@ SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań 
 SPERSONALIZUJ ZADANIA - zmień nazwy tabel/kolumn w treści zadań aby pasowały do spersonalizowanego schematu!
 W zadaniach zachowaj pole "id" - musi być takie same jak w oryginale!`;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -456,7 +558,7 @@ W zadaniach zachowaj pole "id" - musi być takie same jak w oryginale!`;
           { role: 'system', content: prompt },
         ],
       }),
-    });
+    }, 60000); // 60 sekund timeout dla personalized-content
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

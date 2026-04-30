@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { supabase } from './supabaseClient'
 import { databaseExists, resetDatabase } from './sqliteManager'
 
@@ -8,25 +8,64 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const currentUserIdRef = useRef(null)
 
   const fetchProfile = async (userId) => {
+    // Jeśli pobieramy profil dla innego użytkownika, anuluj to zapytanie
+    if (currentUserIdRef.current && currentUserIdRef.current !== userId) {
+      console.log('Anulowanie fetchProfile - userId zmienił się:', currentUserIdRef.current, '->', userId)
+      return
+    }
+    currentUserIdRef.current = userId
     const { data, error } = await supabase
       .from('profiles')
       .select('name, role, sql_level, interests, email')
       .eq('id', userId)
       .single()
 
-    if (error) {
-      const { data: fallback } = await supabase
-        .from('profiles')
-        .select('name, role')
-        .eq('id', userId)
-        .single()
-      setProfile(fallback)
+    if (error || !data) {
+      // Profil nie istnieje - utwórz domyślny
+      console.log('Profil nie istnieje, tworzę domyślny dla:', userId)
+      const { data: newUser, error: authError } = await supabase.auth.getUser()
+
+      // Sprawdź czy nadal chcemy ten profil
+      if (currentUserIdRef.current !== userId) return
+      if (!authError && newUser?.user) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            name: newUser.user.user_metadata?.name || newUser.user.email?.split('@')[0] || 'Użytkownik',
+            email: newUser.user.email,
+            role: 'uczen'
+          })
+
+        if (currentUserIdRef.current !== userId) return
+
+        if (!insertError) {
+          // Pobierz nowo utworzony profil
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('name, role, sql_level, interests, email')
+            .eq('id', userId)
+            .single()
+
+          if (currentUserIdRef.current !== userId) return
+          setProfile(newProfile)
+        } else {
+          console.error('Błąd tworzenia profilu:', insertError)
+          setProfile(null)
+        }
+      } else {
+        console.error('Błąd pobierania użytkownika:', authError)
+        setProfile(null)
+      }
     } else {
       // Sprawdź czy email w profilu jest zgodny z sesją
       const currentUser = await supabase.auth.getUser()
       const sessionEmail = currentUser.data.user?.email
+
+      if (currentUserIdRef.current !== userId) return
 
       if (sessionEmail && data.email !== sessionEmail) {
         console.log('Email w profilie różni się od sesji - aktualizacja:', data.email, '->', sessionEmail)
@@ -35,6 +74,8 @@ export function AuthProvider({ children }) {
           .update({ email: sessionEmail })
           .eq('id', userId)
         data.email = sessionEmail
+
+        if (currentUserIdRef.current !== userId) return
       }
 
       setProfile(data)
@@ -43,11 +84,14 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    let isInitialProfileFetched = false
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null
       setUser(currentUser)
       if (currentUser) {
         localStorage.setItem('user', JSON.stringify(currentUser))
+        isInitialProfileFetched = true
         fetchProfile(currentUser.id)
       } else {
         localStorage.removeItem('user')
@@ -63,6 +107,20 @@ export function AuthProvider({ children }) {
       if (currentUser) {
         localStorage.setItem('user', JSON.stringify(currentUser))
 
+        if (_event === 'SIGNED_IN') {
+          if (currentUser.user_metadata?.name) {
+            await createProfileAfterVerification(currentUser)
+          }
+          // Pobierz profil po potencjalnym utworzeniu
+          fetchProfile(currentUser.id)
+        } else if (_event === 'INITIAL_SESSION' && !isInitialProfileFetched) {
+          // Pobierz profil tylko jeśli nie został jeszcze pobrany
+          fetchProfile(currentUser.id)
+        } else if (_event === 'TOKEN_REFRESHED') {
+          // Pobierz świeży profil po odświeżeniu tokenu
+          fetchProfile(currentUser.id)
+        }
+        // USER_UPDATED jest pomijany aby uniknąć konfliktów z updateUser
       } else {
         localStorage.removeItem('user')
         setProfile(null)

@@ -15,6 +15,9 @@ import UserSettingsPage from './Pages/UserSettingsPage'
 import NotFoundPage from './Pages/NotFoundPage'
 import AIChatPage from './Pages/AIChatPage'
 import ForgotPasswordPage from './Pages/ForgotPasswordPage'
+import VerifyEmailPage from './Pages/VerifyEmailPage'
+import VerifyEmailCallback from './Pages/VerifyEmailCallback'
+import EmailChangeConfirm from './Pages/EmailChangeConfirm'
 import OnboardingPage from './Pages/OnboardingPage'
 import LessonPage from './Pages/LessonPage'
 import MessagesPage from './Pages/MessagesPage'
@@ -34,6 +37,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/logowanie" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/rejestracja" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+        <Route path="/weryfikacja-email" element={<VerifyEmailPage />} />
+        <Route path="/potwierdzenie-email" element={<EmailChangeConfirm />} />
+        <Route path="/auth/callback" element={<VerifyEmailCallback />} />
         <Route path="/reset-hasla" element={<ForgotPasswordPage />} />
 
         {/* Wymaga zalogowania */}

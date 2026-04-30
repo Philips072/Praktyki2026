@@ -90,18 +90,17 @@ router.get('/schema/:userId/:lessonId/:tableName', validateParams(paramsUserIdLe
 // Returns the complete schema of all tables in the database
 router.get('/full-schema/:userId/:lessonId', validateParams(paramsUserIdLessonId), async (req, res) => {
   const { userId, lessonId } = req.params;
+  let db;
 
   try {
-    const db = await createConnection(userId, parseInt(lessonId));
+    db = await createConnection(userId, lessonId);
     const tables = await db.raw("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-    await db.destroy();
 
     const fullSchema = {};
 
     for (const tableRow of tables) {
       const tableName = tableRow.name;
-      const tableDb = await createConnection(userId, parseInt(lessonId));
-      const pragmaResult = await tableDb.raw(`PRAGMA table_info(${tableName})`);
+      const pragmaResult = await db.raw(`PRAGMA table_info(${tableName})`);
 
       const columns = pragmaResult.map(row => ({
         name: row.name,
@@ -112,8 +111,7 @@ router.get('/full-schema/:userId/:lessonId', validateParams(paramsUserIdLessonId
       }));
 
       // Get foreign keys
-      const fkResult = await tableDb.raw(`PRAGMA foreign_key_list(${tableName})`);
-      await tableDb.destroy();
+      const fkResult = await db.raw(`PRAGMA foreign_key_list(${tableName})`);
 
       fullSchema[tableName] = {
         columns,
@@ -121,8 +119,10 @@ router.get('/full-schema/:userId/:lessonId', validateParams(paramsUserIdLessonId
       };
     }
 
+    await db.destroy();
     res.json({ success: true, schema: fullSchema });
   } catch (error) {
+    if (db) await db.destroy();
     res.status(500).json({ error: error.message });
   }
 });

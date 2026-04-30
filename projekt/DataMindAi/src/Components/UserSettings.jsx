@@ -1,6 +1,6 @@
 import './UserSettings.css'
 import './AiChat.css'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
@@ -18,9 +18,19 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
   const [input, setInput] = useState('')
   const [userMessage, setUserMessage] = useState('')
   const [aiMessage, setAiMessage] = useState('')
+  const [newInterests, setNewInterests] = useState('')
   const [thinking, setThinking] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [wasUpdated, setWasUpdated] = useState(false)
+  const messagesRef = useRef(null)
+
+  // Auto-scroll to bottom when AI responds
+  useEffect(() => {
+    if (messagesRef.current && aiMessage) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight
+    }
+  }, [aiMessage])
 
   const handleSend = async () => {
     const trimmed = input.trim()
@@ -30,10 +40,19 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
     setThinking(true)
     setError('')
     try {
-      const { message, interests } = await askInterests(trimmed)
+      const result = await askInterests(trimmed)
+      const { message, interests, valid } = result
+
       setAiMessage(message)
-      await supabase.from('profiles').update({ interests }).eq('id', userId)
-      onSaved(interests)
+      setNewInterests(interests || '')
+      setWasUpdated(valid)
+
+      // Tylko zapisuj do bazy gdy zainteresowania są poprawne (valid=true) i nie są null
+      if (valid && interests && userId) {
+        await supabase.from('profiles').update({ interests }).eq('id', userId)
+        onSaved(interests)
+      }
+
       setSaved(true)
     } catch (err) {
       setError(`Błąd AI: ${err.message}`)
@@ -47,8 +66,10 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
     setInput('')
     setUserMessage('')
     setAiMessage('')
+    setNewInterests('')
     setError('')
     setSaved(false)
+    setWasUpdated(false)
   }
 
   const handleKeyDown = (e) => {
@@ -62,7 +83,7 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
 
   return (
     <div className="aichat-box settings-interests-chat">
-      <div className="aichat-messages settings-interests-messages">
+      <div className="aichat-messages settings-interests-messages" ref={messagesRef}>
 
         {/* Aktualne zainteresowania */}
         {currentInterests && !replied && (
@@ -76,16 +97,18 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
         )}
 
         {/* Powitanie AI */}
-        <div className="aichat-row aichat-row--ai">
-          <AiAvatar />
-          <div className="aichat-bubble aichat-bubble--ai">
-            <p className="aichat-line">
-              {currentInterests
-                ? 'Chcesz zaktualizować zainteresowania? Napisz czym się teraz interesujesz.'
-                : 'Napisz czym się interesujesz — dostosujemy do tego przykłady i ćwiczenia SQL.'}
-            </p>
+        {!replied && (
+          <div className="aichat-row aichat-row--ai">
+            <AiAvatar />
+            <div className="aichat-bubble aichat-bubble--ai">
+              <p className="aichat-line">
+                {currentInterests
+                  ? 'Chcesz zaktualizować zainteresowania? Napisz czym się teraz interesujesz.'
+                  : 'Napisz czym się interesujesz — dostosujemy do tego przykłady i ćwiczenia SQL.'}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Wiadomość użytkownika */}
         {userMessage && (
@@ -97,7 +120,7 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
         )}
 
         {/* Typing indicator */}
-        {thinking && (
+        {thinking && !aiMessage && (
           <div className="aichat-row aichat-row--ai">
             <AiAvatar />
             <div className="aichat-bubble aichat-bubble--ai msg-bubble--typing">
@@ -112,9 +135,14 @@ function InterestsChatBox({ currentInterests, userId, onSaved }) {
             <AiAvatar />
             <div className="aichat-bubble aichat-bubble--ai">
               <p className="aichat-line">{aiMessage}</p>
-              {saved && (
+              {saved && wasUpdated && newInterests && (
                 <p className="aichat-line" style={{ marginTop: 6, opacity: 0.65, fontSize: '0.82rem' }}>
-                  Zainteresowania zostały zaktualizowane.
+                  Zainteresowania zostały zaktualizowane: <em>{newInterests}</em>
+                </p>
+              )}
+              {saved && !wasUpdated && (
+                <p className="aichat-line" style={{ marginTop: 6, opacity: 0.65, fontSize: '0.82rem' }}>
+                  Zainteresowania nie zostały zmienione.
                 </p>
               )}
             </div>
@@ -207,9 +235,11 @@ function UserSettings() {
   useEffect(() => {
     if (profile?.name) setName(profile.name)
     if (user?.email) setEmail(user.email)
-    if (profile?.sql_level) setSqlLevel(profile.sql_level)
-    if (profile?.interests) setInterests(
-      Array.isArray(profile.interests) ? profile.interests.join(', ') : (profile.interests ?? '')
+    setSqlLevel(profile?.sql_level ?? '')
+    setInterests(
+      profile?.interests
+        ? Array.isArray(profile.interests) ? profile.interests.join(', ') : profile.interests
+        : ''
     )
   }, [profile, user])
 
@@ -250,7 +280,7 @@ function UserSettings() {
       try {
         const { error, data } = await supabase.auth.updateUser({
           email: newEmail,
-          emailRedirectTo: `${window.location.origin}/weryfikacja-email?email=${encodeURIComponent(newEmail)}`
+          emailRedirectTo: `${window.location.origin}/potwierdzenie-email?email=${encodeURIComponent(newEmail)}&type=change`
         })
 
         console.log('updateUser result:', { error, data })
@@ -278,7 +308,7 @@ function UserSettings() {
           setEmailStatus({
             loading: false,
             error: '',
-            success: `Link weryfikacyjny został wysłany na ${newEmail}. Potwierdź zmianę klikając w link z emaila.`
+            success: `Link weryfikacyjny został wysłany na ${newEmail}. Sprawdź swoją skrzynkę email i kliknij w link. Po weryfikacji zobaczysz instrukcje co robić dalej.`
           })
           setEmail(user.email)
         }
@@ -364,6 +394,7 @@ function UserSettings() {
   const handleLogout = async () => {
     setLoggingOut(true)
     await supabase.auth.signOut()
+    localStorage.removeItem('user')
     navigate('/logowanie')
   }
 

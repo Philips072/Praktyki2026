@@ -309,6 +309,9 @@
   color: rgba(252, 246, 243, 0.8);
   font-weight: 400;
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .aichat-heading {
@@ -367,23 +370,26 @@
 }
 
 .aichat-table {
+  display: table;
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 100%;
   table-layout: fixed;
   letter-spacing: 0.01em;
 }
 
 .aichat-table-head {
+  display: table-header-group;
   background-color: rgba(50, 66, 119, 0.5);
 }
 
 .aichat-table-body {
+  display: table-row-group;
   background-color: rgba(0, 0, 0, 0.15);
 }
 
 .aichat-table-row {
+  display: table-row;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: background-color 0.2s ease;
 }
@@ -397,13 +403,14 @@
 }
 
 .aichat-table-header {
+  display: table-cell;
   padding: 14px 18px;
   text-align: left;
   font-weight: 600;
   color: #fff;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
-  word-wrap: break-word;
+  white-space: nowrap;
   letter-spacing: 0.02em;
 }
 
@@ -412,11 +419,12 @@
 }
 
 .aichat-table-cell {
+  display: table-cell;
   padding: 14px 18px;
   color: rgba(252, 246, 243, 0.95);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
-  word-wrap: break-word;
+  white-space: nowrap;
   line-height: 1.5;
   letter-spacing: 0.02em;
 }

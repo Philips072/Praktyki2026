@@ -1,5 +1,5 @@
 import './Register.css'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import logo from '../assets/nazwa.PNG'
 import { supabase } from '../supabaseClient'
@@ -29,16 +29,37 @@ const ERROR_MESSAGES = {
 
 function Register() {
   const navigate = useNavigate()
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', ''])
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [codeSent, setCodeSent] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
+  const [codeVerified, setCodeVerified] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const lastVerifiedCodeRef = useRef('')
 
-  const handleSubmit = async (e) => {
+  // Automatyczna weryfikacja po wpisaniu 6 cyfr
+  useEffect(() => {
+    const code = verificationCode.join('')
+    // Weryfikuj tylko jeśli kod się zmienił i jeszcze nie był weryfikowany
+    if (emailSent && code.length === 6 && code !== lastVerifiedCodeRef.current && !isVerifying && !codeVerified) {
+      const timer = setTimeout(() => {
+        lastVerifiedCodeRef.current = code
+        verifyCode()
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [verificationCode, emailSent])
+
+  const sendVerificationCode = (e) => {
     e.preventDefault()
     setError('')
 
@@ -52,68 +73,225 @@ function Register() {
       return
     }
 
+    if (!name || !email) {
+      setError('Wypełnij wszystkie pola.')
+      return
+    }
+
+    // Przejdź do ekranu z kodem
+    setCodeSent(true)
+    setEmailSent(false)
+  }
+
+  const sendEmailToUser = async () => {
+    setError('')
     setLoading(true)
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } }
-    })
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email }),
+      })
 
-    if (authError) {
-      setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
-      setLoading(false)
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Wystąpił błąd przy wysyłaniu kodu.')
+      } else {
+        setEmailSent(true)
+        setError('')
+        // Focus na pierwszy input po wysłaniu
+        setTimeout(() => {
+          const firstInput = document.getElementById('code-0')
+          firstInput?.focus()
+        }, 100)
+      }
+    } catch (err) {
+      console.error('Error sending verification code:', err)
+      setError('Wystąpił błąd przy wysyłaniu kodu. Spróbuj ponownie.')
+    }
+
+    setLoading(false)
+  }
+
+  const verifyCode = async () => {
+    const code = verificationCode.join('')
+    if (code.length !== 6) {
+      setError('Wpisz 6-cyfrowy kod.')
       return
     }
 
-    // Poczekaj chwilę, aby sesja została ustanowiona
-    await new Promise(resolve => setTimeout(resolve, 500))
+    setError('')
+    setIsVerifying(true)
 
-    // Sprawdź czy sesja istnieje (nie tylko user)
-    const { data: { session } } = await supabase.auth.getSession()
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/verify-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email, code }),
+      })
 
-    if (!session) {
-      // Jeśli nie ma sesji, włączono potwierdzenie e-maila
-      setError('Konto zostało utworzone! Sprawdź swoją skrzynkę e-mail i kliknij w link aktywacyjny, aby się zalogować.')
-      setLoading(false)
-      return
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (data.error === 'Verification code has expired') {
+          setError('Kod wygasł. Wyślij nowy kod.')
+        } else {
+          setError(data.error || 'Nieprawidłowy kod.')
+        }
+      } else {
+        setCodeVerified(true)
+        setError('')
+        await completeRegistration()
+      }
+    } catch (err) {
+      console.error('Error verifying code:', err)
+      setError('Wystąpił błąd przy weryfikacji. Spróbuj ponownie.')
     }
 
-    // Sprawdź czy profil już istnieje
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', authData.user.id)
-      .maybeSingle()
+    setIsVerifying(false)
+  }
 
-    if (!existingProfile) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ id: authData.user.id, name, email, role: 'uczen' })
+  const completeRegistration = async () => {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      })
 
-      if (profileError) {
-        console.error('Błąd tworzenia profilu w Register:', profileError)
-        setError('Konto zostało utworzone, ale nie udało się zapisać profilu: ' + profileError.message)
+      if (authError) {
+        setError(ERROR_MESSAGES[authError.message] ?? 'Wystąpił błąd. Spróbuj ponownie.')
         setLoading(false)
         return
       }
-    } else {
-      console.log('Profil już istnieje, pomijam tworzenie')
+
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError('Wystąpił problem. Spróbuj ponownie.')
+        setLoading(false)
+        return
+      }
+
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', authData.user.id)
+        .maybeSingle()
+
+      if (!existingProfile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({ id: authData.user.id, name, email, role: 'uczen' })
+
+        if (profileError) {
+          console.error('Błąd tworzenia profilu w Register:', profileError)
+          setError('Konto zostało utworzone, ale nie udało się zapisać profilu: ' + profileError.message)
+          setLoading(false)
+          return
+        }
+      } else {
+        console.log('Profil już istnieje, pomijam tworzenie')
+      }
+
+      try {
+        await initializeDatabase(authData.user.id, 1)
+      } catch (dbError) {
+        console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
+      }
+
+      navigate('/onboarding')
+      setLoading(false)
+    } catch (err) {
+      console.error('Registration error:', err)
+      setError('Wystąpił błąd. Spróbuj ponownie.')
+      setLoading(false)
     }
+  }
+
+  const handleCodeChange = (index, value) => {
+    if (value.length > 1) value = value[0]
+    if (!/^\d*$/.test(value)) return
+
+    const newCode = [...verificationCode]
+    newCode[index] = value
+    setVerificationCode(newCode)
+
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`code-${index + 1}`)
+      nextInput?.focus()
+    }
+  }
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+      const prevInput = document.getElementById(`code-${index - 1}`)
+      prevInput?.focus()
+    }
+  }
+
+  const handlePaste = (e) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    const newCode = [...verificationCode]
+    pastedData.split('').forEach((char, i) => {
+      if (i < 6) newCode[i] = char
+    })
+    setVerificationCode(newCode)
+  }
+
+  // Funkcja do ponownego wysłania kodu
+  const resendCode = async () => {
+    setError('')
+    setIsResending(true)
+    setVerificationCode(['', '', '', '', '', ''])
+    setEmailSent(false)
+    lastVerifiedCodeRef.current = ''
 
     try {
-      await initializeDatabase(authData.user.id, 1)
-    } catch (dbError) {
-      console.error('Nie udało się utworzyć bazy SQLite dla lekcji 1:', dbError)
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Wystąpił błąd przy wysyłaniu kodu.')
+      } else {
+        setEmailSent(true)
+        setError('')
+        // Focus na pierwszy input po ponownym wysłaniu
+        setTimeout(() => {
+          const firstInput = document.getElementById('code-0')
+          firstInput?.focus()
+        }, 100)
+      }
+    } catch (err) {
+      console.error('Error resending verification code:', err)
+      setError('Wystąpił błąd przy wysyłaniu kodu. Spróbuj ponownie.')
     }
 
-    navigate('/onboarding')
-    setLoading(false)
+    setIsResending(false)
   }
 
   return (
     <section className="register-page">
-      <Link to="/" className="register-back">
+      <Link to={codeSent ? "/rejestracja" : "/"} onClick={() => codeSent && setCodeSent(false)} className="register-back">
         <svg viewBox="0 0 24 24" fill="none">
           <path
             d="M15 18L9 12L15 6"
@@ -133,73 +311,141 @@ function Register() {
           <h1>Utwórz konto</h1>
           <p>Rozpocznij personalizowaną naukę SQL</p>
 
-          <form className="register-form" onSubmit={handleSubmit}>
-            <label>Imię</label>
-            <input
-              type="text"
-              placeholder="Twoje imię"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
+          <form className="register-form">
+            {!codeSent ? (
+              <>
+                <label>Imię</label>
+                <input
+                  type="text"
+                  placeholder="Twoje imię"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  disabled={loading}
+                />
 
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="twoj@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="twoj@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  disabled={loading}
+                />
 
-            <label>Hasło</label>
-            <div className="password-wrapper">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Minimum 6 znaków"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(p => !p)}
-                aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-              >
-                <span className="password-toggle-icon" key={showPassword ? 1 : 0}>{showPassword ? <EyeOpen /> : <EyeClosed />}</span>
-              </button>
-            </div>
+                <label>Hasło</label>
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Minimum 6 znaków"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(p => !p)}
+                    aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                  >
+                    <span className="password-toggle-icon" key={showPassword ? 1 : 0}>{showPassword ? <EyeOpen /> : <EyeClosed />}</span>
+                  </button>
+                </div>
 
-            <label>Powtórz hasło</label>
-            <div className="password-wrapper">
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                placeholder="Powtórz hasło"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowConfirm(p => !p)}
-                aria-label={showConfirm ? 'Ukryj hasło' : 'Pokaż hasło'}
-              >
-                <span className="password-toggle-icon" key={showConfirm ? 1 : 0}>{showConfirm ? <EyeOpen /> : <EyeClosed />}</span>
-              </button>
-            </div>
+                <label>Powtórz hasło</label>
+                <div className="password-wrapper">
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    placeholder="Powtórz hasło"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirm(p => !p)}
+                    aria-label={showConfirm ? 'Ukryj hasło' : 'Pokaż hasło'}
+                  >
+                    <span className="password-toggle-icon" key={showConfirm ? 1 : 0}>{showConfirm ? <EyeOpen /> : <EyeClosed />}</span>
+                  </button>
+                </div>
 
-            {error && <p className="form-error">{error}</p>}
+                {error && <p className="form-error">{error}</p>}
 
-            <button type="submit" disabled={loading}>
-              {loading ? 'Tworzenie konta...' : 'Utwórz konto'}
-            </button>
+                <button type="submit" onClick={sendVerificationCode} disabled={loading}>
+                  {loading ? 'Wysyłanie...' : 'Zarejestruj się'}
+                </button>
+              </>
+            ) : (
+              !emailSent ? (
+                <>
+                  <p className="verification-info">
+                    Aby się zarejestrować musisz potwierdzić swój adres E-mail, aby to zrobić wyślemy do Ciebie kod weryfikacyjny.
+                  </p>
+
+                  {error && <p className="form-error">{error}</p>}
+
+                  <button type="button" onClick={sendEmailToUser} disabled={loading}>
+                    {loading ? 'Wysyłanie...' : 'Wyślij kod'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="verification-info">
+                    Wpisz kod, który wysłaliśmy na adres: <strong>{email}</strong>
+                  </p>
+
+                  <div className="code-inputs">
+                    {verificationCode.map((digit, index) => (
+                      <input
+                        key={index}
+                        id={`code-${index}`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={e => handleCodeChange(index, e.target.value)}
+                        onKeyDown={e => handleKeyDown(index, e)}
+                        onPaste={index === 0 ? handlePaste : undefined}
+                        disabled={isVerifying || codeVerified}
+                        autoFocus={index === 0 && !codeVerified}
+                      />
+                    ))}
+                  </div>
+
+                  {error && <p className="form-error">{error}</p>}
+
+                  {codeVerified ? (
+                    <button type="button" disabled>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Zweryfikowano
+                    </button>
+                  ) : (
+                    <button type="button" onClick={verifyCode} disabled={isVerifying || verificationCode.join('').length !== 6}>
+                      {isVerifying ? 'Weryfikacja...' : 'Zweryfikuj kod'}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    className="resend-code-button"
+                    onClick={resendCode}
+                    disabled={isResending}
+                  >
+                    {isResending ? 'Wysyłanie...' : 'Wyślij nowy kod'}
+                  </button>
+                </>
+              )
+            )}
           </form>
 
-          <span className="register-login-text">
-            Masz już konto? <Link to="/logowanie">Zaloguj się</Link>
-          </span>
+          {!codeSent && (
+            <span className="register-login-text">
+              Masz już konto? <Link to="/logowanie">Zaloguj się</Link>
+            </span>
+          )}
         </div>
       </div>
     </section>

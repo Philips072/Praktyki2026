@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { env } from '../config/env.js';
+import { validate, chatSchema, interestsSchema, validateExerciseSchema, hintSchema, personalizedContentSchema } from '../middleware/validation.js';
 
 const router = Router();
 
@@ -28,7 +30,7 @@ const fetchWithTimeout = async (url, options = {}, timeout = AI_TIMEOUT) => {
 // POST /api/ai/chat
 // Przyjmuje: { messages: [{ role: 'user'|'assistant', content: string }] }
 // Zwraca: { reply: string }
-router.post('/chat', async (req, res, next) => {
+router.post('/chat', validate(chatSchema), async (req, res, next) => {
   try {
     const { messages } = req.body;
 
@@ -45,7 +47,7 @@ router.post('/chat', async (req, res, next) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
+        'Authorization': `Bearer ${env.openRouterKey}`,
         'HTTP-Referer': 'https://datamindai.com',
         'X-Title': 'DataMindAI',
       },
@@ -101,7 +103,7 @@ router.post('/interests', async (req, res, next) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
+        'Authorization': `Bearer ${env.openRouterKey}`,
         'HTTP-Referer': 'https://datamindai.com',
         'X-Title': 'DataMindAI',
       },
@@ -188,18 +190,9 @@ Odpowiedz TYLKO "true" jeśli zainteresowania są sensowne lub "false" jeśli ni
 // POST /api/ai/validate-exercise
 // Przyjmuje: { task: string, sql: string, result: { columns: string[], rows: any[] }, validateOnly: boolean, schema: object }
 // Zwraca: { valid: boolean, reason: string }
-router.post('/validate-exercise', async (req, res, next) => {
+router.post('/validate-exercise', validate(validateExerciseSchema), async (req, res, next) => {
   try {
     const { task, sql, result, validateOnly = false, schema = null } = req.body;
-
-    if (!task || !sql) {
-      return res.status(400).json({ error: 'Brak wymaganych pól (task, sql).' });
-    }
-
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
-    }
 
     let prompt = '';
 
@@ -316,7 +309,7 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
+        'Authorization': `Bearer ${env.openRouterKey}`,
         'HTTP-Referer': 'https://datamindai.com',
         'X-Title': 'DataMindAI',
       },
@@ -370,18 +363,9 @@ Odpowiedz TYLKO w formacie JSON (bez markdown):
 // POST /api/ai/hint
 // Przyjmuje: { task: string, currentSql: string, schema: { name: string, type: string, desc: string }[] }
 // Zwraca: { hint: string }
-router.post('/hint', async (req, res, next) => {
+router.post('/hint', validate(hintSchema), async (req, res, next) => {
   try {
     const { task, currentSql, schema = [] } = req.body;
-
-    if (!task) {
-      return res.status(400).json({ error: 'Brak wymaganych pól (task).' });
-    }
-
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
-    }
 
     const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
 
@@ -431,7 +415,7 @@ PRZYKŁADY:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
+        'Authorization': `Bearer ${env.openRouterKey}`,
         'HTTP-Referer': 'https://datamindai.com',
         'X-Title': 'DataMindAI',
       },
@@ -462,7 +446,7 @@ PRZYKŁADY:
 // POST /api/ai/personalized-content
 // Przyjmuje: { lessonTitle: string, lessonSubtitle: string, sections: array, interests: string, schema: array, exercises: array }
 // Zwraca: { sections: array, schema: array, exercises: array }
-router.post('/personalized-content', async (req, res, next) => {
+router.post('/personalized-content', validate(personalizedContentSchema), async (req, res, next) => {
   try {
     const { lessonTitle, lessonSubtitle, sections = [], interests = '', schema = [], exercises = [] } = req.body;
 
@@ -471,15 +455,6 @@ router.post('/personalized-content', async (req, res, next) => {
     console.log('Interests:', interests);
     console.log('Sections count:', sections.length);
     console.log('Schema count:', schema.length);
-
-    if (!lessonTitle || !sections || sections.length === 0) {
-      return res.status(400).json({ error: 'Brak wymaganych pól (lessonTitle, sections).' });
-    }
-
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      return res.status(500).json({ error: 'Klucz OpenRouter nie jest skonfigurowany.' });
-    }
 
     const schemaText = schema.map(col => `- ${col.name} (${col.type}): ${col.desc}`).join('\n');
 
@@ -565,13 +540,13 @@ Zwróć TYLKO JSON w tym formacie (bez żadnego tekstu przed ani po):
 ZACHOWAJ LICZBĘ I RODZAJE SEKCJI jak w oryginale!
 SPERSONALIZUJ RÓWNIEŻ SCHEMAT TABELI - dopasuj opisy kolumn do zainteresowań użytkownika!
 SPERSONALIZUJ ZADANIA - zmień nazwy tabel/kolumn w treści zadań aby pasowały do spersonalizowanego schematu!
-W zadaniach zachowaj pole "id" - musi być takie samo jak w oryginale!`;
+W zadaniach zachowaj pole "id" - musi być takie same jak w oryginale!`;
 
     const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterKey}`,
+        'Authorization': `Bearer ${env.openRouterKey}`,
         'HTTP-Referer': 'https://datamindai.com',
         'X-Title': 'DataMindAI',
       },

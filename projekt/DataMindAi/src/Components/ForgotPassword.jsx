@@ -1,6 +1,6 @@
 import './ForgotPassword.css'
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import logo from '../assets/nazwa.PNG'
 import { supabase } from '../supabaseClient'
 
@@ -204,43 +204,20 @@ function NewPasswordStep() {
 }
 
 function ForgotPassword() {
+  // 'email' = wpisz email, 'sent' = link wysłany, 'reset' = formularz nowego hasła
   const [step, setStep] = useState('email')
   const [sentEmail, setSentEmail] = useState('')
-  const [searchParams] = useSearchParams()
 
   useEffect(() => {
-    console.log('=== ForgotPassword - URL params:', Object.fromEntries(searchParams))
-
-    const token = searchParams.get('token')
-    const type = searchParams.get('type')
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-
-    console.log('URL params check:', { token, type, accessToken, refreshToken: !!refreshToken })
-
-    if (token || type === 'password_recovery' || accessToken) {
-      console.log('Wykryto parametry resetu hasła - przejście do kroku resetu')
-      setStep('reset')
-
-      if (accessToken && refreshToken) {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        }).then(({ data, error }) => {
-          console.log('setSession result:', { data, error })
-        })
-      }
-    }
-
+    // Nasłuchuj zdarzenia PASSWORD_RECOVERY — Supabase ustawia je po powrocie z linku emailowego
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log('Auth state change event:', event)
       if (event === 'PASSWORD_RECOVERY') {
         setStep('reset')
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [searchParams])
+  }, [])
 
   const handleSent = (email) => {
     setSentEmail(email)

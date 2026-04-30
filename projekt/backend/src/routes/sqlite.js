@@ -16,17 +16,23 @@ import {
   sandboxDatabaseExists,
   dropSandboxDatabase
 } from '../db/knexConfig.js';
+import {
+  validate,
+  validateParams,
+  initializeSchema,
+  executeSchema,
+  existsSchema,
+  resetSchema,
+  paramsUserIdLessonId,
+  paramsUserIdLessonIdTable
+} from '../middleware/validation.js';
 
 const router = express.Router();
 
-router.post('/initialize', async (req, res) => {
+router.post('/initialize', validate(initializeSchema), async (req, res) => {
   const { userId, lessonId } = req.body;
 
   console.log('initialize request:', { userId, lessonId });
-
-  if (!userId || !lessonId) {
-    return res.status(400).json({ error: 'userId i lessonId są wymagane' });
-  }
 
   try {
     await initializeDatabase(userId, lessonId);
@@ -36,19 +42,11 @@ router.post('/initialize', async (req, res) => {
   }
 });
 
-router.post('/execute', async (req, res) => {
+router.post('/execute', validate(executeSchema), async (req, res) => {
   console.log('=== /execute ===');
   console.log('req.body:', req.body);
-  console.log('req.body type:', typeof req.body);
 
   const { userId, lessonId, sql: sqlQuery } = req.body;
-
-  console.log('Extracted params:', { userId, lessonId, sql: sqlQuery });
-
-  if (!userId || !lessonId || !sqlQuery) {
-    console.log('Validation failed - missing params:', { userId: !!userId, lessonId: !!lessonId, sql: !!sqlQuery });
-    return res.status(400).json({ error: 'userId, lessonId i sql są wymagane' });
-  }
 
   try {
     const result = await executeSQL(userId, lessonId, sqlQuery);
@@ -63,22 +61,22 @@ router.post('/execute', async (req, res) => {
   }
 });
 
-router.get('/tables/:userId/:lessonId', async (req, res) => {
+router.get('/tables/:userId/:lessonId', validateParams(paramsUserIdLessonId), async (req, res) => {
   const { userId, lessonId } = req.params;
 
   try {
-    const tables = await getTables(userId, lessonId);
+    const tables = await getTables(userId, parseInt(lessonId));
     res.json({ success: true, tables });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/schema/:userId/:lessonId/:tableName', async (req, res) => {
+router.get('/schema/:userId/:lessonId/:tableName', validateParams(paramsUserIdLessonIdTable), async (req, res) => {
   const { userId, lessonId, tableName } = req.params;
 
   try {
-    const schema = await getTableSchema(userId, lessonId, tableName);
+    const schema = await getTableSchema(userId, parseInt(lessonId), tableName);
     if (schema.length === 0) {
       return res.status(404).json({ error: 'Tabela nie istnieje' });
     }
@@ -90,7 +88,7 @@ router.get('/schema/:userId/:lessonId/:tableName', async (req, res) => {
 
 // GET /api/sqlite/full-schema/:userId/:lessonId
 // Returns the complete schema of all tables in the database
-router.get('/full-schema/:userId/:lessonId', async (req, res) => {
+router.get('/full-schema/:userId/:lessonId', validateParams(paramsUserIdLessonId), async (req, res) => {
   const { userId, lessonId } = req.params;
   let db;
 
@@ -129,30 +127,22 @@ router.get('/full-schema/:userId/:lessonId', async (req, res) => {
   }
 });
 
-router.post('/reset', async (req, res) => {
+router.post('/reset', validate(resetSchema), async (req, res) => {
   const { userId, lessonId } = req.body;
 
-  if (!userId || !lessonId) {
-    return res.status(400).json({ error: 'userId i lessonId są wymagane' });
-  }
-
   try {
-    await resetDatabase(userId, lessonId);
+    await resetDatabase(userId, parseInt(lessonId));
     res.json({ success: true, message: 'Baza danych zresetowana' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/exists', async (req, res) => {
+router.post('/exists', validate(existsSchema), async (req, res) => {
   const { userId, lessonId } = req.body;
 
-  if (!userId || !lessonId) {
-    return res.status(400).json({ error: 'userId i lessonId są wymagane' });
-  }
-
   try {
-    const exists = await databaseExists(userId, lessonId);
+    const exists = await databaseExists(userId, parseInt(lessonId));
     res.json({ success: true, exists });
   } catch {
     res.json({ success: true, exists: false });

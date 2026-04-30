@@ -16,7 +16,8 @@
       "Bash(cmd //c taskkill //F //PID 8232)",
       "Bash(node --check src/routes/ai.js)",
       "Bash(npx eslint *)",
-      "Bash(node -c \"src/Components/Sandbox.jsx\")"
+      "Bash(node -c \"src/Components/Sandbox.jsx\")",
+      "Bash(python -c ' *)"
     ]
   }
 }

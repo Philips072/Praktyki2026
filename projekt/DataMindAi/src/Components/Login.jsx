@@ -26,6 +26,8 @@ const ERROR_MESSAGES = {
   'Too many requests': 'Zbyt wiele prób. Spróbuj ponownie za chwilę.',
 }
 
+const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
 function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -33,10 +35,44 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+
+  const validateEmail = (value) => {
+    if (!value) return 'Wprowadź adres email.'
+    if (!EMAIL_REGEX.test(value)) return 'Nieprawidłowy format emaila.'
+    return ''
+  }
+
+  const validatePassword = (value) => {
+    if (!value) return 'Wprowadź hasło.'
+    return ''
+  }
+
+  const handleEmailChange = (value) => {
+    setEmail(value)
+    if (emailError) setEmailError('')
+  }
+
+  const handlePasswordChange = (value) => {
+    setPassword(value)
+    if (passwordError) setPasswordError('')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setEmailError('')
+    setPasswordError('')
+
+    const emailErr = validateEmail(email)
+    const passwordErr = validatePassword(password)
+
+    setEmailError(emailErr)
+    setPasswordError(passwordErr)
+
+    if (emailErr || passwordErr) return
+
     setLoading(true)
 
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
@@ -48,6 +84,23 @@ function Login() {
     }
 
     setLoading(false)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      if (!email) {
+        document.getElementById('email')?.focus()
+        return
+      }
+      if (!password) {
+        document.getElementById('password')?.focus()
+        return
+      }
+
+      handleSubmit(e)
+    }
   }
 
   return (
@@ -72,26 +125,31 @@ function Login() {
           <h1>Zaloguj się</h1>
           <p>Kontynuuj swoją naukę SQL</p>
 
-          <form className="login-form" onSubmit={handleSubmit}>
+          <form className="login-form" onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
             <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="twoj@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
+            <div className="input-wrapper">
+              <input
+                id="email"
+                type="email"
+                placeholder="twoj@email.com"
+                value={email}
+                onChange={e => handleEmailChange(e.target.value)}
+                disabled={loading}
+                className={emailError ? 'input-error' : ''}
+              />
+              {emailError && <p className="input-error-message">{emailError}</p>}
+            </div>
 
             <label htmlFor="password">Hasło</label>
-            <div className="password-wrapper">
+            <div className="input-wrapper password-wrapper">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
+                onChange={e => handlePasswordChange(e.target.value)}
+                disabled={loading}
+                className={passwordError ? 'input-error' : ''}
               />
               <button
                 type="button"
@@ -101,6 +159,7 @@ function Login() {
               >
                 <span className="password-toggle-icon" key={showPassword ? 1 : 0}>{showPassword ? <EyeOpen /> : <EyeClosed />}</span>
               </button>
+              {passwordError && <p className="input-error-message">{passwordError}</p>}
             </div>
 
             {error && <p className="form-error">{error}</p>}

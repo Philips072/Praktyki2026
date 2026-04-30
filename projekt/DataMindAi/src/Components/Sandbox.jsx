@@ -670,6 +670,7 @@ function Sandbox() {
                 </div>
               ) : (
                 <div className="sandbox-empty-state">
+                  <img src="/tabelka.png" alt="Tabela" className="sandbox-empty-icon" draggable="false" />
                   <h3>Struktura tabeli pojawi się tutaj</h3>
                   <p>Wybierz tabelę aby zobaczyć jej strukturę</p>
                   {tables.length === 0 && (
@@ -706,6 +707,7 @@ function Sandbox() {
                 </>
               ) : (
                 <div className="sandbox-empty-state">
+                  <img src="/tabelka.png" alt="Tabela" className="sandbox-empty-icon" draggable="false" />
                   <h3>Wyniki pojawią się tutaj</h3>
                   <p>Wykonaj zapytanie SQL aby zobaczyć dane</p>
                 </div>

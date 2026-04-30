@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import LESSONS from '../data/lessonsData'
 import { useAuth } from '../AuthContext'
-import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent, dropTable } from '../api.js'
+import { executeSQL, validateExercise, getHint, getDatabaseSchema, getDatabaseTables, getPersonalizedContent, dropTable, resetDatabase as resetDatabaseAPI } from '../api.js'
 import { supabase } from '../supabaseClient'
 
 const getUserId = () => {
@@ -658,6 +658,13 @@ function LessonPage() {
       localStorage.setItem(progressKey, JSON.stringify(data))
       return next
     })
+
+    // Reset database for Lesson 2
+    if (lesson && lesson.id === 2 && user) {
+      resetDatabaseAPI(user.id, lesson.id).catch(e => {
+        console.error('Error resetting database:', e)
+      })
+    }
   }
 
   const handlePersonalizeContent = async () => {

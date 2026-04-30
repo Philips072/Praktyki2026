@@ -234,7 +234,8 @@ function UserSettings() {
 
   useEffect(() => {
     if (profile?.name) setName(profile.name)
-    if (user?.email) setEmail(user.email)
+    if (profile?.email) setEmail(profile.email)
+    else if (user?.email) setEmail(user.email)
     setSqlLevel(profile?.sql_level ?? '')
     setInterests(
       profile?.interests
@@ -265,67 +266,24 @@ function UserSettings() {
 
     const newEmail = email.trim()
 
-    if (newEmail === user.email) {
+    if (newEmail === profile?.email) {
       setEmailStatus({ loading: false, error: 'Podaj inny adres email.', success: '' })
       return
     }
 
     setEmailStatus({ loading: true, error: '', success: '' })
 
-    console.log('=== Zmiana emaila ===')
-    console.log('Obecny email:', user.email)
-    console.log('Nowy email:', newEmail)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ email: newEmail })
+      .eq('id', user.id)
 
-    const updateEmail = async (retryCount = 0) => {
-      try {
-        const { error, data } = await supabase.auth.updateUser({
-          email: newEmail,
-          emailRedirectTo: `${window.location.origin}/potwierdzenie-email?email=${encodeURIComponent(newEmail)}&type=change`
-        })
-
-        console.log('updateUser result:', { error, data })
-
-        if (error) {
-          console.error('Błąd zmiany emaila:', error)
-          let errorMessage = 'Nie udało się zmienić emaila.'
-
-          if (error.message.includes('rate limit exceeded') || error.message.includes('email rate limit')) {
-            errorMessage = 'Przekroczono limit zmian emaila. Spróbuj ponownie za kilka minut lub skontaktuj się z supportem.'
-          } else if (error.message.includes('email')) {
-            errorMessage = 'Podany adres email jest nieprawidłowy lub już zajęty.'
-          } else if (error.message.includes('security')) {
-            errorMessage = 'Dla bezpieczeństwa musisz się ponownie zalogować przed zmianą emaila.'
-          } else if (error.message.includes('Lock') || retryCount < 2) {
-            // Błąd blokady - spróbuj ponownie po krótkim opóźnieniu
-            console.log('Błąd blokady, ponowna próba:', retryCount + 1)
-            await new Promise(resolve => setTimeout(resolve, 500))
-            return updateEmail(retryCount + 1)
-          }
-
-          setEmailStatus({ loading: false, error: errorMessage, success: '' })
-        } else {
-          console.log('Email zmieniony pomyślnie, oczekiwanie na weryfikację')
-          setEmailStatus({
-            loading: false,
-            error: '',
-            success: `Link weryfikacyjny został wysłany na ${newEmail}. Sprawdź swoją skrzynkę email i kliknij w link. Po weryfikacji zobaczysz instrukcje co robić dalej.`
-          })
-          setEmail(user.email)
-        }
-      } catch (err) {
-        console.error('Wyjątek przy zmianie emaila:', err)
-
-        if (retryCount < 2) {
-          console.log('Wyjątek, ponowna próba:', retryCount + 1)
-          await new Promise(resolve => setTimeout(resolve, 500))
-          return updateEmail(retryCount + 1)
-        }
-
-        setEmailStatus({ loading: false, error: 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.', success: '' })
-      }
+    if (error) {
+      setEmailStatus({ loading: false, error: 'Nie udało się zmienić emaila.', success: '' })
+    } else {
+      setEmailStatus({ loading: false, error: '', success: 'Adres email został zaktualizowany.' })
+      refreshProfile()
     }
-
-    await updateEmail()
   }
 
   const handleSavePassword = async (e) => {
@@ -443,7 +401,7 @@ function UserSettings() {
 
         <div className="settings-card">
           <h2 className="settings-card-title">Adres email</h2>
-          <p className="settings-card-desc">Zmień adres przypisany do konta</p>
+          <p className="settings-card-desc">Zmień adres przypisany do konta (bez weryfikacji)</p>
           <form className="settings-form" onSubmit={handleSaveEmail}>
             <input
               type="email"

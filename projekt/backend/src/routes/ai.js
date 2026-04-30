@@ -4,7 +4,7 @@ import { validate, chatSchema, interestsSchema, validateExerciseSchema, hintSche
 
 const router = Router();
 
-const AI_TIMEOUT = 30000; // 30 sekund timeout dla zapytań AI
+const AI_TIMEOUT = 120000; // 120 sekund (2 minuty) timeout dla zapytań AI
 
 // Funkcja pomocnicza do fetch z timeout
 const fetchWithTimeout = async (url, options = {}, timeout = AI_TIMEOUT) => {
@@ -387,7 +387,8 @@ ZASADY (bardzo ważne):
    b) Literówki w nazwach tabel/kolumn UŻYTYCH przez użytkownika
    c) BRAK AUTO_INCREMENT przy id PRIMARY KEY - powiedz "Dodaj AUTO_INCREMENT"
    d) BRAK średnika na końcu - powiedz "Dodaj średnik"
-   e) JEŚLI JEST BŁĄD: powiedz tylko co poprawić
+   e) PRZY ALTER TABLE ADD: Jeśli brakuje słowa COLUMN - powiedz "Dodaj COLUMN po ADD"
+   f) JEŚLI JEST BŁĄD: powiedz tylko co poprawić
 5. DOPHIERO gdy brak błędów:
    - Użyj "Następnie" lub "Teraz" na początku
    - Podaj co dodać jako następną rzecz

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { askInterests } from '../api'
+import EmailChangeVerification from './EmailChangeVerification'
 
 const AiAvatar = () => (
   <div className="aichat-avatar">
@@ -231,6 +232,7 @@ function UserSettings() {
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+  const [showEmailVerification, setShowEmailVerification] = useState(false)
 
   useEffect(() => {
     if (profile?.name) setName(profile.name)
@@ -271,19 +273,32 @@ function UserSettings() {
       return
     }
 
+    setShowEmailVerification(true)
+    setEmailStatus({ loading: false, error: '', success: '' })
+  }
+
+  const handleEmailVerified = async (verifiedEmail) => {
     setEmailStatus({ loading: true, error: '', success: '' })
 
     const { error } = await supabase
       .from('profiles')
-      .update({ email: newEmail })
+      .update({ email: verifiedEmail })
       .eq('id', user.id)
 
     if (error) {
       setEmailStatus({ loading: false, error: 'Nie udało się zmienić emaila.', success: '' })
+      setShowEmailVerification(false)
     } else {
       setEmailStatus({ loading: false, error: '', success: 'Adres email został zaktualizowany.' })
       refreshProfile()
+      setShowEmailVerification(false)
+      setTimeout(() => setEmailStatus({ loading: false, error: '', success: '' }), 3000)
     }
+  }
+
+  const handleEmailVerificationCancel = () => {
+    setShowEmailVerification(false)
+    setEmail(profile?.email || user?.email || '')
   }
 
   const handleSavePassword = async (e) => {
@@ -401,7 +416,7 @@ function UserSettings() {
 
         <div className="settings-card">
           <h2 className="settings-card-title">Adres email</h2>
-          <p className="settings-card-desc">Zmień adres przypisany do konta (bez weryfikacji)</p>
+          <p className="settings-card-desc">Zmień adres przypisany do konta</p>
           <form className="settings-form" onSubmit={handleSaveEmail}>
             <input
               type="email"
@@ -413,7 +428,7 @@ function UserSettings() {
             {emailStatus.error && <p className="settings-status settings-status--error">{emailStatus.error}</p>}
             {emailStatus.success && <p className="settings-status settings-status--success">{emailStatus.success}</p>}
             <button type="submit" disabled={emailStatus.loading}>
-              {emailStatus.loading ? 'Zapisywanie...' : 'Zapisz'}
+              {emailStatus.loading ? 'Zapisywanie...' : 'Zmień'}
             </button>
           </form>
         </div>
@@ -521,6 +536,14 @@ function UserSettings() {
         </div>
 
       </div>
+
+      {showEmailVerification && (
+        <EmailChangeVerification
+          newEmail={email}
+          onVerified={handleEmailVerified}
+          onCancelled={handleEmailVerificationCancel}
+        />
+      )}
 
       <div className="settings-logout">
         <button className="settings-logout-btn" onClick={handleLogout} disabled={loggingOut}>

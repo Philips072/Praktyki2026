@@ -1,0 +1,303 @@
+/* ── Overlay ───────────────────────────────────────────────────── */
+
+.email-change-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: overlay-in 0.2s ease-out;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Modal ────────────────────────────────────────────────────── */
+
+.email-change-modal {
+  background-color: var(--containerBoxBg);
+  border: 1px solid var(--borderColor);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  color: var(--primaryText);
+  font-family: VennRegular, sans-serif;
+  animation: modal-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+
+.email-change-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--borderColor);
+}
+
+.email-change-title {
+  font-family: VennBold, sans-serif;
+  font-size: 1.25rem;
+  color: var(--primaryText);
+  margin: 0;
+}
+
+.email-change-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--inputBg);
+  border-radius: 6px;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondaryText);
+  transition: all 0.2s;
+}
+
+.email-change-close-btn:hover {
+  background-color: var(--borderColor);
+  color: var(--primaryText);
+}
+
+/* ── Body ────────────────────────────────────────────────────── */
+
+.email-change-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.email-change-info {
+  text-align: center;
+  padding: 14px;
+  background: var(--inputBg);
+  border-radius: 10px;
+  border: 1px solid var(--borderColor);
+  color: var(--primaryText);
+  line-height: 1.5;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.email-change-info strong {
+  color: #2ea0f8;
+}
+
+/* ── Code Inputs ─────────────────────────────────────────────── */
+
+.email-change-code-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.email-change-code-inputs input {
+  width: 48px !important;
+  height: 56px !important;
+  border-radius: 10px !important;
+  border: 2px solid var(--borderColor) !important;
+  background: var(--inputBg) !important;
+  color: var(--primaryText) !important;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+  font-family: VennRegular;
+}
+
+.email-change-code-inputs input:focus {
+  border-color: var(--accentColor) !important;
+  transform: scale(1.05);
+}
+
+.email-change-code-inputs input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Error ───────────────────────────────────────────────────── */
+
+.email-change-error {
+  color: #e06c6c;
+  font-size: 0.85rem;
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba(224, 108, 108, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(224, 108, 108, 0.25);
+  text-align: center;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+
+.email-change-verify-btn {
+  height: 44px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accentColor);
+  color: var(--primaryText);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-family: VennRegular;
+  width: 100%;
+}
+
+.email-change-verify-btn:hover {
+  background: var(--btnHoverBlue);
+}
+
+.email-change-verify-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.email-change-resend-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: var(--inputBg);
+  color: var(--primaryText);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-family: VennRegular;
+  width: 100%;
+  margin-top: -6px;
+}
+
+.email-change-resend-btn:hover {
+  background: #363636;
+}
+
+.email-change-resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.email-change-cancel-btn {
+  height: 44px;
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--secondaryText);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  font-family: VennRegular;
+  width: 100%;
+  margin-top: -6px;
+}
+
+.email-change-cancel-btn:hover {
+  background: var(--grayBtnBg);
+  color: var(--primaryText);
+}
+
+/* ── Toast ───────────────────────────────────────────────────── */
+
+.email-change-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  z-index: 1100;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.email-change-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.email-change-toast-success {
+  background: #10b981;
+  color: white;
+}
+
+.email-change-toast-error {
+  background: #ef4444;
+  color: white;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+
+@media screen and (max-width: 640px) {
+  .email-change-overlay {
+    padding: 1rem;
+  }
+
+  .email-change-modal {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .email-change-header {
+    padding: 1rem 1.25rem 0.75rem;
+  }
+
+  .email-change-body {
+    padding: 1.25rem;
+  }
+
+  .email-change-code-inputs input {
+    width: 42px !important;
+    height: 50px !important;
+    font-size: 1.4rem;
+  }
+
+  .email-change-toast {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    width: calc(100% - 40px);
+    max-width: none;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+
+  .email-change-toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+}

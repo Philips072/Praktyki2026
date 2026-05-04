@@ -1,7 +1,7 @@
 import './ForgotPassword.css'
-import { useState, useEffect } from 'react'
+import './EmailChangeVerification.css'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import logo from '../assets/nazwa.PNG'
 import { supabase } from '../supabaseClient'
 
 const EyeOpen = () => (
@@ -20,208 +20,196 @@ const EyeClosed = () => (
   </svg>
 )
 
-// Krok 1: formularz emaila
-function EmailStep({ onSent }) {
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    const redirectTo = `${window.location.origin}/reset-hasla`
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
-
-    if (resetError) {
-      setError('Nie udało się wysłać linku. Sprawdź adres email i spróbuj ponownie.')
-    } else {
-      onSent(email)
-    }
-
-    setLoading(false)
-  }
-
-  return (
-    <>
-      <h1>Resetuj hasło</h1>
-      <p>Podaj email powiązany z kontem, a wyślemy Ci link do zresetowania hasła.</p>
-
-      <form className="fp-form" onSubmit={handleSubmit}>
-        <label htmlFor="fp-email">Email</label>
-        <input
-          id="fp-email"
-          type="email"
-          placeholder="twoj@email.com"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-
-        {error && <p className="form-error">{error}</p>}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Wysyłanie...' : 'Wyślij link resetujący'}
-        </button>
-      </form>
-
-      <span className="fp-bottom-text">
-        Pamiętasz hasło? <Link to="/logowanie">Zaloguj się</Link>
-      </span>
-    </>
-  )
-}
-
-// Krok 2: potwierdzenie wysłania emaila
-function SentStep({ email }) {
-  return (
-    <div className="fp-sent">
-      <div className="fp-sent-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-      </div>
-      <h1>Sprawdź email</h1>
-      <p>Wysłaliśmy link do resetowania hasła na adres <strong>{email}</strong>. Kliknij w link w wiadomości, aby ustawić nowe hasło.</p>
-      <Link to="/logowanie" className="fp-back-login">Wróć do logowania</Link>
-    </div>
-  )
-}
-
-// Krok 3: formularz nowego hasła (po powrocie z linku emailowego)
-function NewPasswordStep() {
+function ForgotPassword() {
   const navigate = useNavigate()
-  const [password, setPassword] = useState('')
+  const [step, setStep] = useState('send')
+  const [email, setEmail] = useState('')
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', ''])
+  const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const lastVerifiedCodeRef = useRef('')
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000)
+  }
+
+  useEffect(() => {
+    const code = verificationCode.join('')
+    if (step === 'verify' && code.length === 6 && code !== lastVerifiedCodeRef.current && !isVerifying) {
+      const timer = setTimeout(() => {
+        lastVerifiedCodeRef.current = code
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [verificationCode, step, isVerifying])
+
+  const sendCode = async () => {
     setError('')
+    setIsSending(true)
 
-    if (password !== confirmPassword) {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+
+      // Najpierw sprawdź czy email istnieje
+      const checkResponse = await fetch(`${supabaseUrl}/functions/v1/check-email-exists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const checkData = await checkResponse.json()
+
+      if (!checkResponse.ok || !checkData.exists) {
+        setError('Nie znaleziono konta z podanym adresem email.')
+        setIsSending(false)
+        return
+      }
+
+      // Email istnieje, wyślij kod
+      const { data: { session } } = await supabase.auth.getSession()
+      const { error: fnError } = await supabase.functions.invoke('send-reset-code', {
+        body: { email },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
+      })
+
+      if (fnError) {
+        setError('Nie udało się wysłać kodu. Spróbuj ponownie.')
+      } else {
+        setStep('verify')
+        setError('')
+        setTimeout(() => {
+          const firstInput = document.getElementById('email-change-code-0')
+          firstInput?.focus()
+        }, 100)
+      }
+    } catch (err) {
+      setError('Wystąpił błąd.')
+    }
+
+    setIsSending(false)
+  }
+
+  const verifyAndReset = async () => {
+    const code = verificationCode.join('')
+
+    if (newPassword !== confirmPassword) {
       setError('Hasła nie są identyczne.')
       return
     }
 
-    if (password.length < 6) {
+    if (newPassword.length < 6) {
       setError('Hasło musi mieć co najmniej 6 znaków.')
       return
     }
 
-    setLoading(true)
+    setError('')
+    setIsVerifying(true)
 
-    const { error: updateError } = await supabase.auth.updateUser({ password })
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const { data, error: fnError } = await supabase.functions.invoke('verify-reset-code', {
+        body: { email, code, newPassword },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
+      })
 
-    if (updateError) {
-      setError('Nie udało się zaktualizować hasła. Spróbuj ponownie.')
-    } else {
-      setSuccess(true)
-      setTimeout(() => navigate('/logowanie'), 2500)
+      if (fnError || !data?.success) {
+        setError(data?.error || 'Nieprawidłowy kod weryfikacyjny.')
+      } else {
+        showToast('Hasło zostało zmienione', 'success')
+        setTimeout(() => navigate('/logowanie'), 1500)
+      }
+    } catch (err) {
+      setError('Wystąpił błąd.')
     }
 
-    setLoading(false)
+    setIsVerifying(false)
   }
 
-  if (success) {
-    return (
-      <div className="fp-sent">
-        <div className="fp-sent-icon fp-sent-icon--success">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-        <h1>Hasło zmienione!</h1>
-        <p>Twoje hasło zostało pomyślnie zaktualizowane. Za chwilę zostaniesz przekierowany do strony logowania.</p>
-      </div>
-    )
-  }
+  const resendCode = async () => {
+    setError('')
+    setIsResending(true)
+    setVerificationCode(['', '', '', '', '', ''])
+    setNewPassword('')
+    setConfirmPassword('')
+    lastVerifiedCodeRef.current = ''
 
-  return (
-    <>
-      <h1>Nowe hasło</h1>
-      <p>Wpisz nowe hasło dla swojego konta.</p>
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const { error: fnError } = await supabase.functions.invoke('send-reset-code', {
+        body: { email },
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {}
+      })
 
-      <form className="fp-form" onSubmit={handleSubmit}>
-        <label htmlFor="fp-password">Nowe hasło</label>
-        <div className="password-wrapper">
-          <input
-            id="fp-password"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Minimum 6 znaków"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setShowPassword(p => !p)}
-            aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-          >
-            <span className="password-toggle-icon" key={showPassword ? 1 : 0}>
-              {showPassword ? <EyeOpen /> : <EyeClosed />}
-            </span>
-          </button>
-        </div>
-
-        <label htmlFor="fp-confirm">Powtórz hasło</label>
-        <div className="password-wrapper">
-          <input
-            id="fp-confirm"
-            type={showConfirm ? 'text' : 'password'}
-            placeholder="Powtórz nowe hasło"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            required
-          />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setShowConfirm(p => !p)}
-            aria-label={showConfirm ? 'Ukryj hasło' : 'Pokaż hasło'}
-          >
-            <span className="password-toggle-icon" key={showConfirm ? 1 : 0}>
-              {showConfirm ? <EyeOpen /> : <EyeClosed />}
-            </span>
-          </button>
-        </div>
-
-        {error && <p className="form-error">{error}</p>}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Zapisywanie...' : 'Ustaw nowe hasło'}
-        </button>
-      </form>
-    </>
-  )
-}
-
-function ForgotPassword() {
-  // 'email' = wpisz email, 'sent' = link wysłany, 'reset' = formularz nowego hasła
-  const [step, setStep] = useState('email')
-  const [sentEmail, setSentEmail] = useState('')
-
-  useEffect(() => {
-    // Nasłuchuj zdarzenia PASSWORD_RECOVERY — Supabase ustawia je po powrocie z linku emailowego
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setStep('reset')
+      if (fnError) {
+        setError('Nie udało się wysłać kodu.')
+        showToast('Wystąpił błąd przy wysyłaniu kodu', 'error')
+      } else {
+        setError('')
+        showToast('Nowy kod został wysłany')
+        setTimeout(() => {
+          const firstInput = document.getElementById('email-change-code-0')
+          firstInput?.focus()
+        }, 100)
       }
+    } catch (err) {
+      setError('Wystąpił błąd.')
+      showToast('Wystąpił błąd przy wysyłaniu kodu', 'error')
+    }
+
+    setIsResending(false)
+  }
+
+  const handleCodeChange = (index, value) => {
+    if (value.length > 1) value = value[0]
+    if (!/^\d*$/.test(value)) return
+
+    const newCode = [...verificationCode]
+    newCode[index] = value
+    setVerificationCode(newCode)
+
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`email-change-code-${index + 1}`)
+      nextInput?.focus()
+    }
+  }
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+      const prevInput = document.getElementById(`email-change-code-${index - 1}`)
+      prevInput?.focus()
+    }
+  }
+
+  const handlePaste = (e) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    const newCode = [...verificationCode]
+    pastedData.split('').forEach((char, i) => {
+      if (i < 6) newCode[i] = char
     })
+    setVerificationCode(newCode)
+  }
 
-    return () => subscription.unsubscribe()
-  }, [])
+  const handleBackToEmail = () => {
+    setStep('send')
+    setVerificationCode(['', '', '', '', '', ''])
+    setError('')
+  }
 
-  const handleSent = (email) => {
-    setSentEmail(email)
-    setStep('sent')
+  const handleCancel = () => {
+    navigate('/logowanie')
   }
 
   return (
@@ -240,14 +228,138 @@ function ForgotPassword() {
       </Link>
 
       <div className="fp-body">
-        <div className="fp-card">
-          <img src={logo} alt="DataMindAI" className="fp-logo" />
+        <div className="email-change-modal">
+          <div className="email-change-header">
+            <h3 className="email-change-title">Reset hasła</h3>
+          </div>
 
-          {step === 'email' && <EmailStep onSent={handleSent} />}
-          {step === 'sent' && <SentStep email={sentEmail} />}
-          {step === 'reset' && <NewPasswordStep />}
+          <div className="email-change-body">
+            {step === 'send' ? (
+              <>
+                <p className="email-change-info">
+                  Podaj adres email powiązany z kontem, a wyślemy Ci kod do zresetowania hasła.
+                </p>
+
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    placeholder="twoj@email.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    disabled={isSending}
+                    className="fp-email-input"
+                  />
+                </div>
+
+                {error && <p className="email-change-error">{error}</p>}
+
+                <button
+                  type="button"
+                  className="email-change-verify-btn"
+                  onClick={sendCode}
+                  disabled={isSending || !email}
+                >
+                  {isSending ? 'Wysyłanie...' : 'Wyślij kod'}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="email-change-info">
+                  Wpisz kod, który wysłaliśmy na: <strong>{email}</strong>
+                </p>
+
+                <div className="email-change-code-inputs">
+                  {verificationCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`email-change-code-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={e => handleCodeChange(index, e.target.value)}
+                      onKeyDown={e => handleKeyDown(index, e)}
+                      onPaste={index === 0 ? handlePaste : undefined}
+                      disabled={isVerifying}
+                      autoFocus={index === 0}
+                    />
+                  ))}
+                </div>
+
+                <div className="email-change-password-inputs">
+                  <div className="email-change-password-wrapper">
+                    <input
+                      type={showNew ? 'text' : 'password'}
+                      placeholder="Nowe hasło (min. 6 znaków)"
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      disabled={isVerifying}
+                    />
+                    <button
+                      type="button"
+                      className="email-change-password-toggle"
+                      onClick={() => setShowNew(!showNew)}
+                    >
+                      {showNew ? <EyeOpen /> : <EyeClosed />}
+                    </button>
+                  </div>
+
+                  <div className="email-change-password-wrapper">
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      placeholder="Powtórz hasło"
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      disabled={isVerifying}
+                    />
+                    <button
+                      type="button"
+                      className="email-change-password-toggle"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                    >
+                      {showConfirm ? <EyeOpen /> : <EyeClosed />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && <p className="email-change-error">{error}</p>}
+
+                <button
+                  type="button"
+                  className="email-change-verify-btn"
+                  onClick={verifyAndReset}
+                  disabled={isVerifying || verificationCode.join('').length !== 6 || !newPassword || !confirmPassword}
+                >
+                  {isVerifying ? 'Zmienianie...' : 'Zmień hasło'}
+                </button>
+
+                <button
+                  type="button"
+                  className="email-change-resend-btn"
+                  onClick={resendCode}
+                  disabled={isResending}
+                >
+                  {isResending ? 'Wysyłanie...' : 'Wyślij nowy kod'}
+                </button>
+
+                <button
+                  type="button"
+                  className="email-change-cancel-btn"
+                  onClick={handleCancel}
+                >
+                  Anuluj
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {toast.show && (
+        <div className={`email-change-toast email-change-toast-${toast.type} show`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   )
 }

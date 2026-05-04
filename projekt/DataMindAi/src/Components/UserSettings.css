@@ -388,4 +388,57 @@
     width: 100%;
     align-self: stretch;
   }
+
+  .settings-form-buttons {
+    flex-direction: column;
+  }
+}
+
+/* LINK BUTTON (Nie pamiętasz hasła?) */
+.settings-link-btn {
+  background: none;
+  border: none;
+  color: #8d94a5;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  text-align: left;
+  transition: color 0.2s;
+  font-family: VennRegular;
+}
+
+.settings-link-btn:hover {
+  color: var(--accentColor);
+  text-decoration: underline;
+}
+
+/* Password form buttons - side by side */
+.settings-form-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* Reset password button - same style as submit button */
+.settings-reset-btn {
+  height: 44px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 8px;
+  background: var(--inputBg);
+  color: var(--primaryText);
+  font-size: 0.95rem;
+  font-family: VennRegular;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.settings-reset-btn:hover {
+  background: var(--borderColor);
+}
+
+.settings-reset-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

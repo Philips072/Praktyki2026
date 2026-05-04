@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../AuthContext'
 import { askInterests } from '../api'
+import EmailChangeVerification from './EmailChangeVerification'
+import PasswordResetModal from './PasswordResetModal'
 
 const AiAvatar = () => (
   <div className="aichat-avatar">
@@ -212,8 +214,11 @@ function UserSettings() {
   const navigate = useNavigate()
   const { user, profile, refreshProfile } = useAuth()
 
+  const isEmailChangeInProgress = useRef(false)
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [pendingEmail, setPendingEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -231,11 +236,13 @@ function UserSettings() {
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+  const [showEmailVerification, setShowEmailVerification] = useState(false)
+  const [showPasswordReset, setShowPasswordReset] = useState(false)
 
   useEffect(() => {
     if (profile?.name) setName(profile.name)
-    if (profile?.email) setEmail(profile.email)
-    else if (user?.email) setEmail(user.email)
+    if (profile?.email && !isEmailChangeInProgress.current) setEmail(profile.email)
+    else if (user?.email && !isEmailChangeInProgress.current) setEmail(user.email)
     setSqlLevel(profile?.sql_level ?? '')
     setInterests(
       profile?.interests
@@ -243,6 +250,12 @@ function UserSettings() {
         : ''
     )
   }, [profile, user])
+
+  useEffect(() => {
+    return () => {
+      isEmailChangeInProgress.current = false
+    }
+  }, [])
 
   const handleSaveName = async (e) => {
     e.preventDefault()
@@ -273,17 +286,98 @@ function UserSettings() {
 
     setEmailStatus({ loading: true, error: '', success: '' })
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ email: newEmail })
-      .eq('id', user.id)
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 
-    if (error) {
-      setEmailStatus({ loading: false, error: 'Nie udało się zmienić emaila.', success: '' })
-    } else {
-      setEmailStatus({ loading: false, error: '', success: 'Adres email został zaktualizowany.' })
-      refreshProfile()
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/check-email-exists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ email: newEmail }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setEmailStatus({ loading: false, error: 'Wystąpił błąd przy sprawdzaniu emaila.', success: '' })
+        return
+      }
+
+      if (data.exists) {
+        setEmailStatus({ loading: false, error: 'Ten adres email jest już zajęty.', success: '' })
+        return
+      }
+
+      isEmailChangeInProgress.current = true
+      setPendingEmail(newEmail)
+      setShowEmailVerification(true)
+      setEmailStatus({ loading: false, error: '', success: '' })
+
+    } catch (err) {
+      console.error('Error checking email:', err)
+      setEmailStatus({ loading: false, error: 'Wystąpił błąd przy sprawdzaniu emaila.', success: '' })
     }
+  }
+
+  const handleEmailVerified = async (verifiedEmail) => {
+    setEmailStatus({ loading: true, error: '', success: '' })
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ email: verifiedEmail })
+        .eq('id', user.id)
+
+      if (profileError) {
+        setEmailStatus({ loading: false, error: 'Nie udało się zmienić emaila.', success: '' })
+        setShowEmailVerification(false)
+        setPendingEmail('')
+        isEmailChangeInProgress.current = false
+        return
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/update-user-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ userId: user.id, newEmail: verifiedEmail }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Error updating auth email:', data.error)
+        setEmailStatus({ loading: false, error: 'Email w profilu zaktualizowany, ale wystąpił błąd przy aktualizacji autoryzacji.', success: '' })
+      } else {
+        setEmailStatus({ loading: false, error: '', success: 'Adres email został zaktualizowany.' })
+      }
+
+      setPendingEmail('')
+      isEmailChangeInProgress.current = false
+      refreshProfile()
+      setShowEmailVerification(false)
+      setTimeout(() => setEmailStatus({ loading: false, error: '', success: '' }), 3000)
+
+    } catch (err) {
+      console.error('Error in handleEmailVerified:', err)
+      setEmailStatus({ loading: false, error: 'Wystąpił błąd przy aktualizacji emaila.', success: '' })
+      setShowEmailVerification(false)
+      setPendingEmail('')
+      isEmailChangeInProgress.current = false
+    }
+  }
+
+  const handleEmailVerificationCancel = () => {
+    setShowEmailVerification(false)
+    setPendingEmail('')
+    isEmailChangeInProgress.current = false
+    setEmail(profile?.email || user?.email || '')
   }
 
   const handleSavePassword = async (e) => {
@@ -316,6 +410,13 @@ function UserSettings() {
       setNewPassword('')
       setConfirmPassword('')
     }
+  }
+
+  const handlePasswordResetSuccess = () => {
+    setPasswordStatus({ loading: false, error: '', success: 'Hasło zostało zresetowane.' })
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
   }
 
   const SQL_LEVELS = [
@@ -401,7 +502,7 @@ function UserSettings() {
 
         <div className="settings-card">
           <h2 className="settings-card-title">Adres email</h2>
-          <p className="settings-card-desc">Zmień adres przypisany do konta (bez weryfikacji)</p>
+          <p className="settings-card-desc">Zmień adres przypisany do konta</p>
           <form className="settings-form" onSubmit={handleSaveEmail}>
             <input
               type="email"
@@ -413,7 +514,7 @@ function UserSettings() {
             {emailStatus.error && <p className="settings-status settings-status--error">{emailStatus.error}</p>}
             {emailStatus.success && <p className="settings-status settings-status--success">{emailStatus.success}</p>}
             <button type="submit" disabled={emailStatus.loading}>
-              {emailStatus.loading ? 'Zapisywanie...' : 'Zapisz'}
+              {emailStatus.loading ? 'Zapisywanie...' : 'Zmień'}
             </button>
           </form>
         </div>
@@ -474,9 +575,18 @@ function UserSettings() {
             </div>
             {passwordStatus.error && <p className="settings-status settings-status--error">{passwordStatus.error}</p>}
             {passwordStatus.success && <p className="settings-status settings-status--success">{passwordStatus.success}</p>}
-            <button type="submit" disabled={passwordStatus.loading}>
-              {passwordStatus.loading ? 'Zmienianie...' : 'Zmień hasło'}
-            </button>
+            <div className="settings-form-buttons">
+              <button type="submit" disabled={passwordStatus.loading}>
+                {passwordStatus.loading ? 'Zmienianie...' : 'Zmień hasło'}
+              </button>
+              <button
+                type="button"
+                className="settings-reset-btn"
+                onClick={() => setShowPasswordReset(true)}
+              >
+                Nie pamiętasz hasła?
+              </button>
+            </div>
           </form>
         </div>
 
@@ -521,6 +631,22 @@ function UserSettings() {
         </div>
 
       </div>
+
+      {showEmailVerification && (
+        <EmailChangeVerification
+          newEmail={pendingEmail}
+          onVerified={handleEmailVerified}
+          onCancelled={handleEmailVerificationCancel}
+        />
+      )}
+
+      {showPasswordReset && (
+        <PasswordResetModal
+          email={profile?.email || user?.email}
+          onClose={() => setShowPasswordReset(false)}
+          onSuccess={handlePasswordResetSuccess}
+        />
+      )}
 
       <div className="settings-logout">
         <button className="settings-logout-btn" onClick={handleLogout} disabled={loggingOut}>

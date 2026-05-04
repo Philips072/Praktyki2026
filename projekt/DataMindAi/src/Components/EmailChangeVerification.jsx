@@ -19,10 +19,6 @@ function EmailChangeVerification({ newEmail, onVerified, onCancelled }) {
   }
 
   useEffect(() => {
-    sendEmailToUser()
-  }, [])
-
-  useEffect(() => {
     const code = verificationCode.join('')
     if (emailSent && code.length === 6 && code !== lastVerifiedCodeRef.current && !isVerifying) {
       const timer = setTimeout(() => {
@@ -186,55 +182,82 @@ function EmailChangeVerification({ newEmail, onVerified, onCancelled }) {
         </div>
 
         <div className="email-change-body">
-          <p className="email-change-info">
-            Wpisz kod, który wysłaliśmy na adres: <strong>{newEmail}</strong>
-          </p>
+          {!emailSent ? (
+            <>
+              <p className="email-change-info">
+                Wyślemy Ci kod weryfikacyjny na adres: <strong>{newEmail}</strong>
+              </p>
 
-          <div className="email-change-code-inputs">
-            {verificationCode.map((digit, index) => (
-              <input
-                key={index}
-                id={`email-change-code-${index}`}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={e => handleCodeChange(index, e.target.value)}
-                onKeyDown={e => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined}
-                disabled={isVerifying}
-                autoFocus={index === 0}
-              />
-            ))}
-          </div>
+              <button
+                type="button"
+                className="email-change-verify-btn"
+                onClick={sendEmailToUser}
+                disabled={loading}
+              >
+                {loading ? 'Wysyłanie...' : 'Wyślij kod'}
+              </button>
 
-          {error && <p className="email-change-error">{error}</p>}
+              <button
+                type="button"
+                className="email-change-cancel-btn"
+                onClick={onCancelled}
+              >
+                Anuluj
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="email-change-info">
+                Wpisz kod, który wysłaliśmy na adres: <strong>{newEmail}</strong>
+              </p>
 
-          <button
-            type="button"
-            className="email-change-verify-btn"
-            onClick={verifyCode}
-            disabled={isVerifying || verificationCode.join('').length !== 6}
-          >
-            {isVerifying ? 'Weryfikacja...' : 'Zweryfikuj kod'}
-          </button>
+              <div className="email-change-code-inputs">
+                {verificationCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`email-change-code-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handleCodeChange(index, e.target.value)}
+                    onKeyDown={e => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
+                    disabled={isVerifying}
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
 
-          <button
-            type="button"
-            className="email-change-resend-btn"
-            onClick={resendCode}
-            disabled={isResending}
-          >
-            {isResending ? 'Wysyłanie...' : 'Wyślij nowy kod'}
-          </button>
+              {error && <p className="email-change-error">{error}</p>}
 
-          <button
-            type="button"
-            className="email-change-cancel-btn"
-            onClick={onCancelled}
-          >
-            Anuluj
-          </button>
+              <button
+                type="button"
+                className="email-change-verify-btn"
+                onClick={verifyCode}
+                disabled={isVerifying || verificationCode.join('').length !== 6}
+              >
+                {isVerifying ? 'Weryfikacja...' : 'Zweryfikuj kod'}
+              </button>
+
+              <button
+                type="button"
+                className="email-change-resend-btn"
+                onClick={resendCode}
+                disabled={isResending}
+              >
+                {isResending ? 'Wysyłanie...' : 'Wyślij nowy kod'}
+              </button>
+
+              <button
+                type="button"
+                className="email-change-cancel-btn"
+                onClick={onCancelled}
+              >
+                Anuluj
+              </button>
+            </>
+          )}
         </div>
 
         {toast.show && (

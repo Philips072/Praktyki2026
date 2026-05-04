@@ -301,3 +301,90 @@
     transform: translateX(-50%) translateY(0);
   }
 }
+
+/* ── Password Inputs (for Password Reset Modal) ─────────────── */
+
+.email-change-password-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.email-change-password-wrapper {
+  position: relative;
+}
+
+.email-change-password-wrapper input {
+  width: 100% !important;
+  height: 48px !important;
+  padding: 0 48px 0 16px !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  border: 2px solid var(--borderColor) !important;
+  background: var(--inputBg) !important;
+  color: var(--primaryText) !important;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: VennRegular;
+  box-sizing: border-box;
+}
+
+.email-change-password-wrapper input:focus {
+  border-color: var(--accentColor) !important;
+}
+
+.email-change-password-wrapper input::placeholder {
+  color: #8d94a5;
+}
+
+.email-change-password-wrapper input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.email-change-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: #8d94a5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.email-change-password-toggle:hover {
+  color: var(--primaryText);
+  background: var(--inputBg);
+}
+
+.email-change-password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media screen and (max-width: 640px) {
+  .email-change-password-wrapper input {
+    height: 44px !important;
+    font-size: 0.85rem;
+  }
+
+  .email-change-password-toggle {
+    width: 28px;
+    height: 28px;
+  }
+
+  .email-change-password-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+}

@@ -90,6 +90,7 @@ serve(async (req) => {
       from: 'DataMind AI <onboarding@lingaway.com>',
       to: email,
       subject: 'Reset hasła - DataMind AI',
+      text: `Reset hasła - DataMind AI\n\nWitaj!\nOtrzymaliśmy prośbę o reset hasła do Twojego konta w DataMind AI.\n\nOto Twój kod weryfikacyjny:\n\n${code}\n\nKod wygasa za 15 minut.\nJeśli nie prosiłeś o reset hasła, zignoruj tę wiadomość.\n\nDataMind AI - Nauka SQL na miarę Twoich potrzeb`,
       html: `
         <!DOCTYPE html>
         <html>

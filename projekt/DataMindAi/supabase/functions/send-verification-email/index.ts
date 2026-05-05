@@ -70,6 +70,7 @@ serve(async (req) => {
       from: 'DataMind AI <onboarding@lingaway.com>',
       to: email,
       subject: 'Kod weryfikacyjny - DataMind AI',
+      text: `Kod weryfikacyjny - DataMind AI\n\nWitaj!\nOto Twój kod weryfikacyjny do rejestracji w DataMind AI:\n\n${code}\n\nKod wygasa za 15 minut.\nJeśli nie rejestrowałeś się w DataMind AI, zignoruj tę wiadomość.\n\nDataMind AI - Nauka SQL na miarę Twoich potrzeb`,
       html: `
         <!DOCTYPE html>
         <html>

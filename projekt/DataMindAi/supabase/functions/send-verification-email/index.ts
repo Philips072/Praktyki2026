@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from 'https://deno.land/std@0.208.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 import { Resend } from 'npm:resend@2.0.0'
 
 // Generuj 6-cyfrowy kod
@@ -74,30 +74,47 @@ serve(async (req) => {
         <!DOCTYPE html>
         <html>
         <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
-            .code { font-size: 32px; font-weight: bold; text-align: center; background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; letter-spacing: 5px; }
-            .footer { background: #f5f5f5; padding: 15px; border-radius: 0 0 10px 10px; font-size: 12px; color: #666; }
-          </style>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Kod weryfikacyjny - DataMind AI</title>
         </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h2>📧 Kod weryfikacyjny</h2>
-            </div>
-            <div style="padding: 20px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
-              <p>Witaj!</p>
-              <p>Oto Twój kod weryfikacyjny do rejestracji w DataMind AI:</p>
-              <div class="code">${code}</div>
-              <p><strong>Kod wygasa za 15 minut.</strong></p>
-              <p>Jeśli nie rejestrowałeś się w DataMind AI, zignoruj tę wiadomość.</p>
-            </div>
-            <div class="footer">
-              <p>DataMind AI - Nauka SQL na miarę Twoich potrzeb</p>
-            </div>
-          </div>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+            <tr>
+              <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; text-align: center;">
+                      <h2 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">📧 Kod weryfikacyjny</h2>
+                    </td>
+                  </tr>
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 40px 40px 30px;">
+                      <p style="margin: 0 0 20px; color: #333; font-size: 16px;">Witaj!</p>
+                      <p style="margin: 0 0 20px; color: #333; font-size: 16px;">Oto Twój kod weryfikacyjny do rejestracji w DataMind AI:</p>
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                          <td style="background-color: #f8f9fa; border: 2px solid #667eea; border-radius: 8px; padding: 20px; text-align: center;">
+                            <span style="font-size: 36px; font-weight: bold; color: #333; letter-spacing: 8px;">${code}</span>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin: 20px 0 0; color: #666; font-size: 14px;"><strong>Kod wygasa za 15 minut.</strong></p>
+                      <p style="margin: 20px 0 0; color: #666; font-size: 14px;">Jeśli nie rejestrowałeś się w DataMind AI, zignoruj tę wiadomość.</p>
+                    </td>
+                  </tr>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
+                      <p style="margin: 0; color: #666; font-size: 12px;">DataMind AI - Nauka SQL na miarę Twoich potrzeb</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
         </html>
       `,

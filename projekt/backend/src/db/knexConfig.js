@@ -143,7 +143,7 @@ const createConnection = async (userId, lessonId) => {
   const dbPath = getDbPath(userId, lessonId);
 
   return knex({
-    client: 'sqlite3',
+    client: 'better-sqlite3',
     connection: {
       filename: dbPath
     },
@@ -710,7 +710,7 @@ const createSandboxConnection = async (userId, dbId) => {
   const dbPath = getSandboxDbPath(userId, dbId);
 
   return knex({
-    client: 'sqlite3',
+    client: 'better-sqlite3',
     connection: {
       filename: dbPath
     },

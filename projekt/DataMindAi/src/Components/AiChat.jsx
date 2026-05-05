@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './AiChat.css';
 import { sendChat } from '../api';
+import { useAuth } from '../AuthContext';
 
 const initialMessages = [
   {
@@ -15,10 +16,14 @@ Pomagam w nauce SQL i analizie danych. Możesz mnie zapytać o podstawy, zaawans
 ];
 
 function AiChat() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   // Inicjalizuj stan z localStorage od razu
   const [messages, setMessages] = useState(() => {
     try {
-      const savedMessages = localStorage.getItem('aichat_messages');
+      const storageKey = userId ? `aichat_messages_${userId}` : 'aichat_messages';
+      const savedMessages = localStorage.getItem(storageKey);
       if (savedMessages) {
         const parsed = JSON.parse(savedMessages);
         if (parsed && parsed.length > 0) {
@@ -38,16 +43,43 @@ function AiChat() {
   // Zapisuj historię do localStorage przy każdej zmianie (ale nie przy pierwszym renderze)
   useEffect(() => {
     if (!isFirstRender.current) {
-      localStorage.setItem('aichat_messages', JSON.stringify(messages));
+      const storageKey = userId ? `aichat_messages_${userId}` : 'aichat_messages';
+      localStorage.setItem(storageKey, JSON.stringify(messages));
     } else {
       isFirstRender.current = false;
     }
-  }, [messages]);
+  }, [messages, userId]);
+
+  // Przeładuj wiadomości po zmianie użytkownika
+  useEffect(() => {
+    if (userId === undefined) return; // Czekaj aż userId będzie dostępne
+
+    try {
+      const storageKey = userId ? `aichat_messages_${userId}` : 'aichat_messages';
+      const savedMessages = localStorage.getItem(storageKey);
+      if (savedMessages) {
+        const parsed = JSON.parse(savedMessages);
+        if (parsed && parsed.length > 0) {
+          setMessages(parsed);
+        } else {
+          setMessages(initialMessages);
+        }
+      } else {
+        setMessages(initialMessages);
+      }
+    } catch (e) {
+      console.error('Błąd podczas wczytywania historii:', e);
+      setMessages(initialMessages);
+    }
+  }, [userId]);
 
   const startNewConversation = () => {
     setMessages(initialMessages);
     setInput('');
     setError(null);
+    // Wyczyść storage dla tego użytkownika
+    const storageKey = userId ? `aichat_messages_${userId}` : 'aichat_messages';
+    localStorage.removeItem(storageKey);
   };
 
   const sendMessage = async () => {

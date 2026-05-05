@@ -1,5 +1,6 @@
 const BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
 const API_TIMEOUT = 30000; // 30 sekund timeout
+const LONG_TIMEOUT = 120000; // 2 minuty timeout dla generowania lekcji
 
 async function fetchWithTimeout(url, options = {}, timeout = API_TIMEOUT) {
   const controller = new AbortController();
@@ -21,13 +22,13 @@ async function fetchWithTimeout(url, options = {}, timeout = API_TIMEOUT) {
   }
 }
 
-async function post(path, body) {
+async function post(path, body, timeout = API_TIMEOUT) {
   console.log('=== API POST ===', 'path:', path, 'body:', body)
   const res = await fetchWithTimeout(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-  });
+  }, timeout);
   console.log('Response status:', res.status)
   const data = await res.json();
   console.log('Response data:', data)
@@ -104,7 +105,7 @@ export const getPersonalizedContent = async (lessonTitle, lessonSubtitle, sectio
   console.log('Schema count:', schema?.length);
   console.log('Exercises count:', exercises?.length);
 
-  const result = await post('/api/ai/personalized-content', { lessonTitle, lessonSubtitle, sections, interests, schema, exercises });
+  const result = await post('/api/ai/personalized-content', { lessonTitle, lessonSubtitle, sections, interests, schema, exercises }, LONG_TIMEOUT);
 
   console.log('Result sections count:', result.sections?.length);
   console.log('First section:', result.sections?.[0]);

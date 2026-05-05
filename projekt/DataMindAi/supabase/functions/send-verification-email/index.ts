@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { Resend } from 'npm:resend@2.0.0'
@@ -66,7 +67,7 @@ serve(async (req) => {
 
     // Wyślij email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: 'DataMind AI <onboarding@resend.dev>',
+      from: 'DataMind AI <onboarding@lingaway.com>',
       to: email,
       subject: 'Kod weryfikacyjny - DataMind AI',
       html: `

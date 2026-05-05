@@ -87,7 +87,7 @@ serve(async (req) => {
     }
 
     const { error: emailError } = await resend.emails.send({
-      from: 'DataMind AI <onboarding@resend.dev>',
+      from: 'DataMind AI <onboarding@lingaway.com>',
       to: email,
       subject: 'Reset hasła - DataMind AI',
       html: `

@@ -2,6 +2,18 @@
   background-color: var(--primaryBg);
   font-family: VennRegular;
   color: var(--primaryText);
+  animation: pageFadeIn 0.4s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lectures-header {
@@ -169,4 +181,23 @@
 
 .lecture-play-icon {
   font-size: 10px;
+}
+
+.lecture-card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lecture-card--disabled:hover {
+  border-color: var(--borderColor);
+}
+
+.lecture-card--disabled .lecture-button {
+  background-color: var(--borderColor);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.lecture-card--disabled .lecture-button:hover {
+  background-color: var(--borderColor);
 }

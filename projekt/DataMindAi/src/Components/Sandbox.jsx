@@ -464,7 +464,7 @@ function Sandbox() {
   return (
     <div className="sandbox-page">
       <h1>Sandbox Bazy Danych</h1>
-      <p className="subtitle">Twój prywatny sandbox SQLite - twórz tabele, bazy danych i wykonuj zapytania SQL</p>
+      <p className="subtitle">Twój prywatny sandbox MySQL - twórz tabele, bazy danych i wykonuj zapytania SQL</p>
 
       <div className="sandbox-stats-grid">
         {stats.map((item, i) => (

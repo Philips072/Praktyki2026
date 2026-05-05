@@ -37,9 +37,10 @@ function Lectures() {
           const isDone = isLessonCompleted(progress);
           const isInProgress = progress.completed > 0 && !isDone;
           const progressPercent = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
+          const isDisabled = lesson.id > 2;
 
           return (
-            <div key={lesson.id} className={`lecture-card ${isDone ? 'lecture-card--done' : ''}`}>
+            <div key={lesson.id} className={`lecture-card ${isDone ? 'lecture-card--done' : ''} ${isDisabled ? 'lecture-card--disabled' : ''}`}>
               <div className="lecture-card-inner">
                 <div className={`lecture-badge ${isDone ? 'lecture-badge--done' : ''}`}>
                   <span className="lecture-badge-num">{lesson.id}</span>
@@ -73,6 +74,7 @@ function Lectures() {
                   <button
                     className={`lecture-button ${isDone ? 'lecture-button--done' : ''}`}
                     onClick={() => navigate(`/lekcja/${lesson.id}`)}
+                    disabled={isDisabled}
                   >
                     {isDone ? (
                       <>

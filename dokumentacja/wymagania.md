@@ -49,13 +49,16 @@
 
 - Nauczyciel ma dostęp do Panel Nauczyciela
 - Nauczyciel widzi listę wszystkich uczniów z ich poziomami SQL
-- Nauczyciel może tworzyć testy (ręcznie lub przez AI)
+- Nauczyciel może tworzyć testy przez Kreator testów
 - Nauczyciel może przypisywać testy do uczniów (pojedynczo lub masowo)
+- Nauczyciel może przypisywać testy do całych klas
+- Nauczyciel może oceniać odpowiedzi uczniów w testach
+- Nauczyciel może przeglądać historię wyników ucznia
+- Nauczyciel może usuwać testy (z potwierdzeniem)
 - Nauczyciel może zarządzać klasami (tworzyć, edytować, usuwać)
 - Nauczyciel może filtrować uczniów według klas
 - Nauczyciel może przeglądać statystyki klasy
 - Nauczyciel może dodawać/usuwać uczniów z klas
-- Nauczyciel może przypisywać testy do całych klas naraz
 - Nauczyciel może tworzyć klasy (walidacja nazwy: cyfra + 1-2 litery)
 
 ### Użytkownik - Administrator
@@ -111,6 +114,63 @@
 - System zapobiega duplikatom w przypisaniach
 - Modal ma zakładki: "Wybierz uczniów" lub "Wybierz klasę"
 - System pokazuje licznik wybranych uczniów
+
+### System Testów
+
+#### Kreator Testów
+
+- Nauczyciel może tworzyć testy z wieloma pytaniami
+- Obsługiwane typy pytań:
+  - **SQL** — uczeń wpisuje zapytanie SQL
+  - **Wielokrotny wybór** — wybór z dostępnych opcji (2-6 opcji)
+  - **Prawda/Fałsz** — prosta odpowiedź tak/nie
+- Każde pytanie może mieć przypisaną punktację (domyślnie 2 pkt)
+- Dla pytań SQL nauczyciel może podać oczekiwane zapytanie (do auto-sprawdzania)
+- Nauczyciel może włączyć opcję "Auto-sprawdzanie" dla pytań SQL
+- System konfiguruje progi oceniania (np. 90% = 5, 75% = 4)
+- Opcjonalnie można włączyć ocenę 6 (skala 1-6)
+- Test jest zapisywany w tabeli `tests` w Supabase
+
+#### Rozwiązywanie Testów (Uczeń)
+
+- Uczeń widzi listę przypisanych testów na `/testy`
+- Filtry: Wszystkie, Oczekujące, W trakcie, Ukończone
+- Uczeń może rozpocząć, kontynuować lub podglądać wyniki testów
+- Podczas rozwiązywania:
+  - Nawigacja między pytaniami (przyciski lub kliknięcie numeru)
+  - Wskaźnik postępu (%)
+  - Dla pytań SQL: edytor z możliwością uruchomienia zapytania
+  - Odpowiedzi są zapisywane automatycznie (autosave)
+  - Skróty klawiszowe: Ctrl+Enter (uruchom SQL), Alt+←/→ (nawigacja)
+- Po zakończeniu uczeń przesyła test — zmienia status na "completed"
+
+#### Statusy Przypisań
+
+- `pending` — test oczekuje na rozpoczęcie
+- `in_progress` — uczeń rozpoczął, ale nie ukończył
+- `completed` — uczeń przesłał odpowiedzi, oczekuje na ocenę
+- `graded` — test został oceniony przez nauczyciela
+
+#### Ocenianie Testów (Nauczyciel)
+
+- Nauczyciel widzi listę testów z informacją o przypisaniach
+- Nauczyciel może przeglądać ocenione przypisania
+- Dla każdego przypisania:
+  - Przegląd odpowiedzi ucznia
+  - Przydzielanie punktów dla każdego pytania
+  - Obliczanie końcowego wyniku (%)
+  - Automatyczne obliczanie oceny literowej na podstawie progów
+- Nauczyciel może usunąć test (z usunięciem powiązanych przypisań)
+
+#### Historia i Statystyki
+
+- Nauczyciel może przeglądać historię wyników ucznia
+- System wyświetla wykres postępów ucznia
+- Analiza najczęstszych błędów:
+  - Brak klauzuli FROM/WHERE/GROUP BY/ORDER BY
+  - Błędna nazwa tabeli lub kolumny
+  - Błędne użycie operatorów lub JOIN
+- Ranking uczniów według liczby ukończonych zadań
 
 ### Zarządzanie Uczniami w Klasach
 

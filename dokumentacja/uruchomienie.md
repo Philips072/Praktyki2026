@@ -167,12 +167,16 @@ Frontend będzie dostępny pod adresem: `http://localhost:5173`
 | `/logowanie` | Logowanie | Nie (tylko niezalogowani) | Wszyscy |
 | `/rejestracja` | Rejestracja | Nie (tylko niezalogowani) | Wszyscy |
 | `/reset-hasla` | Resetowanie hasła | Nie | Wszyscy |
+| `/potwierdzenie-email` | Potwierdzenie zmiany e-maila | Nie | Wszyscy |
 | `/onboarding` | Ankieta powitalna | Tak | Wszyscy |
 | `/dashboard` | Panel użytkownika | Tak | Uczeń |
 | `/lekcje` | Lista lekcji SQL | Tak | Uczeń |
 | `/lekcja/:id` | Pojedyncza lekcja | Tak | Uczeń |
 | `/ai-chat` | Czat z AI | Tak | Uczeń |
 | `/sandbox` | Sandbox SQL | Tak | Uczeń |
+| `/testy` | Lista przypisanych testów | Tak | Uczeń |
+| `/testy/:assignmentId` | Rozwiązywanie testu | Tak | Uczeń |
+| `/kreator-testow` | Kreator testów | Tak | Nauczyciel |
 | `/wiadomosci` | Wiadomości | Tak | Wszyscy |
 | `/ustawienia` | Ustawienia konta | Tak | Wszyscy |
 | `/panel-nauczyciela` | Panel nauczyciela | Tak | Nauczyciel |
@@ -276,3 +280,78 @@ OpenRouter oferuje bezpłatny dostęp do niektórych modeli w limicie. Sprawdź 
 - Sprawdź czy masz środki na koncie OpenRouter
 - Sprawdź logi backendu pod kątem błędów z API
 - Sprawdź czy nie przekroczono limitu rate limiter (`/api/ai/aiLimiter`)
+
+---
+
+## System Testów
+
+### Przegląd funkcjonalności
+
+System testów pozwala nauczycielom na tworzenie, przypisywanie i ocenianie testów, a uczniom na ich rozwiązywanie.
+
+### Tworzenie testów (Nauczyciel)
+
+- Wejdź na `/kreator-testow` lub użyj zakładki "Testy" w panelu nauczyciela
+- Uzupełnij podstawowe informacje:
+  - **Tytuł testu** — nazwa testu
+  - **Opis** — opcjonalny opis
+  - **Umiejętność** — kategoria umiejętności (SELECT, INSERT, UPDATE, JOIN, itd.)
+- Dodaj pytania (wiele typów):
+  - **Zapytanie SQL** — uczeń wpisuje zapytanie SQL
+  - **Wielokrotny wybór** — wybór z dostępnych opcji (A, B, C, D...)
+  - **Prawda/Fałsz** — prosta odpowiedź tak/nie
+- Skonfiguruj progi oceniania (np. 90% = 5, 75% = 4, itd.)
+- Opcjonalnie włącz ocenę 6 (skala 1-6)
+- Kliknij "Utwórz test"
+
+### Przypisywanie testów (Nauczyciel)
+
+1. **Do pojedynczego ucznia:**
+   - W panelu nauczyciela wybierz zakładkę "Uczniowie"
+   - Wybierz ucznia i kliknij "Przypisz test"
+
+2. **Masowe przypisywanie:**
+   - W zakładce "Testy" kliknij "Przypisz" przy wybranym teście
+   - Wybierz opcję "Wybierz uczniów" lub "Wybierz klasę"
+   - Zaznacz uczniów lub klasę i potwierdź
+
+3. **Do całej klasy:**
+   - W zakładce "Klasy" wybierz klasę
+   - Wybierz "Zarządzaj uczniami" → "Przypisz test do klasy"
+
+### Rozwiązywanie testów (Uczeń)
+
+1. Wejdź na `/testy` — zobaczysz listę przypisanych testów
+2. Filtruj po statusie: Wszystkie, Oczekujące, W trakcie, Ukończone
+3. Kliknij "Rozpocznij test" dla oczekującego testu
+4. Odpowiadaj na pytania:
+   - **SQL** — wpisz zapytanie w edytorze, możesz je uruchomić (Ctrl+Enter)
+   - **Wielokrotny wybór** — wybierz poprawną opcję
+   - **Prawda/Fałsz** — wybierz prawdę lub fałsz
+5. Nawiguj między pytaniami przyciskami lub klikając numery pytań
+6. Kliknij "Zakończ i prześlij test" gdy skończysz
+7. Odpowiedzi są zapisywane automatycznie (autosave co 1 sekundę)
+
+### Ocenianie testów (Nauczyciel)
+
+1. W panelu nauczyciela przejdź do zakładki "Testy"
+2. Wybierz test, aby zobaczyć ocenione przypisania
+3. Kliknij przypisanie, aby zobaczyć szczegóły
+4. Przeglądaj odpowiedzi ucznia i przydziel punkty
+5. Zapisz ocenę
+
+### Statusy przypisań
+
+| Status | Opis |
+|--------|------|
+| `pending` | Test oczekuje na rozpoczęcie |
+| `in_progress` | Uczeń rozpoczął, ale nie ukończył |
+| `completed` | Uczeń przesłał odpowiedzi, oczekuje na ocenę |
+| `graded` | Test został oceniony przez nauczyciela |
+
+### Skróty klawiszowe
+
+Podczas rozwiązywania testu:
+- `Ctrl + Enter` — uruchomienie zapytania SQL
+- `Alt + ←` — poprzednie pytanie
+- `Alt + →` — następne pytanie

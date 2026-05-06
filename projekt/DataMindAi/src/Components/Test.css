@@ -173,6 +173,14 @@
   color: #4caf50;
 }
 
+.test-status-badge-graded {
+  background: linear-gradient(135deg, var(--accentColor) 0%, var(--btnHoverBlue) 100%);
+  color: var(--primaryText);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(50, 66, 119, 0.4);
+}
+
 .test-status-badge-expired {
   background: rgba(244, 67, 54, 0.2);
   color: #f44336;

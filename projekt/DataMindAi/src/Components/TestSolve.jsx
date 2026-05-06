@@ -20,9 +20,11 @@ function TestSolve() {
   // Stan dla nawigacji między pytaniami
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState({}) // { questionId: answer }
+  const [questionScores, setQuestionScores] = useState({}) // { questionId: points }
   const [result, setResult] = useState(null)
   const [running, setRunning] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [showGradedView, setShowGradedView] = useState(false)
 
   // Ładowanie danych
   useEffect(() => {
@@ -44,6 +46,7 @@ function TestSolve() {
           assigned_at,
           score,
           question_answers,
+          question_scores,
           tests (
             id,
             title,
@@ -82,6 +85,14 @@ function TestSolve() {
             loadedAnswers[qa.questionId] = qa.answer
           })
           setAnswers(loadedAnswers)
+        }
+        // Załaduj wyniki pytan
+        if (data.question_scores) {
+          const loadedScores = {}
+          data.question_scores.forEach(qs => {
+            loadedScores[qs.questionId] = qs.points
+          })
+          setQuestionScores(loadedScores)
         }
       } else if (data.question_answers) {
         // Jeśli są zapisane odpowiedzi ale test nieukończony, załaduj je
@@ -311,44 +322,145 @@ function TestSolve() {
     const hasScore = assignment?.score !== null && assignment?.score !== undefined
     const isGraded = assignment?.status === 'graded'
 
+    // Oblicz ocene literowa
+    const calculateLetterGrade = (score) => {
+      if (!test?.grading_thresholds) return '---'
+      const entries = Object.entries(test.grading_thresholds)
+        .map(([grade, minPercent]) => ({ grade: String(grade), minPercent: Number(minPercent) }))
+        .sort((a, b) => b.minPercent - a.minPercent)
+      for (const t of entries) {
+        if (score >= t.minPercent) return t.grade
+      }
+      return '1'
+    }
+
+    const letterGrade = hasScore ? calculateLetterGrade(assignment.score) : '---'
+
     return (
       <div className="test-solve-page">
-        <div className="test-solve-completed">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path
-              d="M9 12l3 3 5-6"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </svg>
-          <h1>Test ukończony! 🎉</h1>
-          {hasScore ? (
-            <>
-              <div className="test-solve-score">
-                <span className="test-solve-score-value">{assignment.score}</span>
-                <span className="test-solve-score-label">pkt</span>
+        {showGradedView ? (
+          <div className="test-graded-view">
+            <header className="test-graded-header">
+              <button onClick={() => setShowGradedView(false)} className="btn-back">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M19 12H5M12 19l-7-7 7-7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Wróć
+              </button>
+              <h2>{test.title}</h2>
+              {isGraded && <span className="graded-badge">GRADED</span>}
+            </header>
+
+            <div className="test-graded-content">
+              <div className="test-graded-summary">
+                <div className="graded-score-card">
+                  <span className="graded-score-label">Twój wynik</span>
+                  <span className="graded-score-value">{hasScore ? assignment.score : '--'}%</span>
+                  {hasScore && (
+                    <>
+                      <span className="graded-grade-badge">{letterGrade}</span>
+                      <span className="graded-status-text">Oceniono przez nauczyciela</span>
+                    </>
+                  )}
+                </div>
               </div>
-              <p>Oceniono przez nauczyciela</p>
-            </>
-          ) : (
-            <>
-              <p>Odpowiedzi zostały przesłane.</p>
-              <p>Oczekuj na ocenę nauczyciela.</p>
-            </>
-          )}
-          <button onClick={() => navigate('/testy')} className="btn-primary">
-            Wróć do listy testów
-          </button>
-        </div>
+
+              <div className="graded-questions-list">
+                {questions.map((question, idx) => {
+                  const answer = answers[question.id]
+                  const score = questionScores[question.id]
+                  const maxPoints = question.points || 2
+                  const isFullScore = score === maxPoints
+
+                  return (
+                    <div key={question.id} className="graded-question-card">
+                      <div className="graded-question-header">
+                        <span className="graded-question-number">Pytanie {idx + 1}</span>
+                        {isGraded && score !== undefined && (
+                          <span className={`graded-points-badge ${isFullScore ? 'full' : 'partial'}`}>
+                            {score} / {maxPoints} pkt
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="graded-question-title">{question.title}</h3>
+
+                      {question.description && (
+                        <p className="graded-question-desc">{question.description}</p>
+                      )}
+
+                      <div className="graded-answer-section">
+                        <label className="graded-answer-label">Twoja odpowiedź:</label>
+                        {question.type === 'sql' ? (
+                          <div className="graded-code-block">
+                            <code>{answer || 'Brak odpowiedzi'}</code>
+                          </div>
+                        ) : question.type === 'multiple_choice' ? (
+                          <div className="graded-choice-answer">
+                            <span>Wybrano: <strong>{answer || '-'}</strong></span>
+                          </div>
+                        ) : (
+                          <div className="graded-choice-answer">
+                            <span>Wybrano: <strong>{answer === 'true' ? 'Prawda' : answer === 'false' ? 'Fałsz' : '-'}</strong></span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="test-solve-completed">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 12l3 3 5-6"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+            {isGraded && <span className="completion-graded-badge">GRADED</span>}
+            <h1>{hasScore ? 'Twój wynik' : 'Test ukończony!'} {hasScore && '🎉'}</h1>
+
+            {hasScore ? (
+              <>
+                <div className="test-solve-score">
+                  <span className="test-solve-score-value">{assignment.score}</span>
+                  <span className="test-solve-score-label">%</span>
+                </div>
+                <div className="test-solve-grade-badge">{letterGrade}</div>
+                <p>Oceniono przez nauczyciela</p>
+                <button onClick={() => setShowGradedView(true)} className="btn-primary btn-view-answers">
+                  Zobacz swoje odpowiedzi
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Odpowiedzi zostały przesłane.</p>
+                <p>Oczekuj na ocenę nauczyciela.</p>
+              </>
+            )}
+            <button onClick={() => navigate('/testy')} className="btn-secondary">
+              Wróć do listy testów
+            </button>
+          </div>
+        )}
       </div>
     )
   }

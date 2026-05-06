@@ -32,16 +32,18 @@ Przeglądarka
 | Technologia | Wersja | Rola |
 |-------------|--------|------|
 | React | 19.2.4 | Biblioteka UI — komponenty, stan, renderowanie |
+| React DOM | 19.2.4 | Renderowanie React w przeglądarce |
+| React Router | 7.14.0 | Core routing po stronie klienta |
+| React Router DOM | 7.14.1 | DOM bindings dla React Router |
 | Vite | 8.0.4 | Bundler, serwer deweloperski, HMR |
-| React Router DOM | 7.14.1 | Routing po stronie klienta (SPA) |
 | Supabase JS | 2.103.0 | Auth, baza danych (PostgreSQL), realtime |
 | react-toastify | 11.1.0 | Powiadomienia (toasty) |
 | react-markdown | 9.1.0 | Renderowanie Markdown (odpowiedzi AI) |
+| remark-gfm | 4.0.1 | GitHub Flavored Markdown |
 | chart.js | 4.5.1 | Wykresy w dashboardach |
 | file-saver | 2.0.5 | Eksport plików (CSV/PDF) |
-| remark-gfm | 4.0.1 | GitHub Flavored Markdown |
+| router | 2.2.0 | Routing (używany przez react-router) |
 | CSS (własne arkusze) | — | Stylowanie komponentów |
-| sql.js | 1.14.1 | SQLite w przeglądarce (sandbox) |
 
 ### Backend (`projekt/backend/`)
 
@@ -58,6 +60,7 @@ Przeglądarka
 | morgan | 1.10.1 | Logger HTTP |
 | knex | 3.2.9 | Query builder dla SQLite |
 | sqlite3 | 6.0.1 | Sterownik SQLite |
+| sql.js | 1.14.1 | SQLite w przeglądarce (sandbox) |
 | uuid | 14.0.0 | Generowanie unikalnych ID |
 | xss-clean | 0.1.4 | Ochrona przed XSS |
 | zod | 4.3.6 | Walidacja danych |
@@ -234,16 +237,20 @@ Tworzy nową bazę SQLite w folderze `sandbox/` do swobodnego ćwiczenia.
 | `LoginPage.jsx` | `/logowanie` | tylko niezalogowani | Formularz logowania |
 | `RegisterPage.jsx` | `/rejestracja` | tylko niezalogowani | Formularz rejestracji |
 | `ForgotPasswordPage.jsx` | `/reset-hasla` | publiczna | Resetowanie hasła przez e-mail |
+| `EmailChangeConfirm.jsx` | `/potwierdzenie-email` | publiczna | Potwierdzenie zmiany e-maila |
 | `OnboardingPage.jsx` | `/onboarding` | zalogowani | Ankieta powitalna (poziom, zainteresowania AI) |
 | `DashboardPage.jsx` | `/dashboard` | zalogowani | Panel użytkownika |
 | `LecturesPage.jsx` | `/lekcje` | zalogowani | Lista lekcji SQL |
 | `LessonPage.jsx` | `/lekcja/:id` | zalogowani | Pojedyncza lekcja SQL z edytorem SQL |
 | `AIChatPage.jsx` | `/ai-chat` | zalogowani | Czat z asystentem AI |
+| `SandboxPage.jsx` | `/sandbox` | zalogowani | Sandbox SQL - swobodne ćwiczenie |
+| `TestPage.jsx` | `/testy` | zalogowani (uczeń) | Lista przypisanych testów |
+| `TestSolvePage.jsx` | `/testy/:assignmentId` | zalogowani (uczeń) | Rozwiązywanie testu |
+| `TestCreatorPage.jsx` | `/kreator-testow` | zalogowani (nauczyciel) | Kreator testów |
 | `MessagesPage.jsx` | `/wiadomosci` | zalogowani | Wiadomości między użytkownikami |
 | `UserSettingsPage.jsx` | `/ustawienia` | zalogowani | Ustawienia konta |
 | `TeacherPanelPage.jsx` | `/panel-nauczyciela` | zalogowani (nauczyciel) | Panel nauczyciela |
 | `AdminPanelPage.jsx` | `/panel-admina` | zalogowani (administrator) | Panel administratora |
-| `SandboxPage.jsx` | `/sandbox` | zalogowani | Sandbox SQL - swobodne ćwiczenie |
 | `NotFoundPage.jsx` | `*` | publiczna | Strona 404 |
 
 ## Komponenty (Components)
@@ -290,6 +297,15 @@ Tworzy nową bazę SQLite w folderze `sandbox/` do swobodnego ćwiczenia.
 | `StudentDetail` | Szczegóły ucznia |
 | `ChatPanel` | Panel czatu z uczniem |
 
+### System testów
+
+| Komponent | Opis |
+|-----------|------|
+| `Test` | Lista przypisanych testów dla ucznia |
+| `TestSolve` | Interfejs rozwiązywania testu (edycja odpowiedzi, nawigacja) |
+| `TestCreator` | Kreator testów dla nauczycieli (tworzenie pytań, konfiguracja) |
+| `AssignedTests` | Lista przypisanych testów w panelu nauczyciela |
+
 ### Panel administratora
 
 | Komponent | Opis |
@@ -304,6 +320,36 @@ Tworzy nową bazę SQLite w folderze `sandbox/` do swobodnego ćwiczenia.
 | `SQLEditor` | Edytor SQL z podświetlaniem składni |
 | `ResultsTable` | Tabela wyników zapytań |
 | `DatabaseExplorer` | Przeglądarka tabel i schematów |
+
+### Funkcje panelu nauczyciela
+
+Panel nauczyciela (`/panel-nauczyciela`) zawiera trzy zakładki:
+
+### 1. Uczniowie
+- Pełna lista uczniów z danymi: imię, poziom SQL, klasa, liczba ukończonych zadań
+- Wyszukiwanie po imieniu
+- Filtrowanie po klasie
+- Przeglądanie szczegółów ucznia z historią wyników
+- Przypisywanie testów do pojedynczych uczniów
+- Przeglądanie najczęstszych błędów ucznia
+- Wykres postępów ucznia
+
+### 2. Testy
+- Lista wszystkich testów z danymi: tytuł, umiejętność, liczba przypisań
+- Tworzenie nowych testów przez kreator testów
+- Przypisywanie testów do uczniów lub klas (masowe)
+- Przeglądanie ocenionych przypisań
+- Ocena odpowiedzi uczniów
+- Usuwanie testów (z usunięciem powiązanych przypisań)
+
+### 3. Klasy
+- Lista wszystkich klas z danymi: nazwa, opis, liczba uczniów, twórca
+- Tworzenie nowych klas
+- Edycja nazwy i opisu klasy (tylko twórca lub administrator)
+- Usuwanie klas (tylko twórca lub administrator)
+- Dodawanie uczniów do klas (wielu naraz)
+- Usuwanie uczniów z klas
+- Przypisywanie testów do całych klas
 
 ### Pozostałe
 
@@ -420,9 +466,55 @@ Przechowuje testy stworzone przez nauczycieli:
 | `id` | UUID (PK) | Unikalny identyfikator testu |
 | `title` | VARCHAR(255) | Tytuł testu |
 | `description` | TEXT | Opis testu |
+| `skill` | TEXT | Umiejętność (SELECT, INSERT, JOIN, etc.) |
+| `expected_sql` | TEXT | Oczekiwane zapytanie SQL (dla oceny automatycznej) |
 | `questions` | JSONB | Pytania testu |
+| `grading_thresholds` | JSONB | Progi oceniania |
 | `created_by` | UUID (FK → auth.users) | ID nauczyciela |
 | `created_at` | TIMESTAMP | Data utworzenia |
+
+**Struktura `questions`:**
+```json
+[
+  {
+    "id": 1,
+    "type": "sql",
+    "title": "Wybierz wszystkich użytkowników",
+    "expectedSql": "SELECT * FROM users",
+    "points": 2,
+    "autoCheck": false
+  },
+  {
+    "id": 2,
+    "type": "multiple_choice",
+    "title": "Która klauzula służy do filtrowania?",
+    "options": ["SELECT", "FROM", "WHERE", "ORDER BY"],
+    "correctAnswer": "C",
+    "points": 1,
+    "autoCheck": true
+  },
+  {
+    "id": 3,
+    "type": "true_false",
+    "title": "SELECT służy do modyfikacji danych",
+    "correctAnswer": "false",
+    "points": 1,
+    "autoCheck": true
+  }
+]
+```
+
+**Struktura `grading_thresholds`:**
+```json
+{
+  "1": 0,
+  "2": 30,
+  "3": 50,
+  "4": 75,
+  "5": 90,
+  "6": 95
+}
+```
 
 #### `assignments` Table
 Przypisania testów do uczniów:
@@ -432,9 +524,35 @@ Przypisania testów do uczniów:
 | `id` | UUID (PK) | Unikalny identyfikator przypisania |
 | `test_id` | UUID (FK → tests) | ID testu |
 | `student_id` | UUID (FK → profiles) | ID ucznia |
-| `status` | VARCHAR(20) | Status: `pending` / `in_progress` / `completed` |
+| `status` | VARCHAR(20) | Status: `pending` / `in_progress` / `completed` / `graded` |
+| `assigned_by` | UUID (FK → auth.users) | ID nauczyciela, który przypisał test |
+| `score` | INTEGER | Wynik w procentach (po ocenieniu przez nauczyciela) |
+| `question_answers` | JSONB | Odpowiedzi ucznia na pytania |
+| `question_scores` | JSONB | Punkty przyznane za każde pytanie (po ocenieniu) |
 | `assigned_at` | TIMESTAMP | Data przypisania |
 | `completed_at` | TIMESTAMP | Data ukończenia |
+
+**Struktura `question_answers`:**
+```json
+[
+  {
+    "questionId": 1,
+    "type": "sql",
+    "answer": "SELECT * FROM users",
+    "savedAt": "2026-05-06T10:00:00Z"
+  }
+]
+```
+
+**Struktura `question_scores`:**
+```json
+[
+  {
+    "questionId": 1,
+    "points": 2
+  }
+]
+```
 
 ### Tabele wiadomości w Supabase:
 
@@ -500,6 +618,67 @@ Aplikacja używa `react-toastify` do wyświetlania powiadomień:
 - Pozycja: `top-right`
 - Auto-zamykanie: 4000ms
 - Wspiera sukces, błędy, ostrzeżenia i informacje
+
+## Skróty klawiszowe
+
+### Podczas rozwiązywania testów (`/testy/:assignmentId`)
+
+| Skrót | Opis |
+|-------|------|
+| `Ctrl + Enter` (lub `Cmd + Enter`) | Uruchomienie zapytania SQL |
+| `Alt + ←` | Poprzednie pytanie |
+| `Alt + →` | Następne pytanie |
+
+### Ogólne
+
+| Skrót | Opis |
+|-------|------|
+| `Escape` | Zamknięcie modali i dialogów |
+
+## Typy pytań w systemie testów
+
+### SQL Question (`type: "sql"`)
+Uczeń wpisuje zapytanie SQL w edytorze.
+
+**Pola:**
+- `title` — treść pytania
+- `description` — opcjonalny opis dodatkowy
+- `expectedSql` — oczekiwane zapytanie SQL (do auto-sprawdzania)
+- `points` — liczba punktów (domyślnie 2)
+- `autoCheck` — czy automatycznie sprawdzać odpowiedź
+
+**Interfejs ucznia:**
+- Edytor SQL z podświetlaniem składni
+- Przycisk "Uruchom" do testowania zapytania
+- Wynik zapytania wyświetlany poniżej edytora
+
+### Multiple Choice Question (`type: "multiple_choice"`)
+Uczeń wybiera jedną z dostępnych opcji.
+
+**Pola:**
+- `title` — treść pytania
+- `options` — tablica opcji (2-6)
+- `correctAnswer` — litera poprawnej odpowiedzi (A, B, C, D...)
+- `points` — liczba punktów (domyślnie 1)
+- `autoCheck` — czy automatycznie sprawdzać odpowiedź
+
+**Interfejs ucznia:**
+- Lista opcji jako klikalne elementy
+- Każda opcja oznaczona literą (A, B, C...)
+
+### True/False Question (`type: "true_false"`)
+Uczeń wybiera Prawda lub Fałsz.
+
+**Pola:**
+- `title` — treść pytania (zdanie do oceny)
+- `correctAnswer` — `"true"` lub `"false"`
+- `points` — liczba punktów (domyślnie 1)
+- `autoCheck` — czy automatycznie sprawdzać odpowiedź
+
+**Interfejs ucznia:**
+- Dwie przyciski opcji: Prawda (✓) i Fałsz (✗)
+
+---
 
 ## Funkcje panelu administratora
 

@@ -95,6 +95,7 @@ function Test() {
       pending: { label: 'Oczekujący', color: 'test-status-badge-pending' },
       in_progress: { label: 'W trakcie', color: 'test-status-badge-in-progress' },
       completed: { label: 'Ukończony', color: 'test-status-badge-completed' },
+      graded: { label: 'Oceniono', color: 'test-status-badge-graded' },
       expired: { label: 'Wygasły', color: 'test-status-badge-expired' }
     }
 
@@ -315,6 +316,15 @@ function Test() {
                     className="test-btn test-btn-secondary"
                   >
                     Zobacz wynik
+                  </button>
+                )}
+
+                {assignment.status === 'graded' && (
+                  <button
+                    onClick={() => navigate(`/testy/${assignment.id}`)}
+                    className="test-btn test-btn-secondary"
+                  >
+                    Zobacz odpowiedzi
                   </button>
                 )}
               </div>

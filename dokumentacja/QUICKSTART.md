@@ -57,6 +57,29 @@ npm run dev
 - Frontend: `http://localhost:5173`
 - Backend health: `http://localhost:3001/api/health`
 
+## Dostępne ścieżki
+
+### Publiczne
+- `/` — Strona główna
+- `/logowanie` — Logowanie
+- `/rejestracja` — Rejestracja
+- `/reset-hasla` — Resetowanie hasła
+- `/potwierdzenie-email` — Potwierdzenie zmiany e-maila
+
+### Dla zalogowanych
+- `/dashboard` — Panel użytkownika
+- `/lekcje` — Lista lekcji SQL
+- `/lekcja/:id` — Pojedyncza lekcja
+- `/ai-chat` — Czat z asystentem AI
+- `/sandbox` — Sandbox SQL
+- `/testy` — Lista przypisanych testów
+- `/testy/:assignmentId` — Rozwiązywanie testu
+- `/kreator-testow` — Kreator testów (nauczyciel)
+- `/wiadomosci` — Wiadomości
+- `/ustawienia` — Ustawienia konta
+- `/panel-nauczyciela` — Panel nauczyciela
+- `/panel-admina` — Panel administratora
+
 ---
 
 **Pełna dokumentacja:** [uruchomienie.md](uruchomienie.md)

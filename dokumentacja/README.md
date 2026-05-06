@@ -23,15 +23,20 @@ Projekt składa się z dwóch części:
 - **Uczenie SQL** z lekcjami dostosowanymi do poziomu użytkownika
 - **Asystent AI** (Google Gemma 4 przez OpenRouter) odpowiada na pytania o SQL
 - **Personalizacja** zainteresowań przez AI podczas onboardingu
+- **System testów** — tworzenie, przypisywanie i rozwiązywanie testów przez uczniów
+- **Kreator testów** — nauczyciele mogą tworzyć testy z pytaniami SQL, wielokrotnego wyboru i prawda/fałsz
+- **Masowe przypisywanie** — przypisywanie testów do pojedynczych uczniów lub całych klas
+- **Ocenianie** — nauczyciele mogą oceniać odpowiedzi uczniów i przeglądać statystyki
 - **Panel nauczyciela** z zarządzaniem uczniami, klasami i testami
 - **Panel administratora** do zarządzania użytkownikami i statystykami systemu
 - **Wiadomości** między użytkownikami w czasie rzeczywistym (Supabase Realtime)
 - **System klas** z masowym przypisywaniem uczniów
+- **Sandbox SQL** — swobodne ćwiczenie zapytań SQL
 
 ## Struktura ról
 
 | Rola | Opis |
 |------|------|
-| `uczen` | Uczeń platformy — dostęp do lekcji, zadań, czatu AI |
-| `nauczyciel` | Nauczyciel — dostęp do panelu nauczyciela, tworzenie klas, testów |
+| `uczen` | Uczeń platformy — dostęp do lekcji, zadań, czatu AI, rozwiązywanie testów |
+| `nauczyciel` | Nauczyciel — dostęp do panelu nauczyciela, tworzenie klas, testów, ocenianie |
 | `administrator` | Administrator — pełny dostęp do panelu administratora, zarządzanie użytkownikami |

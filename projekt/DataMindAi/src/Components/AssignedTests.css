@@ -247,6 +247,14 @@
     color: #9dffb4;
 }
 
+.at-badge--graded {
+    background: linear-gradient(135deg, var(--accentColor) 0%, var(--btnHoverBlue) 100%);
+    color: var(--primaryText);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    box-shadow: 0 2px 8px rgba(50, 66, 119, 0.4);
+}
+
 /* Tagi metadanych */
 .at-meta-tag {
     font-size: 0.75rem;
